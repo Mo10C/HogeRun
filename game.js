@@ -52,8 +52,8 @@
   const PLAYER_SPRITE = {
     cols: 4,
     rows: 4,
-    cellW: 330,
-    cellH: 330,
+    cellW: 317,
+    cellH: 317,
     runFrames: [0, 1, 2, 3, 4, 5, 6, 7],
     jumpFrames: [8, 9, 10, 11],
     crouchFrames: [12, 13, 14, 15],
@@ -957,9 +957,9 @@
     }
 
     if (!p.onGround) {
-      if (p.vy < -260) return PLAYER_SPRITE.jumpFrames[0];
-      if (p.vy < -70) return PLAYER_SPRITE.jumpFrames[1];
-      if (p.vy < 150) return PLAYER_SPRITE.jumpFrames[2];
+      if (p.vy < -320) return PLAYER_SPRITE.jumpFrames[0];
+      if (p.vy < -80) return PLAYER_SPRITE.jumpFrames[1];
+      if (p.vy < 180) return PLAYER_SPRITE.jumpFrames[2];
       return PLAYER_SPRITE.jumpFrames[3];
     }
 

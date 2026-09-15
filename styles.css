@@ -1,14 +1,14 @@
 :root {
-  --bg: #11131a;
-  --panel: #1b1f2a;
-  --panel-2: #242938;
-  --line: #3b4358;
-  --text: #f8f5e8;
-  --muted: #aeb7c8;
-  --accent: #ffd84d;
-  --accent-2: #7ee787;
-  --danger: #ff6b6b;
-  --shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+  --bg: #eaf4ff;
+  --panel: #fffaf8;
+  --panel-2: #eef5ff;
+  --line: #9db2cf;
+  --text: #48556f;
+  --muted: #7083a1;
+  --accent: #f3d560;
+  --accent-2: #88ddcf;
+  --danger: #f17895;
+  --shadow: 0 18px 44px rgba(117, 143, 183, 0.22);
 }
 
 * { box-sizing: border-box; }
@@ -18,8 +18,8 @@ html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--te
 body {
   font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
   background-image:
-    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+    linear-gradient(rgba(134, 164, 204, .12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(134, 164, 204, .12) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
@@ -77,7 +77,7 @@ button { cursor: pointer; }
 .login-form label { display: block; margin-bottom: 8px; font-weight: 800; }
 .login-row { display: flex; gap: 10px; }
 .login-row input {
-  flex: 1; min-width: 0; padding: 14px 16px; color: var(--text); background: #10131b;
+  flex: 1; min-width: 0; padding: 14px 16px; color: var(--text); background: #ffffff;
   border: 2px solid var(--line); outline: none;
 }
 .login-row input:focus { border-color: var(--accent); }
@@ -106,11 +106,11 @@ button { cursor: pointer; }
 .hud-item span { display: block; color: var(--muted); font-size: 11px; font-weight: 900; letter-spacing: .12em; }
 .hud-item strong { font-size: 22px; }
 
-.game-frame { position: relative; overflow: hidden; aspect-ratio: 16 / 9; background: #8bd3dd; }
+.game-frame { position: relative; overflow: hidden; aspect-ratio: 16 / 9; background: #dff1ff; }
 #game-canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; touch-action: none; }
 
-.overlay-card, .upgrade-overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: rgba(8,10,15,.56); overflow: auto; }
-.overlay-inner { width: min(440px, 100%); max-height: calc(100% - 8px); overflow-y: auto; padding: 14px 18px 16px; text-align: center; background: rgba(27,31,42,.96); border: 3px solid var(--line); box-shadow: 8px 8px 0 rgba(0,0,0,.55); }
+.overlay-card, .upgrade-overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: rgba(201, 220, 244, .55); overflow: auto; }
+.overlay-inner { width: min(440px, 100%); max-height: calc(100% - 8px); overflow-y: auto; padding: 14px 18px 16px; text-align: center; background: rgba(255, 251, 247, .97); border: 3px solid var(--line); box-shadow: 8px 8px 0 rgba(146, 169, 201, .35); }
 .overlay-inner h2, .upgrade-box h2 { margin: 2px 0 6px; font-size: clamp(24px, 4vw, 34px); }
 .overlay-character {
   display: block;
@@ -118,7 +118,7 @@ button { cursor: pointer; }
   height: auto;
   margin: 2px auto 0;
   image-rendering: pixelated;
-  filter: drop-shadow(8px 10px 0 rgba(0,0,0,.25));
+  filter: drop-shadow(8px 10px 0 rgba(112, 146, 188, .22));
   animation: hoverBob 1.8s ease-in-out infinite;
 }
 .overlay-logo {
@@ -127,21 +127,21 @@ button { cursor: pointer; }
   gap: 8px;
   padding: 5px 12px;
   margin-bottom: 4px;
-  background: rgba(255,255,255,.08);
+  background: rgba(216, 235, 255, .8);
   border: 2px solid rgba(255,243,176,.55);
   border-radius: 999px;
   font-weight: 1000;
 }
 .overlay-logo .logo-text {
   font-size: clamp(20px, 3vw, 30px);
-  color: #ffe7f2;
-  text-shadow: 2px 2px 0 rgba(0,0,0,.35);
+  color: #6a657d;
+  text-shadow: 1px 1px 0 rgba(255,255,255,.85);
 }
-.overlay-note { margin: 4px 0 0; color: #ffe7f2; font-size: 13px; font-weight: 800; }
+.overlay-note { margin: 4px 0 0; color: #7a86a6; font-size: 13px; font-weight: 800; }
 .overlay-start .overlay-inner { border-color: #f5d27f; }
-.overlay-gameover .overlay-inner { border-color: #ff8ca7; background: rgba(41, 23, 34, .95); }
+.overlay-gameover .overlay-inner { border-color: #f3a6bb; background: rgba(255, 245, 248, .97); }
 .overlay-gameover .overlay-character { animation: softBounce .95s steps(2) infinite; }
-.overlay-gameover .overlay-note { color: #ffd6de; }
+.overlay-gameover .overlay-note { color: #90748d; }
 @keyframes hoverBob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
@@ -152,7 +152,7 @@ button { cursor: pointer; }
 }
 .control-help { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; margin: 8px 0 10px; color: var(--muted); font-size: 12px; font-weight: 800; }
 
-.upgrade-overlay { background: rgba(8,10,15,.82); z-index: 5; }
+.upgrade-overlay { background: rgba(205, 222, 243, .82); z-index: 5; }
 .upgrade-box { width: min(860px, 100%); padding: 26px; background: var(--panel); border: 3px solid var(--accent); box-shadow: 10px 10px 0 #000; }
 .upgrade-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 20px; }
 .upgrade-card { min-height: 180px; padding: 18px; text-align: left; background: #f7efd2; }
@@ -162,7 +162,7 @@ button { cursor: pointer; }
 
 .mobile-controls { display: none; grid-template-columns: 1fr 1fr; gap: 12px; }
 .control-button { min-height: 64px; font-size: 18px; }
-.duck-button { background: #8bd3dd; }
+.duck-button { background: #bde5f3; }
 
 .build-panel { display: flex; align-items: center; gap: 20px; padding: 14px 16px; }
 .build-panel h3 { margin: 0; }
