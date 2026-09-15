@@ -16,6 +16,10 @@
     loginForm: $("login-form"),
     usernameInput: $("username-input"),
     loginError: $("login-error"),
+    menuNameForm: $("menu-name-form"),
+    menuUsernameInput: $("menu-username-input"),
+    menuNameStatus: $("menu-name-status"),
+    menuNameSave: $("menu-name-save"),
     userBadge: $("user-badge"),
     currentUsername: $("current-username"),
     homeUsername: $("home-username"),
@@ -91,24 +95,24 @@
   }
 
   const ART = {
-    logo: loadImage("./assets/ui/title-logo.png?v=36"),
-    background: loadImage("./assets/backgrounds/stage-bg.png?v=36"),
-    titleScene: loadImage("./assets/ui/title-key-art.png?v=36"),
-    playerIdle: loadImage("./assets/player/idle.png?v=36"),
-    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=36`)),
-    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=36`)),
-    playerJumpUp: loadImage("./assets/player/jump/up.png?v=36"),
-    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=36"),
-    playerJumpDown: loadImage("./assets/player/jump/down.png?v=36"),
+    logo: loadImage("./assets/ui/title-logo.png?v=39"),
+    background: loadImage("./assets/backgrounds/stage-bg.png?v=39"),
+    titleScene: loadImage("./assets/ui/title-key-art.png?v=39"),
+    playerIdle: loadImage("./assets/player/idle.png?v=39"),
+    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=39`)),
+    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=39`)),
+    playerJumpUp: loadImage("./assets/player/jump/up.png?v=39"),
+    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=39"),
+    playerJumpDown: loadImage("./assets/player/jump/down.png?v=39"),
     playerSlides: [
-      loadImage("./assets/player/slide/slide-1.png?v=36"),
-      loadImage("./assets/player/slide/slide-2.png?v=36"),
-      loadImage("./assets/player/slide/slide-3.png?v=36")
+      loadImage("./assets/player/slide/slide-1.png?v=39"),
+      loadImage("./assets/player/slide/slide-2.png?v=39"),
+      loadImage("./assets/player/slide/slide-3.png?v=39")
     ],
-    playerGameover: loadImage("./assets/player/gameover.png?v=36"),
-    playerHero: loadImage("./assets/ui/title-key-art.png?v=36"),
-    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=36"),
-    teaCup: loadImage("./assets/items/tea-cup.png?v=36")
+    playerGameover: loadImage("./assets/player/gameover.png?v=39"),
+    playerHero: loadImage("./assets/ui/title-key-art.png?v=39"),
+    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=39"),
+    teaCup: loadImage("./assets/items/tea-cup.png?v=39")
   };
 
   let gameplayAssetsPromise = null;
@@ -164,7 +168,7 @@
     }
     if (now - loadingRunnerLastFrame >= 42) {
       loadingRunnerFrame = (loadingRunnerFrame + 1) % 16;
-      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=36`; }
+      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=39`; }
       loadingRunnerLastFrame = now;
     }
     loadingRunnerRaf = requestAnimationFrame(animateLoadingRunner);
@@ -433,7 +437,7 @@
     {
       id: "double_jump",
       icon: "⇧⇧",
-      iconImage: "./assets/upgrades/double-jump.png?v=36",
+      iconImage: "./assets/upgrades/double-jump.png?v=39",
       name: "二段ジャンプ",
       uiDesc: "空中ジャンプ回数 +1。\n最大3回まで重ね掛け可能。",
       desc: "空中ジャンプ回数 +1。最大3回まで重ね掛け可能。",
@@ -443,7 +447,7 @@
     {
       id: "jump_boots",
       icon: "靴",
-      iconImage: "./assets/upgrades/jump-boots.png?v=36",
+      iconImage: "./assets/upgrades/jump-boots.png?v=39",
       name: "バネ靴",
       uiDesc: "ジャンプ力 +12%。\n高い敵配置を越えやすくなる。",
       desc: "ジャンプ力 +12%。高い敵配置を越えやすくなる。",
@@ -453,7 +457,7 @@
     {
       id: "shield",
       icon: "盾",
-      iconImage: "./assets/upgrades/shield.png?v=36",
+      iconImage: "./assets/upgrades/shield.png?v=39",
       name: "ほげシールド",
       uiDesc: "敵との衝突を1回無効化。\n取るたびに1枚追加。",
       desc: "敵との衝突を1回無効化。取るたびに1枚追加。",
@@ -463,7 +467,7 @@
     {
       id: "magnet",
       icon: "磁",
-      iconImage: "./assets/upgrades/magnet.png?v=36",
+      iconImage: "./assets/upgrades/magnet.png?v=39",
       name: "ティーカップ磁石",
       uiDesc: "近くの紅茶カップを吸い寄せる\n範囲が広くなる。",
       desc: "近くの紅茶カップを吸い寄せる範囲が広くなる。",
@@ -473,7 +477,7 @@
     {
       id: "slow_clock",
       icon: "時",
-      iconImage: "./assets/upgrades/slow-clock.png?v=36",
+      iconImage: "./assets/upgrades/slow-clock.png?v=39",
       name: "のろのろ時計",
       uiDesc: "敵と紅茶カップの流れる速度を\n7%低下。重ね掛け可能。",
       desc: "敵と紅茶カップの流れる速度を7%低下。重ね掛け可能。",
@@ -483,7 +487,7 @@
     {
       id: "tiny_charm",
       icon: "小",
-      iconImage: "./assets/upgrades/tiny-charm.png?v=36",
+      iconImage: "./assets/upgrades/tiny-charm.png?v=39",
       name: "ちびチャーム",
       uiDesc: "当たり判定を少し小さくして\nギリギリ回避しやすくする。",
       desc: "当たり判定を少し小さくして、ギリギリ回避しやすくする。",
@@ -493,7 +497,7 @@
     {
       id: "revive",
       icon: "羽",
-      iconImage: "./assets/upgrades/revive.png?v=36",
+      iconImage: "./assets/upgrades/revive.png?v=39",
       name: "復活の羽",
       uiDesc: "致命的な衝突を1回だけ無効化し\n短時間無敵になる。",
       desc: "致命的な衝突を1回だけ無効化し、短時間無敵になる。",
@@ -503,7 +507,7 @@
     {
       id: "coin_sense",
       icon: "金",
-      iconImage: "./assets/upgrades/tea-sensor.png?v=36",
+      iconImage: "./assets/upgrades/tea-sensor.png?v=39",
       name: "ティーセンサー",
       uiDesc: "紅茶カップの出現間隔が短くなり\n次の強化を狙いやすくなる。",
       desc: "紅茶カップの出現間隔が短くなり、次の強化を狙いやすくなる。",
@@ -567,15 +571,34 @@
     return { ok: true, username };
   }
 
+  function setMenuNameStatus(message = "", tone = "muted") {
+    if (els.menuNameStatus) {
+      els.menuNameStatus.textContent = message;
+      els.menuNameStatus.classList.remove("is-error", "is-success");
+      if (tone === "error") els.menuNameStatus.classList.add("is-error");
+      if (tone === "success") els.menuNameStatus.classList.add("is-success");
+    }
+    if (els.loginError) els.loginError.textContent = tone === "error" ? message : "";
+  }
+
+  function syncUsernameUi() {
+    if (els.currentUsername) els.currentUsername.textContent = currentUsername || "ゲスト";
+    if (els.homeUsername) els.homeUsername.textContent = currentUsername || "";
+    if (els.usernameInput) els.usernameInput.value = currentUsername || els.usernameInput.value || "";
+    if (els.menuUsernameInput && document.activeElement !== els.menuUsernameInput) {
+      els.menuUsernameInput.value = currentUsername || els.menuUsernameInput.value || "";
+    }
+  }
+
   async function initializeOnline() {
     if (!ONLINE_CONFIGURED) {
-      els.loginError.textContent = "※ config.js が未設定です。今はオフライン練習モードで遊べます。ランキングを使うにはREADMEのSupabase設定を行ってください。";
+      setMenuNameStatus("※ config.js が未設定です。今はオフライン練習モードで遊べます。ランキングを使うにはREADMEのSupabase設定を行ってください。", "muted");
       els.rankingStatus.textContent = "Supabase未設定";
       return;
     }
 
     if (!window.supabase?.createClient) {
-      els.loginError.textContent = "Supabaseライブラリを読み込めませんでした。インターネット接続を確認してください。";
+      setMenuNameStatus("Supabaseライブラリを読み込めませんでした。インターネット接続を確認してください。", "error");
       return;
     }
 
@@ -596,19 +619,21 @@
 
     if (profile?.username) {
       currentUsername = profile.username;
-      enterGameScreen();
+      localStorage.setItem("hoge-run-offline-name", profile.username);
+      syncUsernameUi();
     }
   }
 
   async function loginWithUsername(username) {
-    els.loginError.textContent = "";
+    setMenuNameStatus("名前を保存しています…", "muted");
     await ensureGameplayAssets();
 
     if (!ONLINE_CONFIGURED || !supabaseClient) {
       currentUsername = username;
-      currentUserId = `offline-${crypto.randomUUID()}`;
+      currentUserId = currentUserId || `offline-${crypto.randomUUID()}`;
       localStorage.setItem("hoge-run-offline-name", username);
-      enterGameScreen();
+      syncUsernameUi();
+      setMenuNameStatus("名前を保存しました。スタートできます。", "success");
       return;
     }
 
@@ -641,27 +666,25 @@
 
     currentUserId = user.id;
     currentUsername = username;
-    enterGameScreen();
+    localStorage.setItem("hoge-run-offline-name", username);
+    syncUsernameUi();
+    setMenuNameStatus("名前を保存しました。スタートできます。", "success");
   }
 
   function enterGameScreen() {
-    els.loginScreen.classList.add("hidden");
+    els.loginScreen?.classList.add("hidden");
     els.gameScreen.classList.remove("hidden");
     els.userBadge.classList.remove("hidden");
-    els.currentUsername.textContent = currentUsername;
-    if (els.homeUsername) els.homeUsername.textContent = currentUsername;
+    syncUsernameUi();
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=36" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "名前を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=39" });
     refreshLeaderboard();
   }
 
   function showLoginForRename() {
     if (game.phase === "playing" || game.phase === "upgrade") return;
-    els.gameScreen.classList.add("hidden");
-    els.loginScreen.classList.remove("hidden");
-    els.userBadge.classList.add("hidden");
-    els.usernameInput.value = currentUsername;
-    els.usernameInput.focus();
+    goHome();
+    if (els.menuUsernameInput) els.menuUsernameInput.focus();
   }
 
   function goHome() {
@@ -670,12 +693,12 @@
     currentRunId = null;
     finishingRun = false;
     resetGame();
-    if (els.homeUsername) els.homeUsername.textContent = currentUsername;
+    syncUsernameUi();
     showStartOverlay(
       "うさぎのティーパーティー大冒険",
       "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。",
       "スタート",
-      { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=36" }
+      { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=39" }
     );
   }
 
@@ -690,12 +713,25 @@
     finishingRun = false;
 
     try {
+      const enteredName = els.menuUsernameInput?.value ?? currentUsername ?? "";
+      const result = validateUsername(enteredName);
+      if (!result.ok) {
+        setMenuNameStatus(result.message, "error");
+        if (els.menuUsernameInput) els.menuUsernameInput.focus();
+        return;
+      }
+      if (result.username !== currentUsername || !currentUserId) {
+        await loginWithUsername(result.username);
+      } else {
+        setMenuNameStatus("", "muted");
+        syncUsernameUi();
+      }
       await ensureGameplayAssets();
 
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
         if (error) {
-          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=36" });
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=39" });
           return;
         }
         currentRunId = data;
@@ -705,7 +741,7 @@
       game.phase = "playing";
       game.lastTime = performance.now();
     } catch (error) {
-      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=36" });
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=39" });
     } finally {
       els.startButton.disabled = false;
       els.startButton.textContent = originalLabel;
@@ -727,7 +763,7 @@ ${saveMessage}`, "もう一回", {
       variant: "gameover",
       eyebrow: "OOPS! TEA TIME OVER",
       note: "紅茶をこぼしちゃった… もう一回走ろう！",
-      characterSrc: "./assets/player/gameover.png?v=36",
+      characterSrc: "./assets/player/gameover.png?v=39",
       resultScore: finalScore,
       resultCoins: game.coins
     });
@@ -755,7 +791,7 @@ ${saveMessage}`, "もう一回", {
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=36" : "./assets/ui/title-key-art.png?v=36",
+      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=39" : "./assets/ui/title-key-art.png?v=39",
       resultScore = null,
       resultCoins = null
     } = options;
@@ -773,7 +809,7 @@ ${saveMessage}`, "もう一回", {
     }
     const isResult = variant === "gameover" && Number.isFinite(Number(resultScore));
     if (els.homeButton) els.homeButton.classList.toggle("hidden", !isResult);
-    if (els.homeUsername) els.homeUsername.textContent = currentUsername;
+    syncUsernameUi();
     if (els.resultScorePanel) els.resultScorePanel.classList.toggle("hidden", !isResult);
     if (isResult && els.resultScoreValue) els.resultScoreValue.textContent = `${Number(resultScore).toLocaleString()}m`;
     if (isResult && els.resultTeaValue) els.resultTeaValue.textContent = `${Number(resultCoins || 0).toLocaleString()} TEA`;
@@ -1280,7 +1316,7 @@ ${saveMessage}`, "もう一回", {
     els.buildPop?.classList.remove("hidden");
     els.buildList.innerHTML = entries.map(([id, level]) => {
       const item = UPGRADE_DEFS.find((def) => def.id === id);
-      const icon = item?.iconImage || './assets/ui/hud/build.png?v=36';
+      const icon = item?.iconImage || './assets/ui/hud/build.png?v=39';
       const name = escapeHtml(item?.name || id);
       let extra = `<span class="build-item-level">Lv.${level}</span>`;
       if (id === 'revive') {
@@ -1326,12 +1362,26 @@ ${saveMessage}`, "もう一回", {
     updateHud();
 
     els.rankingStatus.textContent = rows.length ? `TOP ${rows.length}` : "まだ記録がありません。最初のランナーになろう。";
-    els.rankingList.innerHTML = rows.map((row) => `
+    const rankIcons = [
+      "./assets/ui/ranking/rank-1.png?v=39",
+      "./assets/ui/ranking/rank-2.png?v=39",
+      "./assets/ui/ranking/rank-3.png?v=39",
+    ];
+
+    els.rankingList.innerHTML = rows.map((row, index) => {
+      const marker = index < 3
+        ? `<img class="rank-medal" src="${rankIcons[index]}" alt="${index + 1}位" />`
+        : `<span class="rank-number-badge">${index + 1}</span>`;
+      return `
       <li class="ranking-item ${row.user_id === currentUserId ? "me" : ""}">
-        <span class="rank-name" title="${escapeHtml(row.username)}">${escapeHtml(row.username)}</span>
+        <div class="rank-marker">${marker}</div>
+        <div class="rank-meta">
+          <span class="rank-name" title="${escapeHtml(row.username)}">${escapeHtml(row.username)}</span>
+          <span class="rank-label">BEST SCORE</span>
+        </div>
         <span class="rank-score">${Number(row.best_score).toLocaleString()}m</span>
-      </li>
-    `).join("");
+      </li>`;
+    }).join("");
   }
 
   function escapeHtml(value) {
@@ -2053,36 +2103,28 @@ ${saveMessage}`, "もう一回", {
   }
 
   function bindEvents() {
-    els.loginForm.addEventListener("submit", async (event) => {
+    els.menuNameForm?.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const result = validateUsername(els.usernameInput.value);
+      const result = validateUsername(els.menuUsernameInput?.value || "");
       if (!result.ok) {
-        els.loginError.textContent = result.message;
+        setMenuNameStatus(result.message, "error");
         return;
       }
 
-      const submit = els.loginForm.querySelector('button[type="submit"]');
-      submit.disabled = true;
-      submit.textContent = "ログイン中...";
-      showLoadingScreen("プレイヤーを準備しています…");
-      const loadingStartedAt = performance.now();
+      if (!els.menuNameSave) return;
+      const originalLabel = els.menuNameSave.textContent;
+      els.menuNameSave.disabled = true;
+      els.menuNameSave.textContent = "保存中...";
       try {
         await loginWithUsername(result.username);
-        const elapsed = performance.now() - loadingStartedAt;
-        if (elapsed < 900) await delay(900 - elapsed);
-        revealApp();
       } catch (error) {
-        const elapsed = performance.now() - loadingStartedAt;
-        if (elapsed < 650) await delay(650 - elapsed);
-        revealApp();
-        els.loginError.textContent = error instanceof Error ? error.message : String(error);
+        setMenuNameStatus(error instanceof Error ? error.message : String(error), "error");
       } finally {
-        submit.disabled = false;
-        submit.textContent = "この名前で遊ぶ";
+        els.menuNameSave.disabled = false;
+        els.menuNameSave.textContent = originalLabel;
       }
     });
 
-    els.renameButton.addEventListener("click", showLoginForRename);
     els.homeButton?.addEventListener("click", goHome);
     els.startButton.addEventListener("click", startRun);
   els.upgradeConfirm?.addEventListener("click", () => {
@@ -2122,9 +2164,12 @@ ${saveMessage}`, "もう一回", {
 
       // Menu/result: Space starts or retries immediately.
       if (!event.repeat && event.code === "Space" && !els.startOverlay.classList.contains("hidden")) {
-        event.preventDefault();
-        if (!els.startButton.disabled) els.startButton.click();
-        return;
+        const activeTag = document.activeElement?.tagName;
+        if (activeTag !== "INPUT" && activeTag !== "TEXTAREA") {
+          event.preventDefault();
+          if (!els.startButton.disabled) els.startButton.click();
+          return;
+        }
       }
 
       // Ability selection: left-to-right keys are Q/W/E or 1/2/3 by default.
@@ -2275,15 +2320,18 @@ ${saveMessage}`, "もう一回", {
     await ensureBootAssets();
     setBootStatus("ゲームを準備しています…");
     const offlineName = localStorage.getItem("hoge-run-offline-name");
-    if (offlineName) els.usernameInput.value = offlineName;
+    if (offlineName) currentUsername = offlineName;
+    syncUsernameUi();
 
     setBootStatus("ランキング機能を確認しています…");
     try {
       await withTimeout(initializeOnline(), 10000, "ランキング接続");
     } catch (error) {
       console.warn("Online initialization skipped:", error);
-      els.loginError.textContent = "オンライン接続に時間がかかったため、ログイン画面を表示しました。必要ならそのまま再試行できます。";
+      setMenuNameStatus("オンライン接続に時間がかかっています。オフラインのままでも遊べます。", "muted");
     }
+
+    enterGameScreen();
 
     // Canvasを完成状態で1回描画してから画面を公開する。
     draw();
@@ -2298,7 +2346,7 @@ ${saveMessage}`, "もう一回", {
     if (els.bootSplash) els.bootSplash.classList.add("boot-error");
     window.setTimeout(() => {
       revealApp();
-      els.loginError.textContent = `一部素材の読み込みに失敗しました: ${message}`;
+      setMenuNameStatus(`一部素材の読み込みに失敗しました: ${message}`, "error");
     }, 1800);
   });
 })();
