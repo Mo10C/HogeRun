@@ -88,24 +88,24 @@
   }
 
   const ART = {
-    logo: loadImage("./assets/ui/title-logo.png?v=28"),
-    background: loadImage("./assets/backgrounds/stage-bg.png?v=28"),
-    titleScene: loadImage("./assets/ui/title-key-art.png?v=28"),
-    playerIdle: loadImage("./assets/player/idle.png?v=28"),
-    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=28`)),
-    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=28`)),
-    playerJumpUp: loadImage("./assets/player/jump/up.png?v=28"),
-    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=28"),
-    playerJumpDown: loadImage("./assets/player/jump/down.png?v=28"),
+    logo: loadImage("./assets/ui/title-logo.png?v=29"),
+    background: loadImage("./assets/backgrounds/stage-bg.png?v=29"),
+    titleScene: loadImage("./assets/ui/title-key-art.png?v=29"),
+    playerIdle: loadImage("./assets/player/idle.png?v=29"),
+    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=29`)),
+    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=29`)),
+    playerJumpUp: loadImage("./assets/player/jump/up.png?v=29"),
+    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=29"),
+    playerJumpDown: loadImage("./assets/player/jump/down.png?v=29"),
     playerSlides: [
-      loadImage("./assets/player/slide/slide-1.png?v=28"),
-      loadImage("./assets/player/slide/slide-2.png?v=28"),
-      loadImage("./assets/player/slide/slide-3.png?v=28")
+      loadImage("./assets/player/slide/slide-1.png?v=29"),
+      loadImage("./assets/player/slide/slide-2.png?v=29"),
+      loadImage("./assets/player/slide/slide-3.png?v=29")
     ],
-    playerGameover: loadImage("./assets/player/gameover.png?v=28"),
-    playerHero: loadImage("./assets/ui/title-key-art.png?v=28"),
-    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=28"),
-    teaCup: loadImage("./assets/items/tea-cup.png?v=28")
+    playerGameover: loadImage("./assets/player/gameover.png?v=29"),
+    playerHero: loadImage("./assets/ui/title-key-art.png?v=29"),
+    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=29"),
+    teaCup: loadImage("./assets/items/tea-cup.png?v=29")
   };
 
   let gameplayAssetsPromise = null;
@@ -161,7 +161,7 @@
     }
     if (now - loadingRunnerLastFrame >= 42) {
       loadingRunnerFrame = (loadingRunnerFrame + 1) % 16;
-      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=28`; }
+      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=29`; }
       loadingRunnerLastFrame = now;
     }
     loadingRunnerRaf = requestAnimationFrame(animateLoadingRunner);
@@ -398,7 +398,7 @@
     {
       id: "double_jump",
       icon: "⇧⇧",
-      iconImage: "./assets/upgrades/double-jump.png?v=28",
+      iconImage: "./assets/upgrades/double-jump.png?v=29",
       name: "二段ジャンプ",
       uiDesc: "空中ジャンプ回数 +1。\n最大3回まで重ね掛け可能。",
       desc: "空中ジャンプ回数 +1。最大3回まで重ね掛け可能。",
@@ -408,7 +408,7 @@
     {
       id: "jump_boots",
       icon: "靴",
-      iconImage: "./assets/upgrades/jump-boots.png?v=28",
+      iconImage: "./assets/upgrades/jump-boots.png?v=29",
       name: "バネ靴",
       uiDesc: "ジャンプ力 +12%。\n高い敵配置を越えやすくなる。",
       desc: "ジャンプ力 +12%。高い敵配置を越えやすくなる。",
@@ -418,7 +418,7 @@
     {
       id: "shield",
       icon: "盾",
-      iconImage: "./assets/upgrades/shield.png?v=28",
+      iconImage: "./assets/upgrades/shield.png?v=29",
       name: "ほげシールド",
       uiDesc: "敵との衝突を1回無効化。\n取るたびに1枚追加。",
       desc: "敵との衝突を1回無効化。取るたびに1枚追加。",
@@ -428,7 +428,7 @@
     {
       id: "magnet",
       icon: "磁",
-      iconImage: "./assets/upgrades/magnet.png?v=28",
+      iconImage: "./assets/upgrades/magnet.png?v=29",
       name: "ティーカップ磁石",
       uiDesc: "近くの紅茶カップを吸い寄せる\n範囲が広くなる。",
       desc: "近くの紅茶カップを吸い寄せる範囲が広くなる。",
@@ -438,7 +438,7 @@
     {
       id: "slow_clock",
       icon: "時",
-      iconImage: "./assets/upgrades/slow-clock.png?v=28",
+      iconImage: "./assets/upgrades/slow-clock.png?v=29",
       name: "のろのろ時計",
       uiDesc: "敵と紅茶カップの流れる速度を\n7%低下。重ね掛け可能。",
       desc: "敵と紅茶カップの流れる速度を7%低下。重ね掛け可能。",
@@ -448,7 +448,7 @@
     {
       id: "tiny_charm",
       icon: "小",
-      iconImage: "./assets/upgrades/tiny-charm.png?v=28",
+      iconImage: "./assets/upgrades/tiny-charm.png?v=29",
       name: "ちびチャーム",
       uiDesc: "当たり判定を少し小さくして\nギリギリ回避しやすくする。",
       desc: "当たり判定を少し小さくして、ギリギリ回避しやすくする。",
@@ -458,7 +458,7 @@
     {
       id: "revive",
       icon: "羽",
-      iconImage: "./assets/upgrades/revive.png?v=28",
+      iconImage: "./assets/upgrades/revive.png?v=29",
       name: "復活の羽",
       uiDesc: "致命的な衝突を1回だけ無効化し\n短時間無敵になる。",
       desc: "致命的な衝突を1回だけ無効化し、短時間無敵になる。",
@@ -468,7 +468,7 @@
     {
       id: "coin_sense",
       icon: "金",
-      iconImage: "./assets/upgrades/tea-sensor.png?v=28",
+      iconImage: "./assets/upgrades/tea-sensor.png?v=29",
       name: "ティーセンサー",
       uiDesc: "紅茶カップの出現間隔が短くなり\n次の強化を狙いやすくなる。",
       desc: "紅茶カップの出現間隔が短くなり、次の強化を狙いやすくなる。",
@@ -613,7 +613,7 @@
     els.userBadge.classList.remove("hidden");
     els.currentUsername.textContent = currentUsername;
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=28" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=29" });
     refreshLeaderboard();
   }
 
@@ -642,7 +642,7 @@
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
         if (error) {
-          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=28" });
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=29" });
           return;
         }
         currentRunId = data;
@@ -652,7 +652,7 @@
       game.phase = "playing";
       game.lastTime = performance.now();
     } catch (error) {
-      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=28" });
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=29" });
     } finally {
       els.startButton.disabled = false;
       els.startButton.textContent = originalLabel;
@@ -674,7 +674,7 @@ ${saveMessage}`, "もう一回", {
       variant: "gameover",
       eyebrow: "OOPS! TEA TIME OVER",
       note: "紅茶をこぼしちゃった… もう一回走ろう！",
-      characterSrc: "./assets/player/gameover.png?v=28",
+      characterSrc: "./assets/player/gameover.png?v=29",
       resultScore: finalScore,
       resultCoins: game.coins
     });
@@ -702,7 +702,7 @@ ${saveMessage}`, "もう一回", {
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=28" : "./assets/ui/title-key-art.png?v=28",
+      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=29" : "./assets/ui/title-key-art.png?v=29",
       resultScore = null,
       resultCoins = null
     } = options;
@@ -1174,8 +1174,30 @@ ${saveMessage}`, "もう一回", {
 
     els.buildList.innerHTML = entries.map(([id, level]) => {
       const item = UPGRADE_DEFS.find((def) => def.id === id);
-      return `<span class="build-chip">${escapeHtml(item?.name || id)} Lv.${level}</span>`;
-    }).join("");
+      const icon = item?.iconImage || './assets/ui/hud/build.png?v=29';
+      const name = escapeHtml(item?.name || id);
+      let extra = `<span class="build-item-level">Lv.${level}</span>`;
+      if (id === 'revive') {
+        const charges = Math.max(0, Number(game.upgrades?.revive || 0));
+        if (charges > 0) {
+          const visibleIcons = Math.min(charges, 6);
+          const feathers = Array.from({ length: visibleIcons }, (_, idx) => `
+            <img class="revive-charge-icon" src="${icon}" alt="復活の羽 ${idx + 1}" />`).join('');
+          const overflow = charges > visibleIcons ? `<span class="revive-charge-more">+${charges - visibleIcons}</span>` : '';
+          extra += `<span class="revive-charge-wrap" aria-label="残りの復活回数 ${charges}">${feathers}${overflow}</span>`;
+        }
+      }
+      return `
+        <div class="build-item build-item-${escapeHtml(id)}">
+          <img class="build-item-icon" src="${icon}" alt="" />
+          <div class="build-item-texts">
+            <div class="build-item-name-row">
+              <span class="build-item-name">${name}</span>
+              ${extra}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
   }
 
   async function refreshLeaderboard() {
