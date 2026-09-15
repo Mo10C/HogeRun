@@ -28,6 +28,7 @@
     startTitle: $("start-title"),
     startDescription: $("start-description"),
     startButton: $("start-button"),
+    startPressHint: $("start-press-hint"),
     overlayEyebrow: $("overlay-eyebrow"),
     overlayCharacter: $("overlay-character"),
     overlayNote: $("overlay-note"),
@@ -87,24 +88,24 @@
   }
 
   const ART = {
-    logo: loadImage("./assets/ui/title-logo.png?v=27"),
-    background: loadImage("./assets/backgrounds/stage-bg.png?v=27"),
-    titleScene: loadImage("./assets/ui/title-key-art.png?v=27"),
-    playerIdle: loadImage("./assets/player/idle.png?v=27"),
-    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=27`)),
-    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=27`)),
-    playerJumpUp: loadImage("./assets/player/jump/up.png?v=27"),
-    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=27"),
-    playerJumpDown: loadImage("./assets/player/jump/down.png?v=27"),
+    logo: loadImage("./assets/ui/title-logo.png?v=28"),
+    background: loadImage("./assets/backgrounds/stage-bg.png?v=28"),
+    titleScene: loadImage("./assets/ui/title-key-art.png?v=28"),
+    playerIdle: loadImage("./assets/player/idle.png?v=28"),
+    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=28`)),
+    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=28`)),
+    playerJumpUp: loadImage("./assets/player/jump/up.png?v=28"),
+    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=28"),
+    playerJumpDown: loadImage("./assets/player/jump/down.png?v=28"),
     playerSlides: [
-      loadImage("./assets/player/slide/slide-1.png?v=27"),
-      loadImage("./assets/player/slide/slide-2.png?v=27"),
-      loadImage("./assets/player/slide/slide-3.png?v=27")
+      loadImage("./assets/player/slide/slide-1.png?v=28"),
+      loadImage("./assets/player/slide/slide-2.png?v=28"),
+      loadImage("./assets/player/slide/slide-3.png?v=28")
     ],
-    playerGameover: loadImage("./assets/player/gameover.png?v=27"),
-    playerHero: loadImage("./assets/ui/title-key-art.png?v=27"),
-    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=27"),
-    teaCup: loadImage("./assets/items/tea-cup.png?v=27")
+    playerGameover: loadImage("./assets/player/gameover.png?v=28"),
+    playerHero: loadImage("./assets/ui/title-key-art.png?v=28"),
+    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=28"),
+    teaCup: loadImage("./assets/items/tea-cup.png?v=28")
   };
 
   let gameplayAssetsPromise = null;
@@ -160,7 +161,7 @@
     }
     if (now - loadingRunnerLastFrame >= 42) {
       loadingRunnerFrame = (loadingRunnerFrame + 1) % 16;
-      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=27`; }
+      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=28`; }
       loadingRunnerLastFrame = now;
     }
     loadingRunnerRaf = requestAnimationFrame(animateLoadingRunner);
@@ -217,7 +218,21 @@
 
   const DEFAULT_KEYBINDS = {
     jump: ["Space", "KeyW", "ArrowUp"],
-    duck: ["KeyS", "ArrowDown"]
+    duck: ["KeyS", "ArrowDown"],
+    upgrade1: ["KeyQ", "Digit1"],
+    upgrade2: ["KeyW", "Digit2"],
+    upgrade3: ["KeyE", "Digit3"]
+  };
+  const KEYBIND_ACTION_LABELS = {
+    jump: "ジャンプ",
+    duck: "しゃがみ",
+    upgrade1: "能力①（左）",
+    upgrade2: "能力②（中央）",
+    upgrade3: "能力③（右）"
+  };
+  const KEYBIND_GROUPS = {
+    gameplay: ["jump", "duck"],
+    upgrade: ["upgrade1", "upgrade2", "upgrade3"]
   };
 
   let keybinds = loadKeybinds();
@@ -235,13 +250,20 @@
   }
 
   function loadKeybinds() {
+    const result = Object.fromEntries(
+      Object.entries(DEFAULT_KEYBINDS).map(([action, codes]) => [action, [...codes]])
+    );
     try {
       const saved = JSON.parse(localStorage.getItem("hoge-run-keybinds") || "null");
-      if (saved?.jump?.length === 3 && saved?.duck?.length === 2) {
-        return { jump: [...saved.jump], duck: [...saved.duck] };
+      if (saved && typeof saved === "object") {
+        for (const [action, defaults] of Object.entries(DEFAULT_KEYBINDS)) {
+          if (Array.isArray(saved[action]) && saved[action].length === defaults.length) {
+            result[action] = [...saved[action]];
+          }
+        }
       }
     } catch (_) {}
-    return { jump: [...DEFAULT_KEYBINDS.jump], duck: [...DEFAULT_KEYBINDS.duck] };
+    return result;
   }
 
   function saveKeybinds() {
@@ -286,10 +308,18 @@
     if (els.duckHelp) els.duckHelp.textContent = `DUCK：${duckText}`;
     if (els.loadingJumpKeys) els.loadingJumpKeys.textContent = jumpText;
     if (els.loadingDuckKeys) els.loadingDuckKeys.textContent = duckText;
+    if (game?.phase === "upgrade") refreshUpgradeHotkeyLabels();
+  }
+
+  function keybindGroupFor(action) {
+    if (KEYBIND_GROUPS.gameplay.includes(action)) return KEYBIND_GROUPS.gameplay;
+    if (KEYBIND_GROUPS.upgrade.includes(action)) return KEYBIND_GROUPS.upgrade;
+    return [action];
   }
 
   function assignKey(action, slot, code) {
-    for (const otherAction of ["jump", "duck"]) {
+    const group = keybindGroupFor(action);
+    for (const otherAction of group) {
       keybinds[otherAction] = keybinds[otherAction].map((existing, i) => {
         if (otherAction === action && i === slot) return existing;
         return existing === code ? "" : existing;
@@ -300,12 +330,14 @@
     listeningBind = null;
     clearKeyboardState();
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-    els.keybindStatus.textContent = `${action === "jump" ? "ジャンプ" : "しゃがみ"}を「${keyLabel(code)}」に設定しました。`;
+    els.keybindStatus.textContent = `${KEYBIND_ACTION_LABELS[action] || action}を「${keyLabel(code)}」に設定しました。`;
     renderKeybinds();
   }
 
   function resetKeybindsToDefault() {
-    keybinds = { jump: [...DEFAULT_KEYBINDS.jump], duck: [...DEFAULT_KEYBINDS.duck] };
+    keybinds = Object.fromEntries(
+      Object.entries(DEFAULT_KEYBINDS).map(([action, codes]) => [action, [...codes]])
+    );
     listeningBind = null;
     clearKeyboardState();
     saveKeybinds();
@@ -366,7 +398,7 @@
     {
       id: "double_jump",
       icon: "⇧⇧",
-      iconImage: "./assets/upgrades/double-jump.png?v=27",
+      iconImage: "./assets/upgrades/double-jump.png?v=28",
       name: "二段ジャンプ",
       uiDesc: "空中ジャンプ回数 +1。\n最大3回まで重ね掛け可能。",
       desc: "空中ジャンプ回数 +1。最大3回まで重ね掛け可能。",
@@ -376,7 +408,7 @@
     {
       id: "jump_boots",
       icon: "靴",
-      iconImage: "./assets/upgrades/jump-boots.png?v=27",
+      iconImage: "./assets/upgrades/jump-boots.png?v=28",
       name: "バネ靴",
       uiDesc: "ジャンプ力 +12%。\n高い敵配置を越えやすくなる。",
       desc: "ジャンプ力 +12%。高い敵配置を越えやすくなる。",
@@ -386,7 +418,7 @@
     {
       id: "shield",
       icon: "盾",
-      iconImage: "./assets/upgrades/shield.png?v=27",
+      iconImage: "./assets/upgrades/shield.png?v=28",
       name: "ほげシールド",
       uiDesc: "敵との衝突を1回無効化。\n取るたびに1枚追加。",
       desc: "敵との衝突を1回無効化。取るたびに1枚追加。",
@@ -396,7 +428,7 @@
     {
       id: "magnet",
       icon: "磁",
-      iconImage: "./assets/upgrades/magnet.png?v=27",
+      iconImage: "./assets/upgrades/magnet.png?v=28",
       name: "ティーカップ磁石",
       uiDesc: "近くの紅茶カップを吸い寄せる\n範囲が広くなる。",
       desc: "近くの紅茶カップを吸い寄せる範囲が広くなる。",
@@ -406,7 +438,7 @@
     {
       id: "slow_clock",
       icon: "時",
-      iconImage: "./assets/upgrades/slow-clock.png?v=27",
+      iconImage: "./assets/upgrades/slow-clock.png?v=28",
       name: "のろのろ時計",
       uiDesc: "敵と紅茶カップの流れる速度を\n7%低下。重ね掛け可能。",
       desc: "敵と紅茶カップの流れる速度を7%低下。重ね掛け可能。",
@@ -416,7 +448,7 @@
     {
       id: "tiny_charm",
       icon: "小",
-      iconImage: "./assets/upgrades/tiny-charm.png?v=27",
+      iconImage: "./assets/upgrades/tiny-charm.png?v=28",
       name: "ちびチャーム",
       uiDesc: "当たり判定を少し小さくして\nギリギリ回避しやすくする。",
       desc: "当たり判定を少し小さくして、ギリギリ回避しやすくする。",
@@ -426,7 +458,7 @@
     {
       id: "revive",
       icon: "羽",
-      iconImage: "./assets/upgrades/revive.png?v=27",
+      iconImage: "./assets/upgrades/revive.png?v=28",
       name: "復活の羽",
       uiDesc: "致命的な衝突を1回だけ無効化し\n短時間無敵になる。",
       desc: "致命的な衝突を1回だけ無効化し、短時間無敵になる。",
@@ -436,7 +468,7 @@
     {
       id: "coin_sense",
       icon: "金",
-      iconImage: "./assets/upgrades/tea-sensor.png?v=27",
+      iconImage: "./assets/upgrades/tea-sensor.png?v=28",
       name: "ティーセンサー",
       uiDesc: "紅茶カップの出現間隔が短くなり\n次の強化を狙いやすくなる。",
       desc: "紅茶カップの出現間隔が短くなり、次の強化を狙いやすくなる。",
@@ -581,7 +613,7 @@
     els.userBadge.classList.remove("hidden");
     els.currentUsername.textContent = currentUsername;
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=27" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=28" });
     refreshLeaderboard();
   }
 
@@ -610,7 +642,7 @@
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
         if (error) {
-          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=27" });
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=28" });
           return;
         }
         currentRunId = data;
@@ -620,7 +652,7 @@
       game.phase = "playing";
       game.lastTime = performance.now();
     } catch (error) {
-      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=27" });
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=28" });
     } finally {
       els.startButton.disabled = false;
       els.startButton.textContent = originalLabel;
@@ -642,7 +674,7 @@ ${saveMessage}`, "もう一回", {
       variant: "gameover",
       eyebrow: "OOPS! TEA TIME OVER",
       note: "紅茶をこぼしちゃった… もう一回走ろう！",
-      characterSrc: "./assets/player/gameover.png?v=27",
+      characterSrc: "./assets/player/gameover.png?v=28",
       resultScore: finalScore,
       resultCoins: game.coins
     });
@@ -670,7 +702,7 @@ ${saveMessage}`, "もう一回", {
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=27" : "./assets/ui/title-key-art.png?v=27",
+      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=28" : "./assets/ui/title-key-art.png?v=28",
       resultScore = null,
       resultCoins = null
     } = options;
@@ -681,6 +713,11 @@ ${saveMessage}`, "もう一回", {
     els.overlayEyebrow.textContent = eyebrow;
     els.overlayNote.textContent = note;
     els.overlayCharacter.src = characterSrc;
+    if (els.startPressHint) {
+      els.startPressHint.textContent = variant === "gameover"
+        ? "Space またはボタンでリトライ"
+        : "Space またはボタンでスタート";
+    }
     const isResult = variant === "gameover" && Number.isFinite(Number(resultScore));
     if (els.resultScorePanel) els.resultScorePanel.classList.toggle("hidden", !isResult);
     if (isResult && els.resultScoreValue) els.resultScoreValue.textContent = `${Number(resultScore).toLocaleString()}m`;
@@ -978,13 +1015,14 @@ ${saveMessage}`, "もう一回", {
     };
   }
 
-  function renderUpgradeCardMarkup(item, meta) {
+  function renderUpgradeCardMarkup(item, meta, hotkeyLabel = "") {
     const desc = escapeHtml(item.uiDesc || item.desc).replace(/\n/g, "<br>");
     const iconMarkup = item.iconImage
       ? `<img class="augment-icon-image" src="${item.iconImage}" alt="">`
       : `<span class="icon">${escapeHtml(item.icon)}</span>`;
     return `
       <span class="augment-hit-glow" aria-hidden="true"></span>
+      <span class="augment-hotkey">${escapeHtml(hotkeyLabel)}</span>
       <span class="augment-select-mark" aria-hidden="true">✓</span>
       <span class="augment-icon-wrap">${iconMarkup}</span>
       <span class="augment-name">${escapeHtml(item.name)}</span>
@@ -1014,6 +1052,41 @@ ${saveMessage}`, "もう一回", {
     }
   }
 
+  function getUpgradeHotkeyLabel(index) {
+    const action = `upgrade${index + 1}`;
+    return (keybinds[action] || []).filter(Boolean).map(keyLabel).join(" / ") || `#${index + 1}`;
+  }
+
+  function refreshUpgradeHotkeyLabels() {
+    els.upgradeCards?.querySelectorAll('.augment-card').forEach((card, index) => {
+      const label = card.querySelector('.augment-hotkey');
+      if (label) label.textContent = getUpgradeHotkeyLabel(index);
+    });
+  }
+
+  function normalizeMenuKeyCode(code) {
+    if (/^Numpad[123]$/.test(code)) return `Digit${code.slice(-1)}`;
+    return code;
+  }
+
+  function getUpgradeIndexForCode(code) {
+    const normalized = normalizeMenuKeyCode(code);
+    for (let i = 0; i < 3; i += 1) {
+      const action = `upgrade${i + 1}`;
+      if ((keybinds[action] || []).includes(normalized)) return i;
+    }
+    return -1;
+  }
+
+  function chooseUpgradeByIndex(index) {
+    const cards = Array.from(els.upgradeCards?.querySelectorAll('.augment-card') || []);
+    const card = cards[index];
+    if (!card || card.disabled || !card._upgradeItem) return false;
+    selectUpgradeCard(card._upgradeItem, card);
+    chooseUpgrade(card._upgradeItem, card);
+    return true;
+  }
+
   function openUpgradeSelection() {
     game.phase = "upgrade";
     pendingUpgradeChoice = null;
@@ -1033,7 +1106,8 @@ ${saveMessage}`, "もう一回", {
       button.type = "button";
       button.setAttribute('aria-pressed', 'false');
       button.style.setProperty('--card-delay', `${index * 70}ms`);
-      button.innerHTML = renderUpgradeCardMarkup(item, meta);
+      button._upgradeItem = item;
+      button.innerHTML = renderUpgradeCardMarkup(item, meta, getUpgradeHotkeyLabel(index));
       button.addEventListener("click", () => selectUpgradeCard(item, button));
       button.addEventListener("dblclick", () => chooseUpgrade(item, button));
       els.upgradeCards.appendChild(button);
@@ -1898,7 +1972,30 @@ ${saveMessage}`, "もう一回", {
         return;
       }
 
-      const allBoundCodes = [...keybinds.jump, ...keybinds.duck].filter(Boolean);
+      // Menu/result: Space starts or retries immediately.
+      if (!event.repeat && event.code === "Space" && !els.startOverlay.classList.contains("hidden")) {
+        event.preventDefault();
+        if (!els.startButton.disabled) els.startButton.click();
+        return;
+      }
+
+      // Ability selection: left-to-right keys are Q/W/E or 1/2/3 by default.
+      // Numpad 1/2/3 are treated as aliases for 1/2/3.
+      if (game.phase === "upgrade" && !event.repeat) {
+        const upgradeIndex = getUpgradeIndexForCode(event.code);
+        if (upgradeIndex >= 0) {
+          event.preventDefault();
+          chooseUpgradeByIndex(upgradeIndex);
+          return;
+        }
+        if ((event.code === "Space" || event.code === "Enter") && pendingUpgradeChoice && pendingUpgradeCard) {
+          event.preventDefault();
+          chooseUpgrade(pendingUpgradeChoice, pendingUpgradeCard);
+          return;
+        }
+      }
+
+      const allBoundCodes = Object.values(keybinds).flat().filter(Boolean);
       if (allBoundCodes.includes(event.code)) event.preventDefault();
 
       pressedKeys.add(event.code);

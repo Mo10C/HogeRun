@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#171923" />
   <title>ほげ走</title>
-  <link rel="stylesheet" href="./styles.css?v=27" />
+  <link rel="stylesheet" href="./styles.css?v=28" />
 </head>
 <body class="app-loading">
   <div id="boot-splash" class="boot-splash" role="status" aria-live="polite">
     <div class="loading-scene">
       <div class="loading-brand">
-        <img class="loading-logo-image" src="./assets/ui/title-logo.png?v=27" alt="ほげ走" />
+        <img class="loading-logo-image" src="./assets/ui/title-logo.png?v=28" alt="ほげ走" />
         <p class="loading-kicker">TEA KINGDOM RUNNER</p>
       </div>
 
@@ -69,7 +69,7 @@
       <div>
         <div class="eyebrow">TEA ROGUELIKE RUNNER</div>
         <div class="title-logo" aria-label="ほげ走">
-          <img class="title-logo-image" src="./assets/ui/title-logo.png?v=27" alt="ほげ走" />
+          <img class="title-logo-image" src="./assets/ui/title-logo.png?v=28" alt="ほげ走" />
         </div>
       </div>
     </header>
@@ -134,9 +134,9 @@
             <div class="overlay-inner">
               <p id="overlay-eyebrow" class="eyebrow">WELCOME TO THE TEA KINGDOM</p>
               <div class="overlay-logo" aria-hidden="true">
-                <img class="overlay-logo-image" src="./assets/ui/title-logo.png?v=27" alt="" />
+                <img class="overlay-logo-image" src="./assets/ui/title-logo.png?v=28" alt="" />
               </div>
-              <img id="overlay-character" class="overlay-character" src="./assets/ui/title-key-art.png?v=27" alt="ほげ走のキャラクター" />
+              <img id="overlay-character" class="overlay-character" src="./assets/ui/title-key-art.png?v=28" alt="ほげ走のキャラクター" />
               <h2 id="start-title">ほげ走</h2>
               <div id="result-score-panel" class="result-score-panel hidden" aria-live="polite">
                 <span class="result-score-label">RESULT SCORE</span>
@@ -180,10 +180,26 @@
                     <button class="keybind-button" data-action="duck" data-slot="0" type="button">S</button>
                     <button class="keybind-button" data-action="duck" data-slot="1" type="button">↓</button>
                   </div>
+                  <div class="keybind-action ability-bind-action">
+                    <strong>能力① 左</strong>
+                    <button class="keybind-button" data-action="upgrade1" data-slot="0" type="button">Q</button>
+                    <button class="keybind-button" data-action="upgrade1" data-slot="1" type="button">1</button>
+                  </div>
+                  <div class="keybind-action ability-bind-action">
+                    <strong>能力② 中</strong>
+                    <button class="keybind-button" data-action="upgrade2" data-slot="0" type="button">W</button>
+                    <button class="keybind-button" data-action="upgrade2" data-slot="1" type="button">2</button>
+                  </div>
+                  <div class="keybind-action ability-bind-action">
+                    <strong>能力③ 右</strong>
+                    <button class="keybind-button" data-action="upgrade3" data-slot="0" type="button">E</button>
+                    <button class="keybind-button" data-action="upgrade3" data-slot="1" type="button">3</button>
+                  </div>
                 </div>
+                <p class="menu-key-note"><strong>決定：</strong>スタート / リトライは Space　・　能力選択は左から Q/W/E または 1/2/3</p>
               </div>
               <button id="start-button" class="primary-button big-button start-button-game" type="button">ゲームスタート</button>
-              <p class="start-press-hint">準備ができたらスタート！ 最高記録を目指そう ✨</p>
+              <p id="start-press-hint" class="start-press-hint">クリック / Space でスタート</p>
             </div>
           </div>
 
@@ -225,7 +241,7 @@
   <footer class="footer">ほげ走 — browser-only pixel roguelike runner</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js?v=27"></script>
-  <script src="./game.js?v=27" defer></script>
+  <script src="./config.js?v=28"></script>
+  <script src="./game.js?v=28" defer></script>
 </body>
 </html>

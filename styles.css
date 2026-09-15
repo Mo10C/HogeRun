@@ -42,7 +42,7 @@ body.app-loading .footer {
   color: #526483;
   background:
     linear-gradient(180deg, rgba(235,246,255,.74), rgba(255,239,247,.80)),
-    url('./assets/ui/title-key-art.png?v=27') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=28') center / cover no-repeat;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -256,7 +256,7 @@ body.app-ready .footer {
   padding: clamp(26px, 6vw, 52px);
   background:
     linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.44)),
-    url('./assets/ui/title-key-art.png?v=27') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=28') center / cover no-repeat;
 }
 
 .login-panel h2 { margin: 0 0 12px; font-size: clamp(30px, 4vw, 54px); }
@@ -344,7 +344,7 @@ body.app-ready .footer {
 .overlay-start {
   background:
     linear-gradient(180deg, rgba(232,242,255,.18), rgba(255,238,247,.30)),
-    url('./assets/ui/title-key-art.png?v=27') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=28') center / cover no-repeat;
 }
 
 .overlay-inner {
@@ -446,7 +446,7 @@ body.app-ready .footer {
   isolation: isolate;
   background:
     linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.22)),
-    url('./assets/backgrounds/ability-select-bg.png?v=27') center / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=28') center / cover no-repeat;
   border: 3px solid rgba(255,255,255,.96);
   border-radius: 30px;
   box-shadow: 0 18px 0 rgba(106, 131, 176, .13), 0 28px 60px rgba(98, 120, 158, .30);
@@ -679,7 +679,7 @@ body.app-ready .footer {
   position: relative;
   width: min(1020px, calc(100vw - 20px));
   aspect-ratio: 1448 / 1086;
-  background: url('./assets/backgrounds/ability-select-bg.png?v=27') center / contain no-repeat;
+  background: url('./assets/backgrounds/ability-select-bg.png?v=28') center / contain no-repeat;
 }
 
 .upgrade-cards {
@@ -1123,7 +1123,7 @@ body.app-ready .footer {
   overflow: hidden;
   background:
     linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.12)),
-    url('./assets/backgrounds/ability-select-bg.png?v=27') center / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=28') center / cover no-repeat;
   border: 3px solid rgba(255,255,255,.92);
   box-shadow: 0 18px 48px rgba(96,123,173,.24);
 }
@@ -1857,7 +1857,7 @@ body {
   background:
     radial-gradient(circle at 50% 18%, rgba(255,255,255,.18), rgba(255,255,255,0) 30%),
     linear-gradient(180deg, rgba(232,242,255,.20), rgba(255,238,247,.34)),
-    url('./assets/ui/title-key-art.png?v=27') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=28') center / cover no-repeat;
 }
 .overlay-start .overlay-inner {
   width: min(640px, 96%);
@@ -2337,7 +2337,7 @@ body {
   isolation: isolate;
   background:
     linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,247,251,.28)),
-    url('./assets/backgrounds/ability-select-bg.png?v=27') center 48% / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=28') center 48% / cover no-repeat;
 }
 
 .upgrade-box::before {
@@ -2738,4 +2738,225 @@ body {
   .result-score-panel strong { font-size: clamp(54px, 16vw, 78px); }
   .result-score-label { font-size: 10px; }
   .result-tea-value { font-size: 12px; }
+}
+
+
+/* === v28 keyboard menu + one-screen menu/result === */
+/* Start/result are full-screen game menus, not translucent popups. */
+.overlay-card {
+  padding: 0 !important;
+  overflow: hidden !important;
+  place-items: stretch !important;
+  background: linear-gradient(145deg, #edf6ff 0%, #fff8fb 52%, #f7f1ff 100%) !important;
+  backdrop-filter: none !important;
+}
+.overlay-start,
+.overlay-gameover {
+  background:
+    radial-gradient(circle at 18% 15%, rgba(199,226,255,.55), transparent 29%),
+    radial-gradient(circle at 83% 80%, rgba(255,205,229,.48), transparent 30%),
+    linear-gradient(145deg, #f5fbff 0%, #fff9fb 55%, #f5f0ff 100%) !important;
+}
+.overlay-inner,
+.overlay-start .overlay-inner,
+.overlay-gameover .overlay-inner {
+  position: relative;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: clamp(12px, 2.0vh, 20px) clamp(18px, 3vw, 34px) !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.overlay-inner::before,
+.overlay-start .overlay-inner::before { display: none !important; }
+
+/* Menu: keep only useful information and integrate controls directly into the screen. */
+.overlay-start #overlay-eyebrow { margin: 0 0 2px; font-size: 9px; }
+.overlay-start .overlay-logo { margin: 0; }
+.overlay-start .overlay-logo-image { width: clamp(150px, 23vw, 245px); max-height: 72px; object-fit: contain; }
+.overlay-start .overlay-character { display: none !important; }
+.overlay-start #start-title { margin: 0 0 3px; font-size: clamp(20px, 3.0vh, 28px); }
+.overlay-start #start-description {
+  margin: 0 auto 3px;
+  max-width: 780px;
+  font-size: clamp(10px, 1.7vh, 13px);
+  line-height: 1.35;
+}
+.overlay-start .overlay-note {
+  margin: 0 0 4px;
+  font-size: clamp(9px, 1.45vh, 12px);
+}
+.overlay-start .start-feature-grid,
+.overlay-start .start-action-badges,
+.overlay-start .control-help-start { display: none !important; }
+.start-keybind-box {
+  width: min(900px, 96%) !important;
+  margin: 4px auto 6px !important;
+  padding: 6px 8px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.start-keybind-box .keybind-heading {
+  margin: 0 0 3px !important;
+  align-items: center;
+}
+.start-keybind-box .keybind-heading .eyebrow { margin: 0; font-size: 8px; }
+.start-keybind-box h3 { margin: 0; font-size: clamp(13px, 2.0vh, 17px); }
+.start-keybind-box #keybind-status { margin: 2px 0 5px; font-size: 9px; }
+.compact-keybind-grid {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+.start-keybind-box .keybind-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-height: 58px;
+  padding: 4px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+.start-keybind-box .keybind-action strong {
+  flex: 0 0 100%;
+  text-align: center;
+  color: #61749b;
+  font-size: 10px;
+}
+.start-keybind-box .keybind-button {
+  min-width: 37px !important;
+  height: 27px;
+  padding: 0 7px;
+  border-radius: 9px;
+  font-size: 10px;
+}
+.menu-key-note {
+  margin: 3px 0 0 !important;
+  color: #7283a6;
+  font-size: clamp(8px, 1.35vh, 10px) !important;
+  font-weight: 800;
+  text-align: center;
+}
+.overlay-start .start-button-game {
+  min-width: 210px;
+  margin-top: 2px;
+  padding: 10px 24px;
+  font-size: 15px;
+}
+.start-press-hint {
+  margin: 4px 0 0 !important;
+  font-size: 10px !important;
+  color: #7a89aa !important;
+}
+
+/* Result screen: one page, no menu controls, score remains the visual hero. */
+.overlay-gameover .start-feature-grid,
+.overlay-gameover .control-help-start,
+.overlay-gameover .start-action-badges,
+.overlay-gameover .start-keybind-box { display: none !important; }
+.overlay-gameover #overlay-eyebrow { margin: 0 0 2px; font-size: 9px; }
+.overlay-gameover .overlay-logo { margin: 0; }
+.overlay-gameover .overlay-logo-image { width: clamp(135px, 20vw, 210px) !important; max-height: 58px; object-fit: contain; }
+.overlay-gameover .overlay-character {
+  display: block !important;
+  max-height: clamp(54px, 11vh, 82px) !important;
+  width: auto;
+  margin: 0 auto 1px !important;
+}
+.overlay-gameover #start-title {
+  margin: 0 0 2px !important;
+  font-size: clamp(17px, 2.7vh, 24px) !important;
+}
+.overlay-gameover .result-score-panel {
+  width: min(480px, 80%);
+  margin: 2px auto 5px;
+  padding: 8px 14px 10px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.overlay-gameover .result-score-panel strong {
+  font-size: clamp(62px, 15vh, 102px);
+}
+.overlay-gameover #start-description {
+  max-width: 720px;
+  margin: 3px auto !important;
+  font-size: clamp(10px, 1.65vh, 12px) !important;
+  line-height: 1.3;
+}
+.overlay-gameover .overlay-note {
+  margin: 2px 0 5px !important;
+  font-size: 10px;
+}
+.overlay-gameover .start-button-game {
+  min-width: 190px;
+  padding: 9px 22px;
+  font-size: 14px;
+}
+.overlay-gameover .start-press-hint { display: block !important; }
+
+/* Ability keyboard hints */
+.augment-hotkey {
+  position: absolute;
+  z-index: 6;
+  top: 9px;
+  left: 9px;
+  min-width: 48px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.90);
+  border: 1px solid rgba(184,202,232,.80);
+  color: #6279a7;
+  font-size: clamp(8px, .72vw, 11px);
+  line-height: 1;
+  font-weight: 1000;
+  letter-spacing: .04em;
+  box-shadow: 0 4px 10px rgba(108,132,178,.10);
+}
+.augment-card.selected .augment-hotkey {
+  background: linear-gradient(180deg, #ffbed7, #ef8cb6);
+  border-color: rgba(255,255,255,.95);
+  color: #fff;
+}
+
+@media (max-width: 760px) {
+  .overlay-inner,
+  .overlay-start .overlay-inner,
+  .overlay-gameover .overlay-inner { padding: 6px 10px !important; }
+  .overlay-start .overlay-logo-image { width: 132px; max-height: 46px; }
+  .overlay-start #start-title { font-size: 16px; }
+  .overlay-start #start-description { font-size: 8px; }
+  .overlay-start .overlay-note { display: none; }
+  .start-keybind-box { width: 100% !important; padding: 2px !important; }
+  .start-keybind-box .keybind-heading h3 { font-size: 10px; }
+  .start-keybind-box #keybind-status { display: none; }
+  .compact-keybind-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 3px !important; }
+  .start-keybind-box .keybind-action { min-height: 42px; gap: 2px; }
+  .start-keybind-box .keybind-action strong { font-size: 7px; }
+  .start-keybind-box .keybind-button { min-width: 24px !important; height: 20px; padding: 0 3px; font-size: 7px; }
+  .menu-key-note { font-size: 6px !important; }
+  .overlay-start .start-button-game { min-width: 150px; padding: 7px 14px; font-size: 10px; }
+  .start-press-hint { font-size: 7px !important; }
+  .overlay-gameover .overlay-logo-image { width: 110px !important; max-height: 38px; }
+  .overlay-gameover .overlay-character { max-height: 42px !important; }
+  .overlay-gameover .result-score-panel strong { font-size: clamp(42px, 15vh, 64px); }
+  .overlay-gameover #start-description { font-size: 7px !important; }
+  .overlay-gameover .overlay-note { display: none; }
+  .augment-hotkey { top: 5px; left: 5px; min-width: 32px; padding: 3px 4px; font-size: 6.5px; }
 }
