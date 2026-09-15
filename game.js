@@ -491,12 +491,18 @@
     const power = BASE_JUMP * game.upgrades.jumpBoost;
 
     if (p.onGround) {
-      p.vy = -power;
-      p.onGround = false;
+      // Preserve the feet position when leaving a slide/crouch.
+      // Without this, switching from crouchH to standH puts the collider below ground
+      // and the next physics tick immediately snaps the player back to the floor.
+      const feetY = p.y + p.h;
       p.crouching = false;
       p.h = p.standH;
+      p.y = feetY - p.h;
+      game.duckHeld = false;
+      p.vy = -power;
+      p.onGround = false;
       p.airJumpsUsed = 0;
-      puff(p.x + 20, GROUND_Y - 4, 5, "#f6dfb5");
+      puff(p.x + 20, feetY - 4, 5, "#f6dfb5");
     } else if (p.airJumpsUsed < game.upgrades.extraAirJumps) {
       p.vy = -power * 0.93;
       p.airJumpsUsed += 1;
@@ -722,44 +728,89 @@
     return pool.slice(0, 3);
   }
 
+  function getUpgradePresentation(item) {
+    const level = game.upgradeLevels[item.id] || 0;
+    const totalPicked = game.upgradeHistory.length;
+    const roll = Math.random();
+    let tier = "silver";
+    let tierLabel = "SILVER TEA";
+    let tierMark = "◇";
+
+    if (totalPicked >= 4 && roll < 0.22) {
+      tier = "gold";
+      tierLabel = "GOLDEN TEA";
+      tierMark = "✦";
+    } else if (roll < 0.34) {
+      tier = "bronze";
+      tierLabel = "BRONZE TEA";
+      tierMark = "♢";
+    }
+
+    return {
+      level,
+      tier,
+      tierLabel,
+      tierMark,
+      nextLevel: level + 1
+    };
+  }
+
   function openUpgradeSelection() {
     game.phase = "upgrade";
     els.upgradeCards.innerHTML = "";
 
     for (const item of randomUpgradeChoices()) {
+      const meta = getUpgradePresentation(item);
       const button = document.createElement("button");
-      button.className = "upgrade-card";
+      button.className = `upgrade-card augment-card ${meta.tier}`;
       button.type = "button";
-      const currentLevel = game.upgradeLevels[item.id] || 0;
       button.innerHTML = `
-        <span class="icon">${escapeHtml(item.icon)}</span>
-        <span class="name">${escapeHtml(item.name)} <small>Lv.${currentLevel + 1}</small></span>
+        <span class="augment-corner top-left">♠</span>
+        <span class="augment-corner bottom-right">♥</span>
+        <span class="augment-tier">${meta.tierMark} ${escapeHtml(meta.tierLabel)}</span>
+        <span class="augment-icon-wrap"><span class="icon">${escapeHtml(item.icon)}</span></span>
+        <span class="name">${escapeHtml(item.name)}</span>
+        <span class="augment-level">Lv.${meta.nextLevel}</span>
+        <span class="augment-divider"></span>
         <span class="desc">${escapeHtml(item.desc)}</span>
+        <span class="augment-pick">この祝福を選ぶ</span>
       `;
-      button.addEventListener("click", () => chooseUpgrade(item));
+      button.addEventListener("click", () => chooseUpgrade(item, button));
       els.upgradeCards.appendChild(button);
     }
 
     els.upgradeOverlay.classList.remove("hidden");
   }
 
-  function chooseUpgrade(item) {
+  function chooseUpgrade(item, selectedCard = null) {
     const level = game.upgradeLevels[item.id] || 0;
     if (level >= item.max) return;
     item.apply();
     game.upgradeLevels[item.id] = level + 1;
     game.upgradeHistory.push(item.id);
-    els.upgradeOverlay.classList.add("hidden");
+
+    if (selectedCard) {
+      selectedCard.classList.add("selected");
+      els.upgradeCards.querySelectorAll(".augment-card").forEach((card) => {
+        if (card !== selectedCard) card.classList.add("not-selected");
+        card.disabled = true;
+      });
+    }
+
     renderBuild();
     updateHud();
-    game.phase = "playing";
-    game.lastTime = performance.now();
 
-    // まとめて大量に紅茶カップを拾った場合は、次の10杯到達分も続けて選ばせる。
-    if (game.coins >= game.nextUpgradeAt) {
-      game.nextUpgradeAt += 10;
-      setTimeout(openUpgradeSelection, 80);
-    }
+    setTimeout(() => {
+      els.upgradeOverlay.classList.add("hidden");
+      game.phase = "playing";
+      game.lastTime = performance.now();
+
+      // まとめて大量に紅茶カップを拾った場合は、次の10杯到達分も続けて選ばせる。
+      if (game.coins >= game.nextUpgradeAt) {
+        game.nextUpgradeAt += 10;
+        setTimeout(openUpgradeSelection, 120);
+      }
+    }, selectedCard ? 260 : 0);
   }
 
   function renderBuild() {
@@ -815,83 +866,220 @@
   function drawBackground() {
     const w = els.canvas.width;
     const h = els.canvas.height;
+    const skyY = GROUND_Y - 120;
 
-    ctx.fillStyle = "#dff1ff";
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y + 30);
+    skyGrad.addColorStop(0, "#bcd8ff");
+    skyGrad.addColorStop(0.45, "#e9f3ff");
+    skyGrad.addColorStop(1, "#fdf3f8");
+    ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, w, h);
 
-    // ふんわりした夕空グラデーション帯
-    ctx.fillStyle = "#ffd8e8";
-    ctx.fillRect(0, 0, w, 120);
-    ctx.fillStyle = "rgba(255,255,255,0.45)";
-    ctx.fillRect(0, 120, w, 40);
+    // dreamy haze
+    ctx.fillStyle = "rgba(255,255,255,0.42)";
+    ctx.beginPath(); ctx.ellipse(210, 90, 180, 56, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(730, 72, 170, 50, 0, 0, Math.PI * 2); ctx.fill();
 
-    // レモンスライスの月
-    ctx.fillStyle = "#fff1a8";
-    ctx.fillRect(738, 54, 84, 84);
-    ctx.fillStyle = "#ffe57d";
-    ctx.fillRect(746, 62, 68, 68);
-    ctx.fillStyle = "#fff8cf";
-    ctx.fillRect(774, 62, 6, 68);
-    ctx.fillRect(746, 92, 68, 6);
-
-    // 雲
-    const cloudOffset = -((game.distance * 0.32) % 420);
-    for (let i = -1; i < 4; i += 1) {
-      drawCloud(cloudOffset + i * 420 + 70, 78 + (i % 2) * 40);
-    }
-
-    // ガーランド
-    drawBunting(-((game.distance * 0.7) % 160));
-
-    // 遠景のティーカップ丘
-    const hillOffset = -((game.distance * 0.85) % 260);
-    for (let i = -1; i < 6; i += 1) {
-      const x = hillOffset + i * 260;
-      drawTeaHill(x, GROUND_Y - 88 + (i % 2) * 12, i);
-    }
-
-    // 中景のティーポットハウス / カップタワー
-    const propOffset = -((game.distance * 1.5) % 240);
-    for (let i = -1; i < 6; i += 1) {
-      const x = propOffset + i * 240;
-      if (i % 2 === 0) {
-        drawTeapotHouse(x + 25, GROUND_Y - 22);
-      } else {
-        drawCupTower(x + 30, GROUND_Y - 16);
+    // ribbon flags at the top
+    const buntingOffset = -((game.distance * 0.6) % 180);
+    for (let x = buntingOffset - 180; x < w + 180; x += 180) {
+      ctx.strokeStyle = "#a9b6dd";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x, 44);
+      ctx.quadraticCurveTo(x + 90, 62, x + 180, 44);
+      ctx.stroke();
+      const colors = ["#ffc2d6", "#ffd87a", "#b7e8cc", "#b8cbff"];
+      for (let i = 0; i < 4; i += 1) {
+        const fx = x + 20 + i * 38;
+        ctx.fillStyle = colors[i];
+        ctx.beginPath();
+        ctx.moveTo(fx, 46);
+        ctx.lineTo(fx + 14, 46);
+        ctx.lineTo(fx + 7, 61);
+        ctx.closePath();
+        ctx.fill();
       }
     }
 
-    // 手前の生垣と角砂糖
-    const hedgeOffset = -((game.distance * 2.7) % 120);
-    for (let x = hedgeOffset - 120; x < w + 120; x += 120) {
-      ctx.fillStyle = "#9cd67a";
-      ctx.fillRect(x, GROUND_Y - 28, 54, 20);
-      ctx.fillRect(x + 10, GROUND_Y - 38, 34, 12);
-      ctx.fillStyle = "#fdfdfb";
-      ctx.fillRect(x + 68, GROUND_Y - 26, 18, 18);
-      ctx.fillRect(x + 82, GROUND_Y - 18, 18, 18);
-      ctx.fillStyle = "#e9e6da";
-      ctx.fillRect(x + 68, GROUND_Y - 26, 18, 3);
-      ctx.fillRect(x + 82, GROUND_Y - 18, 18, 3);
+    // lemon sun
+    ctx.fillStyle = "#fff2a8";
+    ctx.beginPath(); ctx.arc(792, 82, 38, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    ctx.fillRect(788, 46, 8, 72);
+    ctx.fillRect(756, 78, 72, 8);
+
+    const cloudOffset = -((game.distance * 0.22) % 400);
+    for (let i = -1; i < 4; i += 1) {
+      drawCloud(cloudOffset + i * 400 + 65, 92 + (i % 2) * 22);
     }
 
-    // 地面
-    ctx.fillStyle = "#6e5544";
-    ctx.fillRect(0, GROUND_Y, w, h - GROUND_Y);
-    ctx.fillStyle = "#b78463";
-    ctx.fillRect(0, GROUND_Y, w, 14);
-    ctx.fillStyle = "#f6f1ea";
-    const groundOffset = -((game.distance * 4) % 52);
-    for (let x = groundOffset - 52; x < w + 52; x += 52) {
-      ctx.fillRect(x + 5, GROUND_Y + 24, 20, 10);
-      ctx.fillRect(x + 29, GROUND_Y + 24, 20, 10);
-      ctx.fillRect(x + 5, GROUND_Y + 38, 20, 10);
-      ctx.fillRect(x + 29, GROUND_Y + 38, 20, 10);
-      ctx.fillStyle = "#e0d3c5";
-      ctx.fillRect(x + 23, GROUND_Y + 24, 3, 24);
-      ctx.fillRect(x + 5, GROUND_Y + 35, 44, 3);
-      ctx.fillStyle = "#f6f1ea";
+    // cute skyline high in the background so it doesn't clash with obstacles
+    const castleOffset = -((game.distance * 0.14) % 520);
+    for (let i = -1; i < 3; i += 1) {
+      drawFairyCastle(castleOffset + i * 520 + 260, 188 + (i % 2) * 10, 0.84);
     }
+
+    const houseOffset = -((game.distance * 0.3) % 360);
+    for (let i = -1; i < 4; i += 1) {
+      drawTeapotVilla(houseOffset + i * 360 + 120, skyY - 2 + (i % 2) * 8, 1);
+    }
+
+    const signOffset = -((game.distance * 0.52) % 300);
+    for (let i = -1; i < 4; i += 1) {
+      drawTeaSign(signOffset + i * 300 + 160, skyY + 34 + (i % 2) * 7, i % 2 === 0 ? "TEA" : "SWEETS");
+    }
+
+    drawBunnyBalloon(760 - ((game.distance * 0.18) % 1060), 112);
+
+    // soft platform lane band behind gameplay lane
+    ctx.fillStyle = "rgba(255,255,255,0.28)";
+    ctx.fillRect(0, GROUND_Y - 54, w, 34);
+
+    // ground lane
+    const laneGrad = ctx.createLinearGradient(0, GROUND_Y - 6, 0, h);
+    laneGrad.addColorStop(0, "#f7e8db");
+    laneGrad.addColorStop(1, "#e9c8ba");
+    ctx.fillStyle = laneGrad;
+    ctx.fillRect(0, GROUND_Y, w, h - GROUND_Y);
+    ctx.fillStyle = "#fff7f2";
+    ctx.fillRect(0, GROUND_Y - 6, w, 12);
+
+    // paving blocks
+    const tileOffset = -((game.distance * 4) % 54);
+    for (let x = tileOffset - 54; x < w + 54; x += 54) {
+      ctx.fillStyle = "#fff3eb";
+      ctx.fillRect(x + 4, GROUND_Y + 18, 22, 11);
+      ctx.fillRect(x + 28, GROUND_Y + 18, 22, 11);
+      ctx.fillRect(x + 4, GROUND_Y + 32, 22, 11);
+      ctx.fillRect(x + 28, GROUND_Y + 32, 22, 11);
+      ctx.fillStyle = "#e8d6cb";
+      ctx.fillRect(x + 25, GROUND_Y + 18, 3, 25);
+      ctx.fillRect(x + 4, GROUND_Y + 29, 46, 3);
+    }
+
+    // foreground sweets silhouettes at the very bottom only
+    const propOffset = -((game.distance * 1.2) % 160);
+    for (let x = propOffset - 160; x < w + 160; x += 160) {
+      ctx.fillStyle = "rgba(238, 201, 214, 0.55)";
+      ctx.beginPath();
+      ctx.ellipse(x + 24, GROUND_Y + 78, 28, 16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "rgba(225, 239, 255, 0.68)";
+      ctx.fillRect(x + 74, GROUND_Y + 60, 26, 18);
+      ctx.fillRect(x + 88, GROUND_Y + 46, 26, 18);
+    }
+  }
+
+  function drawFairyCastle(cx, y, scale) {
+    ctx.save();
+    ctx.translate(cx, y);
+    ctx.scale(scale, scale);
+    ctx.globalAlpha = 0.78;
+    ctx.fillStyle = "#fff7fb";
+    ctx.fillRect(-120, 8, 240, 54);
+    ctx.fillRect(-26, -10, 52, 72);
+    ctx.fillStyle = "#f7fbff";
+    ctx.fillRect(-104, -8, 44, 70);
+    ctx.fillRect(60, -8, 44, 70);
+    ctx.fillStyle = "#b0c6f7";
+    drawCone(-82, -30, 24, 30);
+    drawCone(82, -30, 24, 30);
+    drawCone(0, -44, 28, 38);
+    ctx.fillStyle = "#f9d6e3";
+    ctx.fillRect(-88, 26, 10, 18);
+    ctx.fillRect(78, 26, 10, 18);
+    ctx.fillStyle = "#aebdf0";
+    ctx.fillRect(-10, 22, 20, 30);
+    ctx.fillStyle = "#f2bcd2";
+    for (const p of [[-110,14],[-72,10],[-36,15],[34,14],[70,10],[106,15]]) {
+      ctx.beginPath(); ctx.arc(p[0], p[1], 4, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawCone(x, y, w, h) {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x - w / 2, y + h);
+    ctx.lineTo(x + w / 2, y + h);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawTeapotVilla(x, y, scale) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = "rgba(143, 170, 204, 0.14)";
+    ctx.beginPath(); ctx.ellipse(32, 64, 94, 20, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#fffdf8";
+    ctx.beginPath(); ctx.ellipse(18, 28, 56, 38, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(-22, 28, 84, 34);
+    ctx.beginPath(); ctx.arc(80, 34, 18, -Math.PI / 2, Math.PI / 2); ctx.strokeStyle = "#fffdf8"; ctx.lineWidth = 10; ctx.stroke();
+    ctx.beginPath(); ctx.arc(-36, 26, 18, Math.PI * 0.3, Math.PI * 1.7); ctx.stroke();
+    ctx.fillStyle = "#b3c7f7";
+    ctx.beginPath(); ctx.arc(18, 2, 26, Math.PI, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#f3d0dc";
+    ctx.fillRect(-14, 20, 64, 8);
+    ctx.fillStyle = "#9bb0ea";
+    ctx.fillRect(4, 39, 28, 23);
+    ctx.fillStyle = "#f7ec9f";
+    ctx.beginPath(); ctx.arc(18, 11, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawTeaSign(x, y, text) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = "#a38a76";
+    ctx.fillRect(0, 0, 6, 52);
+    ctx.fillStyle = "#fff8f4";
+    ctx.strokeStyle = "#e5cfca";
+    ctx.lineWidth = 2;
+    roundRect(10, 0, 70, 24, 8, true, true);
+    ctx.fillStyle = "#8e7a8c";
+    ctx.font = "bold 11px sans-serif";
+    ctx.fillText(text, 25, 16);
+    ctx.restore();
+  }
+
+  function drawBunnyBalloon(x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = "rgba(175, 189, 240, 0.18)";
+    ctx.beginPath(); ctx.ellipse(0, 0, 54, 28, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#f6f4ff";
+    ctx.beginPath(); ctx.ellipse(0, 0, 48, 24, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(-10, -24, 14, 12);
+    ctx.fillRect(6, -22, 12, 10);
+    ctx.fillStyle = "#a9bae6";
+    ctx.fillRect(18, -4, 14, 10);
+    ctx.fillStyle = "#f09cbc";
+    ctx.beginPath(); ctx.arc(-12, 2, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(12, 2, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#b9b0c9";
+    ctx.beginPath(); ctx.moveTo(0, 24); ctx.lineTo(0, 40); ctx.stroke();
+    ctx.fillStyle = "#fff8f1";
+    ctx.fillRect(-12, 40, 24, 12);
+    ctx.restore();
+  }
+
+  function roundRect(x, y, w, h, r, fill, stroke) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    if (fill) ctx.fill();
+    if (stroke) ctx.stroke();
   }
 
   function drawBunting(offset) {
@@ -967,33 +1155,30 @@
   }
 
   function drawCoin(coin) {
-    const squeeze = Math.max(8, Math.round(Math.abs(Math.sin(coin.spin)) * 18));
-    const x = Math.round(coin.x + (20 - squeeze) / 2);
-    const y = Math.round(coin.y);
+    const x = coin.x;
+    const y = coin.y;
+    const bob = Math.sin(coin.spin) * 2;
+    ctx.save();
+    ctx.translate(x + 10, y + 10 + bob);
 
-    // 受け皿
-    ctx.fillStyle = "#e7d8ee";
-    ctx.fillRect(x - 1, y + 16, squeeze + 2, 4);
+    ctx.fillStyle = "rgba(255, 212, 143, 0.22)";
+    ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.fill();
 
-    // カップ本体
-    ctx.fillStyle = "#fff8f4";
-    ctx.fillRect(x, y + 4, squeeze, 12);
-    ctx.fillStyle = "#f3b4cc";
-    ctx.fillRect(x + 2, y + 2, Math.max(4, squeeze - 4), 4);
-    ctx.fillStyle = "#7d523c";
-    ctx.fillRect(x + 3, y + 6, Math.max(3, squeeze - 6), 5);
-
-    // 取っ手
-    if (squeeze > 11) {
-      ctx.fillStyle = "#fff8f4";
-      ctx.fillRect(x + squeeze, y + 7, 3, 6);
-      ctx.fillRect(x + squeeze + 2, y + 8, 2, 4);
-    }
-
-    // 湯気
+    // saucer
+    ctx.fillStyle = "#ffd989";
+    ctx.beginPath(); ctx.ellipse(0, 8, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
+    // cup
+    ctx.fillStyle = "#fff9f3";
+    roundRect(-10, -6, 20, 14, 6, true, false);
+    ctx.strokeStyle = "#f1c879";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(11, 0, 4, -Math.PI / 2, Math.PI / 2); ctx.stroke();
+    ctx.fillStyle = "#8a6249";
+    ctx.fillRect(-7, -2, 14, 5);
     ctx.fillStyle = "rgba(255,255,255,0.75)";
-    ctx.fillRect(x + 4, y - 3, 2, 4);
-    ctx.fillRect(x + squeeze - 6, y - 1, 2, 4);
+    ctx.fillRect(-3, -13, 2, 5);
+    ctx.fillRect(2, -11, 2, 4);
+    ctx.restore();
   }
 
   function drawFallbackPlayer() {
@@ -1106,7 +1291,7 @@
       drawW = 142;
       drawH = 84;
       drawX = Math.round(p.x - 48);
-      drawY = Math.round(feetY - drawH + 4);
+      drawY = Math.round(p.y - (drawH - p.h) + 4);
 
       ctx.save();
       ctx.translate(drawX + drawW / 2, drawY + drawH / 2);
@@ -1138,9 +1323,9 @@
       drawW = Math.round(128 * drawScale);
       drawH = Math.round(128 * drawScale);
       drawX = Math.round(p.x - 42);
-      // Anchor the sprite's feet to the physics collider's feet.
-      // This makes the visible character actually rise/fall with jump physics.
-      drawY = Math.round(feetY - drawH - 6 + bob);
+      // Render directly from the physics Y position. The visual sprite therefore
+      // follows the collider every frame during ascent and descent.
+      drawY = Math.round(p.y - (drawH - p.h) - 6 + bob);
 
       ctx.drawImage(
         PLAYER_SPRITE_SHEET,
@@ -1163,84 +1348,164 @@
   }
 
   function drawEnemy(enemy) {
-    const x = Math.round(enemy.x);
-    const y = Math.round(enemy.y);
+    const x = enemy.x;
+    const y = enemy.y;
+    ctx.save();
+    ctx.translate(x, y);
 
     switch (enemy.kind) {
       case "carrot":
-        ctx.fillStyle = "#42a55c";
-        ctx.fillRect(x + 11, y, 7, 16);
-        ctx.fillRect(x + 20, y + 3, 7, 16);
-        ctx.fillStyle = "#f28c28";
-        ctx.fillRect(x + 7, y + 14, 24, 25);
-        ctx.fillRect(x + 11, y + 39, 16, 12);
-        ctx.fillRect(x + 15, y + 51, 8, 7);
-        drawEnemyEyes(x + 10, y + 23, 18);
+        drawCuteCarrot();
         break;
       case "tomato":
-        ctx.fillStyle = "#e84855";
-        ctx.fillRect(x + 4, y + 8, 40, 30);
-        ctx.fillRect(x + 10, y + 3, 28, 38);
-        ctx.fillStyle = "#3da35d";
-        ctx.fillRect(x + 19, y, 10, 10);
-        ctx.fillRect(x + 10, y + 5, 28, 5);
-        drawEnemyEyes(x + 12, y + 18, 20);
+        drawCuteTomato();
         break;
       case "broccoli":
-        ctx.fillStyle = "#3f9b4f";
-        ctx.fillRect(x + 2, y, 48, 25);
-        ctx.fillRect(x + 8, y - 6, 16, 14);
-        ctx.fillRect(x + 28, y - 7, 16, 14);
-        ctx.fillStyle = "#79b85d";
-        ctx.fillRect(x + 18, y + 22, 16, 36);
-        drawEnemyEyes(x + 15, y + 10, 20);
+        drawCuteBroccoli();
         break;
       case "eggplant":
-        ctx.fillStyle = "#6c4aa4";
-        ctx.fillRect(x + 6, y + 12, 30, 40);
-        ctx.fillRect(x + 11, y + 7, 22, 50);
-        ctx.fillStyle = "#4ba35d";
-        ctx.fillRect(x + 9, y, 24, 12);
-        drawEnemyEyes(x + 8, y + 22, 18);
+        drawCuteEggplant();
         break;
       case "zombie":
-        ctx.fillStyle = "#78a85a";
-        ctx.fillRect(x + 8, y, 29, 27);
-        ctx.fillStyle = "#2c3442";
-        ctx.fillRect(x + 5, y + 25, 34, 32);
-        ctx.fillStyle = "#6d4f39";
-        ctx.fillRect(x + 7, y + 56, 12, 16);
-        ctx.fillRect(x + 27, y + 56, 12, 16);
-        ctx.fillStyle = "#ffefef";
-        ctx.fillRect(x + 13, y + 9, 5, 5);
-        ctx.fillRect(x + 28, y + 9, 5, 5);
-        ctx.fillStyle = "#301f35";
-        ctx.fillRect(x + 14, y + 10, 3, 3);
-        ctx.fillRect(x + 29, y + 10, 3, 3);
+        drawCuteZombie();
         break;
       case "ghost":
-        ctx.fillStyle = "#f6f2ff";
-        ctx.fillRect(x + 8, y, 46, 25);
-        ctx.fillRect(x, y + 8, 62, 18);
-        ctx.fillRect(x + 5, y + 22, 12, 10);
-        ctx.fillRect(x + 25, y + 22, 12, 10);
-        ctx.fillRect(x + 45, y + 22, 12, 10);
-        ctx.fillStyle = "#5c477a";
-        ctx.fillRect(x + 17, y + 10, 7, 8);
-        ctx.fillRect(x + 39, y + 10, 7, 8);
+        drawCuteGhost();
         break;
       default:
         break;
     }
+    ctx.restore();
   }
 
-  function drawEnemyEyes(x, y, gap) {
+  function drawEnemyBaseShadow(width = 48) {
+    ctx.fillStyle = "rgba(126, 145, 180, 0.20)";
+    ctx.beginPath();
+    ctx.ellipse(width / 2, 64, width * 0.44, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawFace(cx, cy, mood = "angry") {
+    ctx.fillStyle = "#3f3c54";
+    ctx.beginPath(); ctx.arc(cx - 8, cy, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 8, cy, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#3f3c54";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    if (mood === "angry") {
+      ctx.moveTo(cx - 14, cy - 6); ctx.lineTo(cx - 6, cy - 3);
+      ctx.moveTo(cx + 14, cy - 6); ctx.lineTo(cx + 6, cy - 3);
+      ctx.moveTo(cx - 7, cy + 9); ctx.quadraticCurveTo(cx, cy + 5, cx + 7, cy + 9);
+    } else if (mood === "boo") {
+      ctx.moveTo(cx - 7, cy + 8); ctx.quadraticCurveTo(cx, cy + 13, cx + 7, cy + 8);
+    } else {
+      ctx.moveTo(cx - 7, cy + 7); ctx.quadraticCurveTo(cx, cy + 11, cx + 7, cy + 7);
+    }
+    ctx.stroke();
+    ctx.fillStyle = "rgba(255, 182, 193, 0.7)";
+    ctx.beginPath(); ctx.arc(cx - 14, cy + 6, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 14, cy + 6, 3, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function drawTinyFeet(leftX, rightX, y) {
+    ctx.strokeStyle = "#5e5973";
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(leftX, y); ctx.lineTo(leftX - 3, y + 8);
+    ctx.moveTo(rightX, y); ctx.lineTo(rightX + 3, y + 8);
+    ctx.stroke();
+  }
+
+  function drawCuteCarrot() {
+    drawEnemyBaseShadow(40);
+    ctx.fillStyle = "#58c075";
+    ctx.beginPath(); ctx.moveTo(18, 8); ctx.lineTo(10, 24); ctx.lineTo(22, 22); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(28, 8); ctx.lineTo(22, 24); ctx.lineTo(34, 22); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#ff9e59";
+    ctx.beginPath();
+    ctx.moveTo(24, 14); ctx.lineTo(40, 26); ctx.lineTo(35, 54); ctx.lineTo(20, 60); ctx.lineTo(7, 48); ctx.lineTo(10, 24);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "#f28c41"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(19, 27); ctx.lineTo(31, 29); ctx.moveTo(17, 36); ctx.lineTo(29, 38); ctx.stroke();
+    drawFace(24, 34, "angry");
+    drawTinyFeet(14, 33, 56);
+  }
+
+  function drawCuteTomato() {
+    drawEnemyBaseShadow(44);
+    ctx.fillStyle = "#ff6b6b";
+    ctx.beginPath(); ctx.arc(26, 34, 22, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#6dcf75";
+    ctx.beginPath();
+    ctx.moveTo(26, 8); ctx.lineTo(20, 17); ctx.lineTo(26, 15); ctx.lineTo(32, 17); ctx.lineTo(29, 10); ctx.lineTo(36, 14);
+    ctx.lineTo(32, 20); ctx.lineTo(26, 18); ctx.lineTo(20, 20); ctx.lineTo(16, 14); ctx.closePath(); ctx.fill();
+    drawFace(26, 34, "angry");
+    drawTinyFeet(15, 36, 54);
+  }
+
+  function drawCuteBroccoli() {
+    drawEnemyBaseShadow(46);
+    ctx.fillStyle = "#7fd56d";
+    for (const [cx, cy, r] of [[17,20,14],[31,16,13],[43,22,12],[24,28,15],[37,29,14]]) {
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = "#82c79d";
+    roundRect(19, 30, 18, 26, 8, true, false);
+    drawFace(28, 33, "angry");
+    drawTinyFeet(22, 36, 56);
+  }
+
+  function drawCuteEggplant() {
+    drawEnemyBaseShadow(44);
+    ctx.fillStyle = "#8e69d8";
+    ctx.beginPath();
+    ctx.moveTo(22, 12); ctx.quadraticCurveTo(43, 16, 40, 42); ctx.quadraticCurveTo(38, 60, 22, 59);
+    ctx.quadraticCurveTo(10, 58, 9, 44); ctx.quadraticCurveTo(9, 22, 22, 12); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#6ac877";
+    ctx.beginPath();
+    ctx.moveTo(19, 8); ctx.lineTo(28, 8); ctx.lineTo(31, 15); ctx.lineTo(23, 18); ctx.lineTo(15, 15); ctx.closePath(); ctx.fill();
+    drawFace(24, 34, "angry");
+    drawTinyFeet(16, 31, 56);
+  }
+
+  function drawCuteZombie() {
+    drawEnemyBaseShadow(50);
+    ctx.fillStyle = "#95d39a";
+    roundRect(14, 6, 28, 26, 9, true, false);
+    ctx.fillStyle = "#4a556e";
+    roundRect(12, 28, 30, 22, 8, true, false);
+    ctx.fillStyle = "#6e5976";
+    roundRect(7, 22, 10, 18, 5, true, false);
+    roundRect(39, 28, 10, 18, 5, true, false);
     ctx.fillStyle = "#fff";
-    ctx.fillRect(x, y, 7, 7);
-    ctx.fillRect(x + gap, y, 7, 7);
-    ctx.fillStyle = "#28222c";
-    ctx.fillRect(x + 2, y + 2, 4, 4);
-    ctx.fillRect(x + gap + 2, y + 2, 4, 4);
+    ctx.beginPath(); ctx.arc(23, 18, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(34, 18, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#453d56";
+    ctx.beginPath(); ctx.arc(22, 19, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(35, 17, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#453d56"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(22, 27); ctx.lineTo(34, 28); ctx.stroke();
+    drawTinyFeet(19, 34, 50);
+  }
+
+  function drawCuteGhost() {
+    drawEnemyBaseShadow(48);
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.moveTo(9, 32);
+    ctx.quadraticCurveTo(10, 6, 30, 6);
+    ctx.quadraticCurveTo(50, 6, 51, 30);
+    ctx.lineTo(51, 48);
+    ctx.quadraticCurveTo(44, 42, 38, 48);
+    ctx.quadraticCurveTo(31, 42, 24, 48);
+    ctx.quadraticCurveTo(17, 42, 9, 48);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "#dae2f2"; ctx.lineWidth = 2; ctx.stroke();
+    drawFace(30, 27, "boo");
+    ctx.fillStyle = "#6d5fa2";
+    ctx.fillRect(16, 4, 8, 8);
+    ctx.fillRect(24, 0, 13, 12);
   }
 
   function drawParticles() {
@@ -1267,11 +1532,11 @@
     }
 
     if (game.phase === "playing" && game.elapsed < 4) {
-      ctx.fillStyle = "rgba(17,19,26,.72)";
-      ctx.fillRect(24, 24, 300, 42);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 18px monospace";
-      ctx.fillText("TEA RUN  JUMP ↑ / SPACE   DUCK ↓", 40, 51);
+      ctx.fillStyle = "rgba(255,255,255,.82)";
+      roundRect(24, 24, 344, 44, 18, true, false);
+      ctx.fillStyle = "#6e84b0";
+      ctx.font = "bold 18px sans-serif";
+      ctx.fillText("JUMP ↑ / SPACE   SLIDE ↓", 46, 52);
     }
   }
 

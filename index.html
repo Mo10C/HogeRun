@@ -11,11 +11,14 @@
   <main class="app-shell">
     <header class="topbar">
       <div>
-        <div class="eyebrow">TEA ROGUELIKE RUNNER</div>
-        <div class="title-logo" aria-label="ほげ走">
-          <span class="title-icon">☕</span>
-          <span class="title-main">ほげ走</span>
-          <span class="title-icon">🐇</span>
+        <div class="eyebrow">TEA PARTY MINI RUNNER</div>
+        <div class="title-stack">
+          <div class="title-logo" aria-label="ほげ走">
+            <span class="title-icon">☕</span>
+            <span class="title-main">ほげ走</span>
+            <span class="title-icon">🐇</span>
+          </div>
+          <div class="title-sub">〜 うさぎのティーパーティー大冒険 〜</div>
         </div>
       </div>
       <div id="user-badge" class="user-badge hidden">
@@ -75,11 +78,17 @@
           </div>
 
           <div id="upgrade-overlay" class="upgrade-overlay hidden">
-            <div class="upgrade-box">
-              <p class="eyebrow">TEA BREAK UPGRADE</p>
-              <h2>強化アイテムを1つ選べ！</h2>
-              <p class="muted">毎回ランダム3択。選ぶまでゲームは止まります。</p>
+            <div class="upgrade-box augment-box">
+              <div class="augment-topline">
+                <span class="tea-ornament">☕</span>
+                <p class="eyebrow">TEA PARTY AUGMENT</p>
+                <span class="tea-ornament">⌚</span>
+              </div>
+              <h2>お茶会の祝福を選んで！</h2>
+              <p class="augment-subtitle">3つの不思議な力から、今回の冒険に1つだけ。</p>
+              <div class="augment-rule"><span>♣</span><span>♦</span><span>♥</span><span>♠</span></div>
               <div id="upgrade-cards" class="upgrade-cards"></div>
+              <p class="augment-footer">選択するとゲームが再開します</p>
             </div>
           </div>
         </div>
@@ -139,7 +148,7 @@
     </section>
   </main>
 
-  <footer class="footer">ほげ走 — browser-only pixel roguelike runner</footer>
+  <footer class="footer">ほげ走 — browser-only cute tea-party runner</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js"></script>
