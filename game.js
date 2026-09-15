@@ -46,24 +46,54 @@
   };
 
   const ctx = els.canvas.getContext("2d");
-  ctx.imageSmoothingEnabled = false;
+  ctx.imageSmoothingEnabled = true;
 
-  const PLAYER_SPRITE_SHEET = new Image();
-  PLAYER_SPRITE_SHEET.src = "./player-bunny-sprites.png";
-  let playerSpriteReady = false;
-  PLAYER_SPRITE_SHEET.addEventListener("load", () => { playerSpriteReady = true; });
+  function loadImage(src) {
+    const img = new Image();
+    img.src = src;
+    return img;
+  }
 
-  const PLAYER_SPRITE = {
-    cols: 4,
-    rows: 4,
-    cellW: 332,
-    cellH: 332,
-    runFrames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-    jumpFrames: [2, 6, 10, 14],
-    crouchFrames: [1, 5, 9, 13],
-    idleFrames: [0, 4, 8, 12],
-    startFrame: 0,
-    gameOverFrame: 14
+  const ART = {
+    logo: loadImage("./assets/logo/title-logo.png"),
+    background: loadImage("./assets/background/stage-bg.png"),
+    titleScene: loadImage("./assets/background/title-key-art.png"),
+    playerIdle: loadImage("./assets/player/idle.png"),
+    playerRuns: [
+      loadImage("./assets/player/run-1.png"),
+      loadImage("./assets/player/run-2.png"),
+      loadImage("./assets/player/run-3.png")
+    ],
+    playerJumpUp: loadImage("./assets/player/jump-up.png"),
+    playerJumpApex: loadImage("./assets/player/jump-apex.png"),
+    playerJumpDown: loadImage("./assets/player/jump-down.png"),
+    playerSlides: [
+      loadImage("./assets/player/slide-1.png"),
+      loadImage("./assets/player/slide-2.png"),
+      loadImage("./assets/player/slide-3.png")
+    ],
+    playerGameover: loadImage("./assets/player/gameover.png"),
+    playerHero: loadImage("./assets/background/title-key-art.png"),
+    enemySheet: loadImage("./assets/enemy/enemy-sheet.png")
+  };
+
+  const ENEMY_SHEET_MAP = {
+    carrot: [0, 0],
+    tomato: [1, 0],
+    broccoli: [2, 0],
+    eggplant: [0, 1],
+    ghost: [1, 1],
+    zombie: [2, 1]
+  };
+
+
+  const ENEMY_DRAW = {
+    carrot: { drawH: 92, bob: 4, amp: 1.9 },
+    tomato: { drawH: 88, bob: 3, amp: 2.2 },
+    broccoli: { drawH: 96, bob: 4, amp: 2.0 },
+    eggplant: { drawH: 90, bob: 3, amp: 2.1 },
+    zombie: { drawH: 112, bob: 3, amp: 1.6 },
+    ghost: { drawH: 102, bob: 11, amp: 2.4, lift: 28, alpha: 0.92 }
   };
 
 
@@ -396,7 +426,7 @@
     els.userBadge.classList.remove("hidden");
     els.currentUsername.textContent = currentUsername;
     resetGame();
-    showStartOverlay("ほげ走", "ジャンプとしゃがみで敵をかわして、紅茶の入ったカップを10杯集めるたびにランダム強化！", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "ふしぎな紅茶の国を駆け抜けよう！", characterSrc: "./player-start.png" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "ロゴ・背景・敵キャラをイラスト案そのままに実装しました。", characterSrc: "./assets/background/title-key-art.png" });
     refreshLeaderboard();
   }
 
@@ -418,7 +448,7 @@
     if (ONLINE_CONFIGURED && supabaseClient) {
       const { data, error } = await supabaseClient.rpc("start_game");
       if (error) {
-        showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./player-gameover.png" });
+        showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png" });
         return;
       }
       currentRunId = data;
@@ -439,7 +469,7 @@
     els.bestLabel.textContent = `${currentBest}m`;
 
     let saveMessage = ONLINE_CONFIGURED ? "ランキングへ保存中..." : "オフライン練習モード";
-    showStartOverlay("GAME OVER", `${reason}　${finalScore}m / ${game.coins} TEA\n${saveMessage}`, "もう一回", { variant: "gameover", eyebrow: "OOPS! TEA TIME OVER", note: "紅茶をこぼしちゃった… もう一回走ろう！", characterSrc: "./player-gameover.png" });
+    showStartOverlay("GAME OVER", `${reason}　${finalScore}m / ${game.coins} TEA\n${saveMessage}`, "もう一回", { variant: "gameover", eyebrow: "OOPS! TEA TIME OVER", note: "紅茶をこぼしちゃった… もう一回走ろう！", characterSrc: "./assets/player/gameover.png" });
 
     if (ONLINE_CONFIGURED && supabaseClient && currentRunId) {
       const { error } = await supabaseClient.rpc("finish_game", {
@@ -464,7 +494,7 @@
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./player-gameover.png" : "./player-start.png"
+      characterSrc = variant === "gameover" ? "./assets/player/gameover.png" : "./assets/background/title-key-art.png"
     } = options;
 
     els.startTitle.textContent = title;
@@ -863,111 +893,89 @@
       .replaceAll("'", "&#039;");
   }
 
+  function drawImageCover(img, dx, dy, dw, dh) {
+    if (!img || !img.complete) return false;
+    const imageRatio = img.width / img.height;
+    const frameRatio = dw / dh;
+    let sx = 0; let sy = 0; let sw = img.width; let sh = img.height;
+    if (imageRatio > frameRatio) {
+      sw = img.height * frameRatio;
+      sx = (img.width - sw) / 2;
+    } else if (imageRatio < frameRatio) {
+      sh = img.width / frameRatio;
+      sy = (img.height - sh) / 2;
+    }
+    ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+    return true;
+  }
+
+  function drawMaskedSprite(sprite, dx, dy, dw, dh, options = {}) {
+    if (!sprite?.image?.complete) return false;
+    const { rotate = 0, alpha = 1 } = options;
+    ctx.save();
+    ctx.translate(dx + dw / 2, dy + dh / 2);
+    if (rotate) ctx.rotate(rotate);
+    if (sprite.mask?.length) {
+      ctx.beginPath();
+      sprite.mask.forEach(([px, py], index) => {
+        const x = -dw / 2 + px * dw;
+        const y = -dh / 2 + py * dh;
+        if (index === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.clip();
+    }
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(sprite.image, -dw / 2, -dh / 2, dw, dh);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+    return true;
+  }
+
   function drawBackground() {
     const w = els.canvas.width;
     const h = els.canvas.height;
-    const skyY = GROUND_Y - 120;
 
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y + 30);
-    skyGrad.addColorStop(0, "#bcd8ff");
-    skyGrad.addColorStop(0.45, "#e9f3ff");
-    skyGrad.addColorStop(1, "#fdf3f8");
-    ctx.fillStyle = skyGrad;
-    ctx.fillRect(0, 0, w, h);
+    if (ART.background.complete) {
+      drawImageCover(ART.background, 0, 0, w, h);
+    } else {
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+      skyGrad.addColorStop(0, "#cfe7ff");
+      skyGrad.addColorStop(1, "#fff1f7");
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, w, h);
+    }
 
-    // dreamy haze
-    ctx.fillStyle = "rgba(255,255,255,0.42)";
-    ctx.beginPath(); ctx.ellipse(210, 90, 180, 56, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(730, 72, 170, 50, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.20)";
+    ctx.fillRect(0, GROUND_Y - 34, w, 18);
 
-    // ribbon flags at the top
-    const buntingOffset = -((game.distance * 0.6) % 180);
-    for (let x = buntingOffset - 180; x < w + 180; x += 180) {
-      ctx.strokeStyle = "#a9b6dd";
-      ctx.lineWidth = 3;
+    const laneShade = ctx.createLinearGradient(0, GROUND_Y - 4, 0, h);
+    laneShade.addColorStop(0, "rgba(255, 245, 234, 0.20)");
+    laneShade.addColorStop(1, "rgba(184, 143, 143, 0.34)");
+    ctx.fillStyle = laneShade;
+    ctx.fillRect(0, GROUND_Y - 4, w, h - GROUND_Y + 4);
+
+    ctx.fillStyle = "rgba(255,255,255,0.65)";
+    ctx.fillRect(0, GROUND_Y - 4, w, 6);
+
+    const tileOffset = -((game.distance * 3.2) % 72);
+    for (let x = tileOffset - 72; x < w + 72; x += 72) {
+      ctx.fillStyle = "rgba(255, 250, 245, 0.64)";
+      ctx.fillRect(x + 8, GROUND_Y + 16, 26, 12);
+      ctx.fillRect(x + 38, GROUND_Y + 16, 26, 12);
+      ctx.fillRect(x + 8, GROUND_Y + 32, 26, 12);
+      ctx.fillRect(x + 38, GROUND_Y + 32, 26, 12);
+      ctx.fillStyle = "rgba(201, 178, 177, 0.38)";
+      ctx.fillRect(x + 35, GROUND_Y + 16, 3, 28);
+      ctx.fillRect(x + 8, GROUND_Y + 29, 56, 3);
+    }
+
+    const ribbonOffset = -((game.distance * 0.8) % 160);
+    for (let x = ribbonOffset - 160; x < w + 160; x += 160) {
+      ctx.fillStyle = "rgba(255, 226, 238, 0.30)";
       ctx.beginPath();
-      ctx.moveTo(x, 44);
-      ctx.quadraticCurveTo(x + 90, 62, x + 180, 44);
-      ctx.stroke();
-      const colors = ["#ffc2d6", "#ffd87a", "#b7e8cc", "#b8cbff"];
-      for (let i = 0; i < 4; i += 1) {
-        const fx = x + 20 + i * 38;
-        ctx.fillStyle = colors[i];
-        ctx.beginPath();
-        ctx.moveTo(fx, 46);
-        ctx.lineTo(fx + 14, 46);
-        ctx.lineTo(fx + 7, 61);
-        ctx.closePath();
-        ctx.fill();
-      }
-    }
-
-    // lemon sun
-    ctx.fillStyle = "#fff2a8";
-    ctx.beginPath(); ctx.arc(792, 82, 38, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.fillRect(788, 46, 8, 72);
-    ctx.fillRect(756, 78, 72, 8);
-
-    const cloudOffset = -((game.distance * 0.22) % 400);
-    for (let i = -1; i < 4; i += 1) {
-      drawCloud(cloudOffset + i * 400 + 65, 92 + (i % 2) * 22);
-    }
-
-    // cute skyline high in the background so it doesn't clash with obstacles
-    const castleOffset = -((game.distance * 0.14) % 520);
-    for (let i = -1; i < 3; i += 1) {
-      drawFairyCastle(castleOffset + i * 520 + 260, 188 + (i % 2) * 10, 0.84);
-    }
-
-    const houseOffset = -((game.distance * 0.3) % 360);
-    for (let i = -1; i < 4; i += 1) {
-      drawTeapotVilla(houseOffset + i * 360 + 120, skyY - 2 + (i % 2) * 8, 1);
-    }
-
-    const signOffset = -((game.distance * 0.52) % 300);
-    for (let i = -1; i < 4; i += 1) {
-      drawTeaSign(signOffset + i * 300 + 160, skyY + 34 + (i % 2) * 7, i % 2 === 0 ? "TEA" : "SWEETS");
-    }
-
-    drawBunnyBalloon(760 - ((game.distance * 0.18) % 1060), 112);
-
-    // soft platform lane band behind gameplay lane
-    ctx.fillStyle = "rgba(255,255,255,0.28)";
-    ctx.fillRect(0, GROUND_Y - 54, w, 34);
-
-    // ground lane
-    const laneGrad = ctx.createLinearGradient(0, GROUND_Y - 6, 0, h);
-    laneGrad.addColorStop(0, "#f7e8db");
-    laneGrad.addColorStop(1, "#e9c8ba");
-    ctx.fillStyle = laneGrad;
-    ctx.fillRect(0, GROUND_Y, w, h - GROUND_Y);
-    ctx.fillStyle = "#fff7f2";
-    ctx.fillRect(0, GROUND_Y - 6, w, 12);
-
-    // paving blocks
-    const tileOffset = -((game.distance * 4) % 54);
-    for (let x = tileOffset - 54; x < w + 54; x += 54) {
-      ctx.fillStyle = "#fff3eb";
-      ctx.fillRect(x + 4, GROUND_Y + 18, 22, 11);
-      ctx.fillRect(x + 28, GROUND_Y + 18, 22, 11);
-      ctx.fillRect(x + 4, GROUND_Y + 32, 22, 11);
-      ctx.fillRect(x + 28, GROUND_Y + 32, 22, 11);
-      ctx.fillStyle = "#e8d6cb";
-      ctx.fillRect(x + 25, GROUND_Y + 18, 3, 25);
-      ctx.fillRect(x + 4, GROUND_Y + 29, 46, 3);
-    }
-
-    // foreground sweets silhouettes at the very bottom only
-    const propOffset = -((game.distance * 1.2) % 160);
-    for (let x = propOffset - 160; x < w + 160; x += 160) {
-      ctx.fillStyle = "rgba(238, 201, 214, 0.55)";
-      ctx.beginPath();
-      ctx.ellipse(x + 24, GROUND_Y + 78, 28, 16, 0, 0, Math.PI * 2);
+      ctx.ellipse(x + 24, GROUND_Y + 74, 28, 12, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = "rgba(225, 239, 255, 0.68)";
-      ctx.fillRect(x + 74, GROUND_Y + 60, 26, 18);
-      ctx.fillRect(x + 88, GROUND_Y + 46, 26, 18);
     }
   }
 
@@ -1235,29 +1243,20 @@
     }
   }
 
-  function getPlayerFrameIndex() {
-    const p = game.player;
-
-    if (p.crouching) {
-      return PLAYER_SPRITE.crouchFrames[Math.floor((game.elapsed * 10) % PLAYER_SPRITE.crouchFrames.length)];
-    }
-
-    if (!p.onGround) {
-      if (p.vy < -320) return PLAYER_SPRITE.jumpFrames[0];
-      if (p.vy < -80) return PLAYER_SPRITE.jumpFrames[1];
-      if (p.vy < 180) return PLAYER_SPRITE.jumpFrames[2];
-      return PLAYER_SPRITE.jumpFrames[3];
-    }
-
-    if (game.phase === "idle" || game.phase === "gameover") {
-      return PLAYER_SPRITE.idleFrames[Math.floor((performance.now() / 360) % PLAYER_SPRITE.idleFrames.length)];
-    }
-
-    if (game.phase === "upgrade") {
-      return PLAYER_SPRITE.idleFrames[Math.floor((performance.now() / 420) % PLAYER_SPRITE.idleFrames.length)];
-    }
-
-    return PLAYER_SPRITE.runFrames[Math.floor((game.elapsed * 18) % PLAYER_SPRITE.runFrames.length)];
+  function drawPlayerFrame(img, centerX, feetY, drawH, options = {}) {
+    if (!img?.complete || !img.naturalWidth) return false;
+    const { rotate = 0, alpha = 1, xOffset = 0, yOffset = 0 } = options;
+    const drawW = Math.round(img.naturalWidth * (drawH / img.naturalHeight));
+    const drawX = Math.round(centerX - drawW / 2 + xOffset);
+    const drawY = Math.round(feetY - drawH + yOffset);
+    ctx.save();
+    ctx.translate(drawX + drawW / 2, drawY + drawH / 2);
+    if (rotate) ctx.rotate(rotate);
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+    return true;
   }
 
   function drawPlayer() {
@@ -1265,116 +1264,94 @@
     const blink = p.invincible > 0 && Math.floor(p.invincible * 12) % 2 === 0;
     if (blink) return;
 
-    if (!playerSpriteReady || !PLAYER_SPRITE_SHEET.complete) {
+    const feetY = p.y + p.h;
+    const centerX = p.x + p.w / 2 + 4;
+    let drawn = false;
+
+    if (game.phase === "gameover") {
+      drawn = drawPlayerFrame(ART.playerGameover, centerX + 2, feetY + 3, 86, { xOffset: -6 });
+    } else if (p.crouching) {
+      const frames = ART.playerSlides;
+      const index = Math.floor(game.elapsed * 12) % frames.length;
+      drawn = drawPlayerFrame(frames[index], centerX + 5, feetY + 4, 82, { xOffset: 7 });
+
+      ctx.globalAlpha = 0.72;
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.fillRect(Math.round(p.x - 50), Math.round(GROUND_Y - 32), 34, 4);
+      ctx.fillRect(Math.round(p.x - 64), Math.round(GROUND_Y - 20), 44, 3);
+      ctx.globalAlpha = 1;
+    } else if (!p.onGround) {
+      let img;
+      let rotate = 0;
+      if (p.vy < -150) {
+        img = ART.playerJumpUp;
+        rotate = -0.04;
+      } else if (p.vy < 170) {
+        img = ART.playerJumpApex;
+        rotate = 0;
+      } else {
+        img = ART.playerJumpDown;
+        rotate = 0.05;
+      }
+      drawn = drawPlayerFrame(img, centerX + 3, feetY - 5, 104, { rotate, xOffset: 3 });
+    } else if (game.phase === "idle" || game.phase === "upgrade") {
+      const idleBob = Math.sin(performance.now() / 260) * 2;
+      drawn = drawPlayerFrame(ART.playerIdle, centerX, feetY + idleBob, 112, { yOffset: idleBob });
+    } else {
+      const frames = ART.playerRuns;
+      const index = Math.floor(game.elapsed * 11) % frames.length;
+      const strideBob = Math.abs(Math.sin(game.elapsed * 11)) * 2;
+      drawn = drawPlayerFrame(frames[index], centerX + 2, feetY + strideBob, 108, { yOffset: strideBob });
+    }
+
+    if (!drawn) {
       drawFallbackPlayer();
       return;
     }
 
-    const frameIndex = getPlayerFrameIndex();
-    const frameCol = frameIndex % PLAYER_SPRITE.cols;
-    const frameRow = Math.floor(frameIndex / PLAYER_SPRITE.cols);
-
-    const sx = frameCol * PLAYER_SPRITE.cellW;
-    const sy = frameRow * PLAYER_SPRITE.cellH;
-
-    const bob = (game.phase === "idle" || game.phase === "upgrade") ? Math.sin(performance.now() / 220) * 2 : 0;
-    const feetY = p.y + p.h;
-
-    let drawW;
-    let drawH;
-    let drawX;
-    let drawY;
-
-    if (p.crouching) {
-      // Sliding pose: stretch horizontally, squash vertically, tilt forward,
-      // and anchor the character to the ground so the motion reads as a slide.
-      drawW = 142;
-      drawH = 84;
-      drawX = Math.round(p.x - 48);
-      drawY = Math.round(p.y - (drawH - p.h) + 4);
-
-      ctx.save();
-      ctx.translate(drawX + drawW / 2, drawY + drawH / 2);
-      ctx.rotate(-0.10);
-      ctx.drawImage(
-        PLAYER_SPRITE_SHEET,
-        sx,
-        sy,
-        PLAYER_SPRITE.cellW,
-        PLAYER_SPRITE.cellH,
-        -drawW / 2,
-        -drawH / 2,
-        drawW,
-        drawH
-      );
-      ctx.restore();
-
-      // Slide speed lines and dust.
-      ctx.globalAlpha = 0.72;
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(Math.round(p.x - 54), Math.round(GROUND_Y - 34), 32, 4);
-      ctx.fillRect(Math.round(p.x - 66), Math.round(GROUND_Y - 22), 42, 3);
-      ctx.fillStyle = "#dbeaff";
-      ctx.fillRect(Math.round(p.x - 42), Math.round(GROUND_Y - 12), 13, 7);
-      ctx.fillRect(Math.round(p.x - 56), Math.round(GROUND_Y - 8), 9, 5);
-      ctx.globalAlpha = 1;
-    } else {
-      const drawScale = !p.onGround ? 0.98 : 1;
-      drawW = Math.round(128 * drawScale);
-      drawH = Math.round(128 * drawScale);
-      drawX = Math.round(p.x - 42);
-      // Render directly from the physics Y position. The visual sprite therefore
-      // follows the collider every frame during ascent and descent.
-      drawY = Math.round(p.y - (drawH - p.h) - 6 + bob);
-
-      ctx.drawImage(
-        PLAYER_SPRITE_SHEET,
-        sx,
-        sy,
-        PLAYER_SPRITE.cellW,
-        PLAYER_SPRITE.cellH,
-        drawX,
-        drawY,
-        drawW,
-        drawH
-      );
-    }
-
     if (game.upgrades.shield > 0) {
-      ctx.strokeStyle = "#ffe66d";
+      ctx.strokeStyle = "rgba(255, 230, 109, 0.95)";
       ctx.lineWidth = 4;
-      ctx.strokeRect(drawX + 12, drawY + 6, drawW - 24, drawH - 12);
+      ctx.beginPath();
+      ctx.ellipse(p.x + 18, p.y + p.h / 2 - 2, 46, 56, 0, 0, Math.PI * 2);
+      ctx.stroke();
     }
   }
 
   function drawEnemy(enemy) {
-    const x = enemy.x;
-    const y = enemy.y;
-    ctx.save();
-    ctx.translate(x, y);
-
-    switch (enemy.kind) {
-      case "carrot":
-        drawCuteCarrot();
-        break;
-      case "tomato":
-        drawCuteTomato();
-        break;
-      case "broccoli":
-        drawCuteBroccoli();
-        break;
-      case "eggplant":
-        drawCuteEggplant();
-        break;
-      case "zombie":
-        drawCuteZombie();
-        break;
-      case "ghost":
-        drawCuteGhost();
-        break;
-      default:
-        break;
+    const cfg = ENEMY_DRAW[enemy.kind];
+    const cell = ENEMY_SHEET_MAP[enemy.kind];
+    const sheet = ART.enemySheet;
+    if (!cfg || !cell || !sheet?.complete) {
+      ctx.fillStyle = "rgba(103, 75, 96, 0.20)";
+      ctx.beginPath();
+      ctx.ellipse(enemy.x + enemy.w / 2, enemy.y + enemy.h + 2, Math.max(16, enemy.w * 0.56), 9, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#b06e91";
+      ctx.fillRect(enemy.x, enemy.y, enemy.w, enemy.h);
+      return;
     }
+
+    const [col, row] = cell;
+    const cellW = sheet.width / 3;
+    const cellH = sheet.height / 2;
+    const sx = Math.round(col * cellW);
+    const sy = Math.round(row * cellH);
+    const feetY = enemy.y + enemy.h;
+    const bob = Math.sin(game.elapsed * cfg.amp + enemy.x * 0.04) * cfg.bob;
+    const drawH = cfg.drawH;
+    const drawW = Math.round(cellW * (drawH / cellH));
+    const drawX = Math.round(enemy.x + enemy.w / 2 - drawW / 2);
+    const drawY = Math.round(feetY - drawH - (cfg.lift || 0) + bob);
+
+    ctx.save();
+    ctx.globalAlpha = cfg.alpha || 1;
+    const shadowY = enemy.kind === "ghost" ? feetY + 4 : feetY + 2;
+    ctx.fillStyle = enemy.kind === "ghost" ? "rgba(89, 114, 164, 0.16)" : "rgba(103, 75, 96, 0.20)";
+    ctx.beginPath();
+    ctx.ellipse(enemy.x + enemy.w / 2, shadowY, Math.max(18, enemy.w * 0.58), enemy.kind === "ghost" ? 8 : 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.drawImage(sheet, sx, sy, cellW, cellH, drawX, drawY, drawW, drawH);
     ctx.restore();
   }
 
