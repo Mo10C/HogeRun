@@ -1077,13 +1077,49 @@
     return true;
   }
 
+  function drawScrollingStageBackground(img, w, h) {
+    if (!img?.complete || img.naturalWidth <= 0 || img.naturalHeight <= 0) return false;
+
+    // 横スクロール用。地面より遅く流して奥行きを出す。
+    const imageRatio = img.naturalWidth / img.naturalHeight;
+    const frameRatio = w / h;
+    let sx = 0;
+    let sy = 0;
+    let sw = img.naturalWidth;
+    let sh = img.naturalHeight;
+
+    if (imageRatio > frameRatio) {
+      sw = img.naturalHeight * frameRatio;
+      sx = (img.naturalWidth - sw) / 2;
+    } else if (imageRatio < frameRatio) {
+      sh = img.naturalWidth / frameRatio;
+      sy = (img.naturalHeight - sh) / 2;
+    }
+
+    const scrollPx = (game.distance * 1.35) % w;
+    const firstX = -scrollPx;
+
+    // 3枚並べることで常に画面を埋める。画像は反転せず、文字も正向きのまま。
+    for (let i = 0; i < 3; i += 1) {
+      const dx = Math.round(firstX + i * w);
+      ctx.drawImage(img, sx, sy, sw, sh, dx, 0, w + 1, h);
+    }
+
+    // 継ぎ目を目立ちにくくする、ごく薄い空気遠近レイヤー。
+    const haze = ctx.createLinearGradient(0, 0, 0, h);
+    haze.addColorStop(0, "rgba(255,255,255,0.035)");
+    haze.addColorStop(0.68, "rgba(255,255,255,0.015)");
+    haze.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = haze;
+    ctx.fillRect(0, 0, w, h);
+    return true;
+  }
+
   function drawBackground() {
     const w = els.canvas.width;
     const h = els.canvas.height;
 
-    if (ART.background.complete && ART.background.naturalWidth > 0) {
-      drawImageCover(ART.background, 0, 0, w, h);
-    } else {
+    if (!drawScrollingStageBackground(ART.background, w, h)) {
       const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
       skyGrad.addColorStop(0, "#cfe7ff");
       skyGrad.addColorStop(1, "#fff1f7");
