@@ -42,7 +42,7 @@ body.app-loading .footer {
   color: #526483;
   background:
     linear-gradient(180deg, rgba(235,246,255,.74), rgba(255,239,247,.80)),
-    url('./assets/ui/title-key-art.png?v=35') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=36') center / cover no-repeat;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -256,7 +256,7 @@ body.app-ready .footer {
   padding: clamp(26px, 6vw, 52px);
   background:
     linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.44)),
-    url('./assets/ui/title-key-art.png?v=35') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=36') center / cover no-repeat;
 }
 
 .login-panel h2 { margin: 0 0 12px; font-size: clamp(30px, 4vw, 54px); }
@@ -344,7 +344,7 @@ body.app-ready .footer {
 .overlay-start {
   background:
     linear-gradient(180deg, rgba(232,242,255,.18), rgba(255,238,247,.30)),
-    url('./assets/ui/title-key-art.png?v=35') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=36') center / cover no-repeat;
 }
 
 .overlay-inner {
@@ -446,7 +446,7 @@ body.app-ready .footer {
   isolation: isolate;
   background:
     linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.22)),
-    url('./assets/backgrounds/ability-select-bg.png?v=35') center / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=36') center / cover no-repeat;
   border: 3px solid rgba(255,255,255,.96);
   border-radius: 30px;
   box-shadow: 0 18px 0 rgba(106, 131, 176, .13), 0 28px 60px rgba(98, 120, 158, .30);
@@ -679,7 +679,7 @@ body.app-ready .footer {
   position: relative;
   width: min(1020px, calc(100vw - 20px));
   aspect-ratio: 1448 / 1086;
-  background: url('./assets/backgrounds/ability-select-bg.png?v=35') center / contain no-repeat;
+  background: url('./assets/backgrounds/ability-select-bg.png?v=36') center / contain no-repeat;
 }
 
 .upgrade-cards {
@@ -1123,7 +1123,7 @@ body.app-ready .footer {
   overflow: hidden;
   background:
     linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.12)),
-    url('./assets/backgrounds/ability-select-bg.png?v=35') center / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=36') center / cover no-repeat;
   border: 3px solid rgba(255,255,255,.92);
   box-shadow: 0 18px 48px rgba(96,123,173,.24);
 }
@@ -1857,7 +1857,7 @@ body {
   background:
     radial-gradient(circle at 50% 18%, rgba(255,255,255,.18), rgba(255,255,255,0) 30%),
     linear-gradient(180deg, rgba(232,242,255,.20), rgba(255,238,247,.34)),
-    url('./assets/ui/title-key-art.png?v=35') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=36') center / cover no-repeat;
 }
 .overlay-start .overlay-inner {
   width: min(640px, 96%);
@@ -2337,7 +2337,7 @@ body {
   isolation: isolate;
   background:
     linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,247,251,.28)),
-    url('./assets/backgrounds/ability-select-bg.png?v=35') center 48% / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=36') center 48% / cover no-repeat;
 }
 
 .upgrade-box::before {
@@ -3348,3 +3348,74 @@ body.upgrade-active .build-pop {
 .game-help-inline {
   display: none !important;
 }
+
+
+/* === v36 HOME navigation + in-game key guide removal === */
+.home-profile-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 auto 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.86);
+  border: 1px solid rgba(211,223,244,.95);
+  color: #65799f;
+  box-shadow: 0 6px 14px rgba(111,139,183,.10);
+}
+.home-profile-label {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffc2d8, #f39abf);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 1000;
+  letter-spacing: .08em;
+}
+#home-username {
+  font-size: 13px;
+  color: #536b9b;
+}
+.home-rename-button {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f4f7ff;
+  border: 1px solid #d5e0f2;
+  font-size: 11px;
+  font-weight: 900;
+}
+.overlay-gameover .home-profile-row {
+  display: none !important;
+}
+.result-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.home-button {
+  min-width: 120px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(190,207,235,.95);
+  background: linear-gradient(180deg, #ffffff, #edf4ff);
+  color: #5e76a3;
+  font-size: 14px;
+  font-weight: 1000;
+  letter-spacing: .08em;
+  box-shadow: 0 8px 18px rgba(103,130,178,.14);
+  cursor: pointer;
+}
+.home-button:hover {
+  transform: translateY(-1px);
+}
+.overlay-start .home-button {
+  display: none !important;
+}
+/* HOME画面のキーバインド説明は残す */
+.overlay-start .menu-key-note {
+  display: block !important;
+}
+/* ゲーム内に描画されていたキーバインド案内はJS側で削除済み */

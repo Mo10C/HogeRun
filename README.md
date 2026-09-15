@@ -191,3 +191,10 @@ assets/
 - CSS読込前にスタート画面が一瞬描画されるFOUC対策として、head内に最小限の起動用CSSを追加。
 - `body.app-loading` 中は `.app-shell` を即時非表示にし、ロード完了までメニューやキーバインド説明が見えないよう修正。
 - 添付画像を `assets/ui/favicon.png` と `assets/ui/apple-touch-icon.png` に設定。
+
+
+## v36 HOME導線・名前変更位置・ゲーム内キー説明修正
+- リザルト画面に HOME ボタンを追加し、HOME画面へ戻れるように変更。
+- 名前変更ボタンをゲームHUDから削除し、HOME画面内へ移動。
+- HOME画面のキーバインド設定・説明は維持。
+- ゲーム開始直後に名前の裏へ数秒表示されていた `JUMP ↑ / SPACE   SLIDE ↓` のCanvas描画を完全削除。
