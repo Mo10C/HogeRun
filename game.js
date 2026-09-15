@@ -78,27 +78,27 @@
   }
 
   const ART = {
-    logo: loadImage("./title-logo.png?v=18"),
-    background: loadImage("./stage-bg.png?v=18"),
-    titleScene: loadImage("./title-key-art.png?v=18"),
-    playerIdle: loadImage("./player-idle.png?v=18"),
+    logo: loadImage("./title-logo.png?v=19"),
+    background: loadImage("./stage-bg.png?v=19"),
+    titleScene: loadImage("./title-key-art.png?v=19"),
+    playerIdle: loadImage("./player-idle.png?v=19"),
     playerRuns: [
-      loadImage("./player-run-1.png?v=18"),
-      loadImage("./player-run-2.png?v=18"),
-      loadImage("./player-run-3.png?v=18")
+      loadImage("./player-run-1.png?v=19"),
+      loadImage("./player-run-2.png?v=19"),
+      loadImage("./player-run-3.png?v=19")
     ],
-    playerJumpUp: loadImage("./player-jump-up.png?v=18"),
-    playerJumpApex: loadImage("./player-jump-apex.png?v=18"),
-    playerJumpDown: loadImage("./player-jump-down.png?v=18"),
+    playerJumpUp: loadImage("./player-jump-up.png?v=19"),
+    playerJumpApex: loadImage("./player-jump-apex.png?v=19"),
+    playerJumpDown: loadImage("./player-jump-down.png?v=19"),
     playerSlides: [
-      loadImage("./player-slide-1.png?v=18"),
-      loadImage("./player-slide-2.png?v=18"),
-      loadImage("./player-slide-3.png?v=18")
+      loadImage("./player-slide-1.png?v=19"),
+      loadImage("./player-slide-2.png?v=19"),
+      loadImage("./player-slide-3.png?v=19")
     ],
-    playerGameover: loadImage("./player-gameover.png?v=18"),
-    playerHero: loadImage("./title-key-art.png?v=18"),
-    enemySheet: loadImage("./enemy-sheet.png?v=18"),
-    teaCup: loadImage("./tea-cup.png?v=18")
+    playerGameover: loadImage("./player-gameover.png?v=19"),
+    playerHero: loadImage("./title-key-art.png?v=19"),
+    enemySheet: loadImage("./enemy-sheet.png?v=19"),
+    teaCup: loadImage("./tea-cup.png?v=19")
   };
 
   let gameplayAssetsPromise = null;
@@ -472,7 +472,7 @@
     els.userBadge.classList.remove("hidden");
     els.currentUsername.textContent = currentUsername;
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "スタート後にゲーム素材を読み込む軽量版です。", characterSrc: "./title-key-art.png?v=18" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./title-key-art.png?v=19" });
     refreshLeaderboard();
   }
 
@@ -501,7 +501,7 @@
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
         if (error) {
-          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./player-gameover.png?v=18" });
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./player-gameover.png?v=19" });
           return;
         }
         currentRunId = data;
@@ -511,7 +511,7 @@
       game.phase = "playing";
       game.lastTime = performance.now();
     } catch (error) {
-      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./player-gameover.png?v=18" });
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./player-gameover.png?v=19" });
     } finally {
       els.startButton.disabled = false;
       els.startButton.textContent = originalLabel;
@@ -528,7 +528,7 @@
     els.bestLabel.textContent = `${currentBest}m`;
 
     let saveMessage = ONLINE_CONFIGURED ? "ランキングへ保存中..." : "オフライン練習モード";
-    showStartOverlay("GAME OVER", `${reason}　${finalScore}m / ${game.coins} TEA\n${saveMessage}`, "もう一回", { variant: "gameover", eyebrow: "OOPS! TEA TIME OVER", note: "紅茶をこぼしちゃった… もう一回走ろう！", characterSrc: "./player-gameover.png?v=18" });
+    showStartOverlay("GAME OVER", `${reason}　${finalScore}m / ${game.coins} TEA\n${saveMessage}`, "もう一回", { variant: "gameover", eyebrow: "OOPS! TEA TIME OVER", note: "紅茶をこぼしちゃった… もう一回走ろう！", characterSrc: "./player-gameover.png?v=19" });
 
     if (ONLINE_CONFIGURED && supabaseClient && currentRunId) {
       const { error } = await supabaseClient.rpc("finish_game", {
@@ -553,7 +553,7 @@
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./player-gameover.png?v=18" : "./title-key-art.png?v=18"
+      characterSrc = variant === "gameover" ? "./player-gameover.png?v=19" : "./title-key-art.png?v=19"
     } = options;
 
     els.startTitle.textContent = title;

@@ -1,32 +1,17 @@
-# ほげ走 v18 — PNG直置き・確実読み込み版
-
-スクリーンショットで画像が表示されずフォールバック描画になっていたため、GitHubブラウザアップロードで事故りにくいように構成を変更しました。
-
-## 重要
-この版は **assets フォルダを廃止** しています。
-画像を含む全ファイルが `hoge-run` の1階層に入っています。
-
-GitHubではZIPを解凍し、`hoge-run` フォルダ内のファイルを **全部選択して** `Add file → Upload files` へドラッグしてください。
+# ほげ走 v19（スタート画面修正版）
 
 ## 修正内容
-- WebPを使用しない
-- PNGをそのまま使用
-- サブフォルダを使用しない
-- 全画像をゲーム起動時から読み込み開始
-- スタート時に全ゲーム画像の読込完了を確認してから開始
-- 読み込み失敗時はゲームを開始せずエラーを表示
-- `?v=18` を付けてGitHub Pages/ブラウザの古いキャッシュを回避
-- 背景・敵・ティーカップ・メインキャラ・アビリティUIをすべて実画像で使用
 
-## GitHubに必ずアップロードする画像
-- title-logo.png
-- title-key-art.png
-- stage-bg.png
-- enemy-sheet.png
-- tea-cup.png
-- ability-select.png
-- player-idle.png
-- player-run-1.png / 2 / 3
-- player-jump-up.png / apex / down.png
-- player-slide-1.png / 2 / 3
-- player-gameover.png
+- スタート画面が表示されないCSS不具合を修正
+- `overlay-card` / `upgrade-overlay` をゲーム画面全面に重ねる構造へ復旧
+- スタート画面は指定のタイトルイラストを背景として表示
+- オリジナルロゴを中央に表示
+- ゲームオーバー画面も同じオーバーレイ構造で正常表示
+- アビリティ画面も全面オーバーレイとして表示
+- GitHub Pagesの古いCSS/JSキャッシュを避けるため `v=19` に更新
+- PNG直置き構成はそのまま維持
+
+## GitHub反映
+
+ZIPを解凍し、中身をすべてGitHubリポジトリへ上書きしてください。
+特に `styles.css`, `index.html`, `game.js` の3ファイルは必ず更新してください。
