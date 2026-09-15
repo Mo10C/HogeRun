@@ -5,9 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#171923" />
   <title>ほげ走</title>
-  <link rel="stylesheet" href="./styles.css?v=19" />
+  <link rel="stylesheet" href="./styles.css?v=20" />
 </head>
-<body>
+<body class="app-loading">
+  <div id="boot-splash" class="boot-splash" role="status" aria-live="polite">
+    <div class="boot-splash-card">
+      <div class="boot-tea-mark" aria-hidden="true">☕</div>
+      <div class="boot-title">TEA PARTY LOADING</div>
+      <div class="boot-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      <p id="boot-status">紅茶の国を準備しています…</p>
+    </div>
+  </div>
   <main class="app-shell">
     <header class="topbar">
       <div class="brand-wrap">
@@ -146,6 +154,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js"></script>
-  <script src="./game.js?v=19" defer></script>
+  <script src="./game.js?v=20" defer></script>
 </body>
 </html>

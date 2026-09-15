@@ -42,7 +42,9 @@
     jumpHelp: $("jump-help"),
     duckHelp: $("duck-help"),
     keybindStatus: $("keybind-status"),
-    resetKeybinds: $("reset-keybinds")
+    resetKeybinds: $("reset-keybinds"),
+    bootSplash: $("boot-splash"),
+    bootStatus: $("boot-status")
   };
 
   const ctx = els.canvas.getContext("2d");
@@ -78,27 +80,27 @@
   }
 
   const ART = {
-    logo: loadImage("./title-logo.png?v=19"),
-    background: loadImage("./stage-bg.png?v=19"),
-    titleScene: loadImage("./title-key-art.png?v=19"),
-    playerIdle: loadImage("./player-idle.png?v=19"),
+    logo: loadImage("./title-logo.png?v=20"),
+    background: loadImage("./stage-bg.png?v=20"),
+    titleScene: loadImage("./title-key-art.png?v=20"),
+    playerIdle: loadImage("./player-idle.png?v=20"),
     playerRuns: [
-      loadImage("./player-run-1.png?v=19"),
-      loadImage("./player-run-2.png?v=19"),
-      loadImage("./player-run-3.png?v=19")
+      loadImage("./player-run-1.png?v=20"),
+      loadImage("./player-run-2.png?v=20"),
+      loadImage("./player-run-3.png?v=20")
     ],
-    playerJumpUp: loadImage("./player-jump-up.png?v=19"),
-    playerJumpApex: loadImage("./player-jump-apex.png?v=19"),
-    playerJumpDown: loadImage("./player-jump-down.png?v=19"),
+    playerJumpUp: loadImage("./player-jump-up.png?v=20"),
+    playerJumpApex: loadImage("./player-jump-apex.png?v=20"),
+    playerJumpDown: loadImage("./player-jump-down.png?v=20"),
     playerSlides: [
-      loadImage("./player-slide-1.png?v=19"),
-      loadImage("./player-slide-2.png?v=19"),
-      loadImage("./player-slide-3.png?v=19")
+      loadImage("./player-slide-1.png?v=20"),
+      loadImage("./player-slide-2.png?v=20"),
+      loadImage("./player-slide-3.png?v=20")
     ],
-    playerGameover: loadImage("./player-gameover.png?v=19"),
-    playerHero: loadImage("./title-key-art.png?v=19"),
-    enemySheet: loadImage("./enemy-sheet.png?v=19"),
-    teaCup: loadImage("./tea-cup.png?v=19")
+    playerGameover: loadImage("./player-gameover.png?v=20"),
+    playerHero: loadImage("./title-key-art.png?v=20"),
+    enemySheet: loadImage("./enemy-sheet.png?v=20"),
+    teaCup: loadImage("./tea-cup.png?v=20")
   };
 
   let gameplayAssetsPromise = null;
@@ -121,6 +123,28 @@
       });
     }
     return gameplayAssetsPromise;
+  }
+
+  async function ensureBootAssets() {
+    const checks = [
+      [ART.logo, "タイトルロゴ"],
+      [ART.titleScene, "タイトル背景"],
+      [ART.playerHero, "タイトル画像"]
+    ];
+    await Promise.all(checks.map(([img, label]) => ensureImageLoaded(img, label)));
+    await ensureGameplayAssets();
+  }
+
+  function setBootStatus(message) {
+    if (els.bootStatus) els.bootStatus.textContent = message;
+  }
+
+  function revealApp() {
+    document.body.classList.remove("app-loading");
+    document.body.classList.add("app-ready");
+    window.setTimeout(() => {
+      if (els.bootSplash) els.bootSplash.remove();
+    }, 450);
   }
 
   const ENEMY_SHEET_MAP = {
@@ -472,7 +496,7 @@
     els.userBadge.classList.remove("hidden");
     els.currentUsername.textContent = currentUsername;
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./title-key-art.png?v=19" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./title-key-art.png?v=20" });
     refreshLeaderboard();
   }
 
@@ -501,7 +525,7 @@
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
         if (error) {
-          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./player-gameover.png?v=19" });
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./player-gameover.png?v=20" });
           return;
         }
         currentRunId = data;
@@ -511,7 +535,7 @@
       game.phase = "playing";
       game.lastTime = performance.now();
     } catch (error) {
-      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./player-gameover.png?v=19" });
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./player-gameover.png?v=20" });
     } finally {
       els.startButton.disabled = false;
       els.startButton.textContent = originalLabel;
@@ -528,7 +552,7 @@
     els.bestLabel.textContent = `${currentBest}m`;
 
     let saveMessage = ONLINE_CONFIGURED ? "ランキングへ保存中..." : "オフライン練習モード";
-    showStartOverlay("GAME OVER", `${reason}　${finalScore}m / ${game.coins} TEA\n${saveMessage}`, "もう一回", { variant: "gameover", eyebrow: "OOPS! TEA TIME OVER", note: "紅茶をこぼしちゃった… もう一回走ろう！", characterSrc: "./player-gameover.png?v=19" });
+    showStartOverlay("GAME OVER", `${reason}　${finalScore}m / ${game.coins} TEA\n${saveMessage}`, "もう一回", { variant: "gameover", eyebrow: "OOPS! TEA TIME OVER", note: "紅茶をこぼしちゃった… もう一回走ろう！", characterSrc: "./player-gameover.png?v=20" });
 
     if (ONLINE_CONFIGURED && supabaseClient && currentRunId) {
       const { error } = await supabaseClient.rpc("finish_game", {
@@ -553,7 +577,7 @@
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./player-gameover.png?v=19" : "./title-key-art.png?v=19"
+      characterSrc = variant === "gameover" ? "./player-gameover.png?v=20" : "./title-key-art.png?v=20"
     } = options;
 
     els.startTitle.textContent = title;
@@ -1778,17 +1802,29 @@
   }
 
   async function boot() {
+    setBootStatus("画像を読み込んでいます…");
+    await ensureBootAssets();
+
+    setBootStatus("ゲームを準備しています…");
     resetGame();
     renderKeybinds();
     bindEvents();
     const offlineName = localStorage.getItem("hoge-run-offline-name");
     if (offlineName) els.usernameInput.value = offlineName;
+
+    setBootStatus("ランキングを確認しています…");
     await initializeOnline();
+
+    // Canvasを完成状態で1回描画してから画面を公開する。
+    draw();
+    revealApp();
     requestAnimationFrame(tick);
   }
 
   boot().catch((error) => {
     console.error(error);
-    els.loginError.textContent = `初期化エラー: ${error instanceof Error ? error.message : String(error)}`;
+    const message = error instanceof Error ? error.message : String(error);
+    setBootStatus(`読み込みエラー: ${message}`);
+    if (els.bootSplash) els.bootSplash.classList.add("boot-error");
   });
 })();
