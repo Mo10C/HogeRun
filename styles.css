@@ -446,7 +446,7 @@ body.app-ready .footer {
   isolation: isolate;
   background:
     linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.22)),
-    url('./assets/backgrounds/ability-select-bg.png?v=31') center / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=34') center / cover no-repeat;
   border: 3px solid rgba(255,255,255,.96);
   border-radius: 30px;
   box-shadow: 0 18px 0 rgba(106, 131, 176, .13), 0 28px 60px rgba(98, 120, 158, .30);
@@ -679,7 +679,7 @@ body.app-ready .footer {
   position: relative;
   width: min(1020px, calc(100vw - 20px));
   aspect-ratio: 1448 / 1086;
-  background: url('./assets/backgrounds/ability-select-bg.png?v=31') center / contain no-repeat;
+  background: url('./assets/backgrounds/ability-select-bg.png?v=34') center / contain no-repeat;
 }
 
 .upgrade-cards {
@@ -1123,7 +1123,7 @@ body.app-ready .footer {
   overflow: hidden;
   background:
     linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.12)),
-    url('./assets/backgrounds/ability-select-bg.png?v=31') center / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=34') center / cover no-repeat;
   border: 3px solid rgba(255,255,255,.92);
   box-shadow: 0 18px 48px rgba(96,123,173,.24);
 }
@@ -2337,7 +2337,7 @@ body {
   isolation: isolate;
   background:
     linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,247,251,.28)),
-    url('./assets/backgrounds/ability-select-bg.png?v=31') center 48% / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=34') center 48% / cover no-repeat;
 }
 
 .upgrade-box::before {
@@ -3277,4 +3277,74 @@ body.upgrade-active .build-pop {
 }
 .revive-charge-wrap {
   gap: 2px !important;
+}
+
+
+/* === v32 loading logo cleanup + build header removal === */
+.loading-brand {
+  width: auto !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+.loading-logo-image {
+  filter: drop-shadow(0 10px 18px rgba(112, 137, 183, .16));
+}
+.build-pop.hidden {
+  display: none !important;
+}
+.build-pop-title {
+  display: none !important;
+}
+.build-pop {
+  margin-top: 8px !important;
+}
+
+
+/* === v33 remove inner HUD boxes/dividers === */
+.game-stat,
+.game-stat-score,
+.game-stat-cup,
+.game-stat-next,
+.game-stat-best {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+.game-stat + .game-stat {
+  border-left: 0 !important;
+  border-right: 0 !important;
+  margin-left: 18px !important;
+  padding-left: 10px !important;
+}
+@media (max-width: 900px) {
+  .game-stat + .game-stat,
+  .game-stat:nth-child(2n),
+  .game-stat:nth-child(n+3) {
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-top: 0 !important;
+    margin-left: 0 !important;
+    padding-left: 10px !important;
+    padding-top: 8px !important;
+  }
+  .scoreboard-pop { gap: 6px !important; }
+}
+
+
+/* === v34 remove remaining keybind explanation text === */
+.menu-key-note,
+#jump-help,
+#duck-help,
+.loading-keys,
+.loading-jump-keys,
+.loading-duck-keys,
+.game-key-guide,
+.game-help-inline {
+  display: none !important;
 }
