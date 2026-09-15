@@ -7,7 +7,45 @@
   <title>ほげ走</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
-<body>
+<body class="app-loading">
+  <div id="boot-splash" class="boot-splash" role="status" aria-live="polite">
+    <div class="loading-scene">
+      <div class="loading-brand">
+        <div class="loading-logo-row"><span>☕</span><strong>ほげ走</strong><span>🐇</span></div>
+        <p class="loading-kicker">TEA KINGDOM RUNNER</p>
+      </div>
+
+      <section class="loading-guide" aria-label="操作説明">
+        <h2>操作方法</h2>
+        <div class="loading-guide-grid">
+          <div class="loading-guide-card">
+            <span class="guide-device">PC</span>
+            <strong>ジャンプ</strong>
+            <span id="loading-jump-keys">Space / W / ↑</span>
+            <strong>しゃがみ</strong>
+            <span id="loading-duck-keys">S / ↓</span>
+          </div>
+          <div class="loading-guide-card">
+            <span class="guide-device">SMARTPHONE</span>
+            <strong>ジャンプ</strong>
+            <span>画面を上フリック</span>
+            <strong>しゃがみ</strong>
+            <span>画面を下フリック</span>
+          </div>
+        </div>
+        <p class="loading-tip">紅茶カップを集めると、ランダムな能力を選んで強化できます。</p>
+      </section>
+
+      <div class="loading-bottom-right">
+        <div class="loading-text-wrap">
+          <span class="now-loading-text">Now Loading</span>
+          <span class="loading-ellipsis"><i></i><i></i><i></i></span>
+        </div>
+        <img id="loading-runner" class="loading-runner" src="./assets/player-run-1.png?v=48" alt="走っているメインキャラクター" />
+      </div>
+      <p id="boot-status" class="boot-status">ゲーム素材を読み込んでいます…</p>
+    </div>
+  </div>
   <main class="app-shell">
     <header class="topbar">
       <div>

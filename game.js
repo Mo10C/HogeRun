@@ -45,7 +45,10 @@
     keybindStatus: $("keybind-status"),
     resetKeybinds: $("reset-keybinds"),
     bootSplash: $("boot-splash"),
-    bootStatus: $("boot-status")
+    bootStatus: $("boot-status"),
+    loadingRunner: $("loading-runner"),
+    loadingJumpKeys: $("loading-jump-keys"),
+    loadingDuckKeys: $("loading-duck-keys")
   };
 
   const ctx = els.canvas.getContext("2d");
@@ -136,12 +139,50 @@
     if (els.bootStatus) els.bootStatus.textContent = message;
   }
 
+  let loadingRunnerRaf = 0;
+  let loadingRunnerLastFrame = 0;
+  let loadingRunnerFrame = 0;
+
+  function animateLoadingRunner(now = performance.now()) {
+    if (!els.loadingRunner || !document.body.classList.contains("app-loading")) {
+      loadingRunnerRaf = 0;
+      return;
+    }
+    if (now - loadingRunnerLastFrame >= 42) {
+      loadingRunnerFrame = (loadingRunnerFrame + 1) % 48;
+      els.loadingRunner.src = `./assets/player-run-${loadingRunnerFrame + 1}.png?v=48`;
+      loadingRunnerLastFrame = now;
+    }
+    loadingRunnerRaf = requestAnimationFrame(animateLoadingRunner);
+  }
+
+  function showLoadingScreen(message = "ゲームを準備しています…") {
+    setBootStatus(message);
+    document.body.classList.remove("app-ready");
+    document.body.classList.add("app-loading");
+    if (els.bootSplash) els.bootSplash.classList.remove("boot-error");
+    if (!loadingRunnerRaf) loadingRunnerRaf = requestAnimationFrame(animateLoadingRunner);
+  }
+
   function revealApp() {
     document.body.classList.remove("app-loading");
     document.body.classList.add("app-ready");
-    window.setTimeout(() => {
-      if (els.bootSplash) els.bootSplash.remove();
-    }, 450);
+    if (loadingRunnerRaf) {
+      cancelAnimationFrame(loadingRunnerRaf);
+      loadingRunnerRaf = 0;
+    }
+  }
+
+  function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function withTimeout(promise, ms, label = "通信") {
+    let timer;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`${label}がタイムアウトしました。もう一度お試しください。`)), ms);
+    });
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
   }
 
   const ENEMY_SHEET_MAP = {
@@ -229,8 +270,12 @@
       button.textContent = code ? keyLabel(code) : "未設定";
       button.classList.toggle("listening", !!listeningBind && listeningBind.action === action && listeningBind.slot === slot);
     });
-    els.jumpHelp.textContent = `JUMP：${keybinds.jump.map(keyLabel).join(" / ")}`;
-    els.duckHelp.textContent = `DUCK：${keybinds.duck.map(keyLabel).join(" / ")}`;
+    const jumpText = keybinds.jump.filter(Boolean).map(keyLabel).join(" / ") || "未設定";
+    const duckText = keybinds.duck.filter(Boolean).map(keyLabel).join(" / ") || "未設定";
+    els.jumpHelp.textContent = `JUMP：${jumpText}`;
+    els.duckHelp.textContent = `DUCK：${duckText}`;
+    if (els.loadingJumpKeys) els.loadingJumpKeys.textContent = jumpText;
+    if (els.loadingDuckKeys) els.loadingDuckKeys.textContent = duckText;
   }
 
   function assignKey(action, slot, code) {
@@ -265,6 +310,8 @@
   let currentBest = 0;
   let currentRunId = null;
   let finishingRun = false;
+  let pendingUpgradeChoice = null;
+  let pendingUpgradeCard = null;
 
   const game = {
     phase: "idle", // idle | playing | upgrade | gameover
@@ -472,6 +519,7 @@
 
   async function loginWithUsername(username) {
     els.loginError.textContent = "";
+    await ensureGameplayAssets();
 
     if (!ONLINE_CONFIGURED || !supabaseClient) {
       currentUsername = username;
@@ -481,20 +529,30 @@
       return;
     }
 
-    let { data: userData } = await supabaseClient.auth.getUser();
+    const { data: userData } = await withTimeout(
+      supabaseClient.auth.getUser(),
+      10000,
+      "ログイン確認"
+    );
     let user = userData?.user;
 
     if (!user) {
-      const { data, error } = await supabaseClient.auth.signInAnonymously();
+      const { data, error } = await withTimeout(
+        supabaseClient.auth.signInAnonymously(),
+        10000,
+        "匿名ログイン"
+      );
       if (error) throw new Error(`匿名ログインに失敗しました: ${error.message}`);
       user = data.user;
     }
 
     if (!user) throw new Error("ユーザー情報を取得できませんでした。");
 
-    const { error: profileError } = await supabaseClient
-      .from("profiles")
-      .upsert({ id: user.id, username }, { onConflict: "id" });
+    const { error: profileError } = await withTimeout(
+      supabaseClient.from("profiles").upsert({ id: user.id, username }, { onConflict: "id" }),
+      10000,
+      "プレイヤー名の保存"
+    );
 
     if (profileError) throw new Error(`名前の保存に失敗しました: ${profileError.message}`);
 
@@ -1735,9 +1793,17 @@
       const submit = els.loginForm.querySelector('button[type="submit"]');
       submit.disabled = true;
       submit.textContent = "ログイン中...";
+      showLoadingScreen("プレイヤーを準備しています…");
+      const loadingStartedAt = performance.now();
       try {
         await loginWithUsername(result.username);
+        const elapsed = performance.now() - loadingStartedAt;
+        if (elapsed < 900) await delay(900 - elapsed);
+        revealApp();
       } catch (error) {
+        const elapsed = performance.now() - loadingStartedAt;
+        if (elapsed < 650) await delay(650 - elapsed);
+        revealApp();
         els.loginError.textContent = error instanceof Error ? error.message : String(error);
       } finally {
         submit.disabled = false;
@@ -1904,18 +1970,25 @@
   }
 
   async function boot() {
-    setBootStatus("画像を読み込んでいます…");
-    await ensureBootAssets();
+    showLoadingScreen("画像を読み込んでいます…");
 
-    setBootStatus("ゲームを準備しています…");
+    // イベントは先に登録する。素材の読み込みが失敗してもログイン画面が無反応にならないようにする。
     resetGame();
     renderKeybinds();
     bindEvents();
+
+    await ensureBootAssets();
+    setBootStatus("ゲームを準備しています…");
     const offlineName = localStorage.getItem("hoge-run-offline-name");
     if (offlineName) els.usernameInput.value = offlineName;
 
-    setBootStatus("ランキングを確認しています…");
-    await initializeOnline();
+    setBootStatus("ランキング機能を確認しています…");
+    try {
+      await withTimeout(initializeOnline(), 10000, "ランキング接続");
+    } catch (error) {
+      console.warn("Online initialization skipped:", error);
+      els.loginError.textContent = "オンライン接続に時間がかかったため、ログイン画面を表示しました。必要ならそのまま再試行できます。";
+    }
 
     // Canvasを完成状態で1回描画してから画面を公開する。
     draw();
@@ -1928,5 +2001,9 @@
     const message = error instanceof Error ? error.message : String(error);
     setBootStatus(`読み込みエラー: ${message}`);
     if (els.bootSplash) els.bootSplash.classList.add("boot-error");
+    window.setTimeout(() => {
+      revealApp();
+      els.loginError.textContent = `一部素材の読み込みに失敗しました: ${message}`;
+    }, 1800);
   });
 })();
