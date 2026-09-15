@@ -5,33 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#171923" />
   <title>ほげ走</title>
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles.css?v=21" />
 </head>
 <body class="app-loading">
   <div id="boot-splash" class="boot-splash" role="status" aria-live="polite">
     <div class="loading-scene">
       <div class="loading-brand">
-        <img class="loading-logo-image" src="./assets/title-logo.png?v=32" alt="ほげ走" />
+        <img class="loading-logo-image" src="./assets/ui/title-logo.png?v=21" alt="ほげ走" />
         <p class="loading-kicker">TEA KINGDOM RUNNER</p>
       </div>
 
       <section class="loading-guide" aria-label="操作説明">
-        <h2>操作方法</h2>
+        <div class="loading-guide-head">
+          <div>
+            <p class="eyebrow">GAME GUIDE</p>
+            <h2>ロード中のあいだに遊び方をチェック！</h2>
+          </div>
+          <span class="loading-stage-badge">STAGE 01 · TEA KINGDOM</span>
+        </div>
         <div class="loading-guide-grid">
-          <div class="loading-guide-card">
+          <div class="loading-guide-card accent-blue">
             <span class="guide-device">PC</span>
             <strong>ジャンプ</strong>
             <span id="loading-jump-keys">Space / W / ↑</span>
             <strong>しゃがみ</strong>
             <span id="loading-duck-keys">S / ↓</span>
           </div>
-          <div class="loading-guide-card">
+          <div class="loading-guide-card accent-pink">
             <span class="guide-device">SMARTPHONE</span>
             <strong>ジャンプ</strong>
             <span>画面を上フリック</span>
             <strong>しゃがみ</strong>
             <span>画面を下フリック</span>
           </div>
+          <div class="loading-guide-card accent-gold loading-mission-card">
+            <span class="guide-device">MISSION</span>
+            <strong>よける</strong>
+            <span>障害物や敵をかわして進もう</span>
+            <strong>あつめる</strong>
+            <span>紅茶カップを集めて能力を選択！</span>
+          </div>
+        </div>
+        <div class="loading-highlight-row">
+          <span class="loading-highlight-chip">☕ カップで強化</span>
+          <span class="loading-highlight-chip">🐇 しゃがみ・ジャンプで攻略</span>
+          <span class="loading-highlight-chip">✨ ベストスコア更新を目指そう</span>
         </div>
         <p class="loading-tip">紅茶カップを集めると、ランダムな能力を選んで強化できます。</p>
       </section>
@@ -41,7 +59,7 @@
           <span class="now-loading-text">Now Loading</span>
           <span class="loading-ellipsis"><i></i><i></i><i></i></span>
         </div>
-        <img id="loading-runner" class="loading-runner" src="./assets/player-run-1.png?v=14" alt="走っているメインキャラクター" />
+        <img id="loading-runner" class="loading-runner" src="./assets/player/run/run-01.png?v=21" alt="走っているメインキャラクター" />
       </div>
       <p id="boot-status" class="boot-status">ゲーム素材を読み込んでいます…</p>
     </div>
@@ -51,14 +69,14 @@
       <div>
         <div class="eyebrow">TEA ROGUELIKE RUNNER</div>
         <div class="title-logo" aria-label="ほげ走">
-          <img class="title-logo-image" src="./assets/title-logo.png?v=32" alt="ほげ走" />
+          <img class="title-logo-image" src="./assets/ui/title-logo.png?v=21" alt="ほげ走" />
         </div>
       </div>
     </header>
 
     <section id="login-screen" class="panel login-panel">
       <div class="hero-visual">
-        <img class="login-character" src="./assets/player-portrait.jpg" alt="ほげ走の操作キャラ" />
+        <img class="login-character" src="./assets/player/portrait.jpg?v=21" alt="ほげ走の操作キャラ" />
       </div>
       <div>
         <p class="eyebrow">USERNAME ONLY</p>
@@ -87,11 +105,27 @@
                 <button id="rename-button" class="text-button" type="button">名前変更</button>
               </div>
               <div class="scoreboard-pop">
-                <div class="game-stat game-stat-score"><span>SCORE</span><strong id="score-label">0m</strong></div>
-                <div class="game-stat game-stat-cup"><span>TEA CUP</span><strong id="coin-label">0</strong></div>
-                <div class="game-stat game-stat-next"><span>NEXT ITEM</span><strong id="upgrade-label">10</strong></div>
-                <div class="game-stat game-stat-best"><span>BEST</span><strong id="best-label">0m</strong></div>
+                <div class="game-stat game-stat-score">
+                  <div class="game-stat-head"><img class="game-stat-icon" src="./assets/ui/hud/score.png?v=21" alt="" /><span>SCORE</span></div>
+                  <strong id="score-label">0m</strong>
+                </div>
+                <div class="game-stat game-stat-cup">
+                  <div class="game-stat-head"><img class="game-stat-icon" src="./assets/ui/hud/tea-cup.png?v=21" alt="" /><span>TEA CUP</span></div>
+                  <strong id="coin-label">0</strong>
+                </div>
+                <div class="game-stat game-stat-next">
+                  <div class="game-stat-head"><img class="game-stat-icon" src="./assets/ui/hud/next-item.png?v=21" alt="" /><span>NEXT ITEM</span></div>
+                  <strong id="upgrade-label">10</strong>
+                </div>
+                <div class="game-stat game-stat-best">
+                  <div class="game-stat-head"><img class="game-stat-icon" src="./assets/ui/hud/best.png?v=21" alt="" /><span>BEST</span></div>
+                  <strong id="best-label">0m</strong>
+                </div>
               </div>
+            </div>
+            <div class="build-pop panel-lite">
+              <div class="build-pop-title"><img class="build-pop-icon" src="./assets/ui/hud/build.png?v=21" alt="" /><span>今回の強化</span></div>
+              <div id="build-list" class="build-list build-list-ingame"><span class="muted">まだ強化なし</span></div>
             </div>
           </div>
           <canvas id="game-canvas" width="960" height="540" aria-label="ほげ走ゲーム画面"></canvas>
@@ -100,17 +134,51 @@
             <div class="overlay-inner">
               <p id="overlay-eyebrow" class="eyebrow">WELCOME TO THE TEA KINGDOM</p>
               <div class="overlay-logo" aria-hidden="true">
-                <img class="overlay-logo-image" src="./assets/title-logo.png?v=32" alt="" />
+                <img class="overlay-logo-image" src="./assets/ui/title-logo.png?v=21" alt="" />
               </div>
-              <img id="overlay-character" class="overlay-character" src="./assets/title-key-art.png?v=14" alt="ほげ走のキャラクター" />
+              <img id="overlay-character" class="overlay-character" src="./assets/ui/title-key-art.png?v=21" alt="ほげ走のキャラクター" />
               <h2 id="start-title">ほげ走</h2>
               <p id="start-description">ジャンプとしゃがみで敵をかわし、紅茶入りのカップを集めよう。</p>
               <p id="overlay-note" class="overlay-note">ふしぎな紅茶の国を駆け抜けよう！</p>
-              <div class="control-help">
+              <div class="start-feature-grid" aria-label="ゲーム紹介">
+                <div class="start-feature-card feature-run"><strong>RUN</strong><span>敵や障害物をかわしてどこまでも進もう</span></div>
+                <div class="start-feature-card feature-cup"><strong>COLLECT</strong><span>紅茶カップを集めて能力をアンロック</span></div>
+                <div class="start-feature-card feature-upgrade"><strong>POWER UP</strong><span>好きな強化を選んでベスト更新を狙おう</span></div>
+              </div>
+              <div class="control-help control-help-start">
                 <span id="jump-help">JUMP：Space / W / ↑</span>
                 <span id="duck-help">DUCK：S / ↓</span>
               </div>
-              <button id="start-button" class="primary-button big-button" type="button">スタート</button>
+              <div class="start-action-badges">
+                <span class="start-action-badge">1P SOLO</span>
+                <span class="start-action-badge">CUTE ROGUELIKE RUN</span>
+                <span class="start-action-badge">BEST SCORE CHALLENGE</span>
+              </div>
+              <div class="start-keybind-box">
+                <div class="keybind-heading">
+                  <div>
+                    <p class="eyebrow">KEY CONFIG</p>
+                    <h3>スタート前に操作キー設定</h3>
+                  </div>
+                  <button id="reset-keybinds" class="text-button key-reset" type="button">初期設定に戻す</button>
+                </div>
+                <p id="keybind-status" class="muted small">変更したいボタンを押してから、割り当てたいキーを入力してください。</p>
+                <div class="keybind-grid compact-keybind-grid">
+                  <div class="keybind-action">
+                    <strong>ジャンプ</strong>
+                    <button class="keybind-button" data-action="jump" data-slot="0" type="button">Space</button>
+                    <button class="keybind-button" data-action="jump" data-slot="1" type="button">W</button>
+                    <button class="keybind-button" data-action="jump" data-slot="2" type="button">↑</button>
+                  </div>
+                  <div class="keybind-action">
+                    <strong>しゃがみ</strong>
+                    <button class="keybind-button" data-action="duck" data-slot="0" type="button">S</button>
+                    <button class="keybind-button" data-action="duck" data-slot="1" type="button">↓</button>
+                  </div>
+                </div>
+              </div>
+              <button id="start-button" class="primary-button big-button start-button-game" type="button">ゲームスタート</button>
+              <p class="start-press-hint">準備ができたらスタート！ 最高記録を目指そう ✨</p>
             </div>
           </div>
 
@@ -133,40 +201,6 @@
           <button id="duck-button" class="control-button duck-button" type="button">DUCK</button>
         </div>
 
-
-        <div class="panel keybind-panel">
-          <div class="keybind-heading">
-            <div>
-              <p class="eyebrow">KEY CONFIG</p>
-              <h3>操作キー設定</h3>
-            </div>
-            <button id="reset-keybinds" class="text-button key-reset" type="button">初期設定に戻す</button>
-          </div>
-          <p id="keybind-status" class="muted small">変更したいボタンを押してから、割り当てたいキーを入力してください。</p>
-          <div class="keybind-grid">
-            <div class="keybind-action">
-              <strong>ジャンプ</strong>
-              <button class="keybind-button" data-action="jump" data-slot="0" type="button">Space</button>
-              <button class="keybind-button" data-action="jump" data-slot="1" type="button">W</button>
-              <button class="keybind-button" data-action="jump" data-slot="2" type="button">↑</button>
-            </div>
-            <div class="keybind-action">
-              <strong>しゃがみ</strong>
-              <button class="keybind-button" data-action="duck" data-slot="0" type="button">S</button>
-              <button class="keybind-button" data-action="duck" data-slot="1" type="button">↓</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel build-panel">
-          <div>
-            <p class="eyebrow">CURRENT BUILD</p>
-            <h3>今回の強化</h3>
-          </div>
-          <div id="build-list" class="build-list"><span class="muted">まだ強化なし</span></div>
-        </div>
-      </div>
-
       <aside class="panel ranking-panel">
         <div class="ranking-header">
           <div>
@@ -185,7 +219,7 @@
   <footer class="footer">ほげ走 — browser-only pixel roguelike runner</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js"></script>
-  <script src="./game.js" defer></script>
+  <script src="./config.js?v=21"></script>
+  <script src="./game.js?v=21" defer></script>
 </body>
 </html>
