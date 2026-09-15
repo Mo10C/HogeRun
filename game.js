@@ -48,34 +48,77 @@
   const ctx = els.canvas.getContext("2d");
   ctx.imageSmoothingEnabled = true;
 
-  function loadImage(src) {
+  function loadImage(src, eager = true) {
     const img = new Image();
-    img.src = src;
+    img.dataset.src = src;
+    if (eager) img.src = src;
     return img;
   }
 
+  function ensureImageLoaded(img) {
+    if (!img) return Promise.resolve();
+    const src = img.dataset?.src || img.src;
+    if (!img.src && src) img.src = src;
+    if (img.complete && img.naturalWidth) return Promise.resolve(img);
+    return new Promise((resolve, reject) => {
+      const done = () => {
+        img.removeEventListener("load", done);
+        img.removeEventListener("error", fail);
+        resolve(img);
+      };
+      const fail = () => {
+        img.removeEventListener("load", done);
+        img.removeEventListener("error", fail);
+        reject(new Error(`画像の読み込みに失敗しました: ${src}`));
+      };
+      img.addEventListener("load", done, { once: true });
+      img.addEventListener("error", fail, { once: true });
+      if (!img.src && src) img.src = src;
+    });
+  }
+
   const ART = {
-    logo: loadImage("./assets/logo/title-logo.png"),
-    background: loadImage("./assets/background/stage-bg.png"),
-    titleScene: loadImage("./assets/background/title-key-art.png"),
-    playerIdle: loadImage("./assets/player/idle.png"),
+    logo: loadImage("./assets/logo/title-logo.webp"),
+    background: loadImage("./assets/background/stage-bg.webp", false),
+    titleScene: loadImage("./assets/background/title-key-art.webp"),
+    playerIdle: loadImage("./assets/player/idle.png", false),
     playerRuns: [
-      loadImage("./assets/player/run-1.png"),
-      loadImage("./assets/player/run-2.png"),
-      loadImage("./assets/player/run-3.png")
+      loadImage("./assets/player/run-1.png", false),
+      loadImage("./assets/player/run-2.png", false),
+      loadImage("./assets/player/run-3.png", false)
     ],
-    playerJumpUp: loadImage("./assets/player/jump-up.png"),
-    playerJumpApex: loadImage("./assets/player/jump-apex.png"),
-    playerJumpDown: loadImage("./assets/player/jump-down.png"),
+    playerJumpUp: loadImage("./assets/player/jump-up.png", false),
+    playerJumpApex: loadImage("./assets/player/jump-apex.png", false),
+    playerJumpDown: loadImage("./assets/player/jump-down.png", false),
     playerSlides: [
-      loadImage("./assets/player/slide-1.png"),
-      loadImage("./assets/player/slide-2.png"),
-      loadImage("./assets/player/slide-3.png")
+      loadImage("./assets/player/slide-1.png", false),
+      loadImage("./assets/player/slide-2.png", false),
+      loadImage("./assets/player/slide-3.png", false)
     ],
-    playerGameover: loadImage("./assets/player/gameover.png"),
-    playerHero: loadImage("./assets/background/title-key-art.png"),
-    enemySheet: loadImage("./assets/enemy/enemy-sheet.png")
+    playerGameover: loadImage("./assets/player/gameover.png", false),
+    playerHero: loadImage("./assets/background/title-key-art.webp"),
+    enemySheet: loadImage("./assets/enemy/enemy-sheet.webp", false),
+    teaCup: loadImage("./assets/collectible/tea-cup.webp", false)
   };
+
+  let gameplayAssetsPromise = null;
+  function ensureGameplayAssets() {
+    if (!gameplayAssetsPromise) {
+      gameplayAssetsPromise = Promise.all([
+        ensureImageLoaded(ART.background),
+        ensureImageLoaded(ART.playerIdle),
+        ...ART.playerRuns.map(ensureImageLoaded),
+        ensureImageLoaded(ART.playerJumpUp),
+        ensureImageLoaded(ART.playerJumpApex),
+        ensureImageLoaded(ART.playerJumpDown),
+        ...ART.playerSlides.map(ensureImageLoaded),
+        ensureImageLoaded(ART.playerGameover),
+        ensureImageLoaded(ART.enemySheet),
+        ensureImageLoaded(ART.teaCup)
+      ]);
+    }
+    return gameplayAssetsPromise;
+  }
 
   const ENEMY_SHEET_MAP = {
     carrot: [0, 0],
@@ -205,7 +248,7 @@
     elapsed: 0,
     distance: 0,
     coins: 0,
-    nextUpgradeAt: 10,
+    nextUpgradeAt: 100,
     worldSpeed: 330,
     enemyTimer: 0.9,
     coinTimer: 0.4,
@@ -323,7 +366,7 @@
     game.elapsed = 0;
     game.distance = 0;
     game.coins = 0;
-    game.nextUpgradeAt = 10;
+    game.nextUpgradeAt = 100;
     game.worldSpeed = 330;
     game.enemyTimer = 0.85;
     game.coinTimer = 0.35;
@@ -426,7 +469,7 @@
     els.userBadge.classList.remove("hidden");
     els.currentUsername.textContent = currentUsername;
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "ロゴ・背景・敵キャラをイラスト案そのままに実装しました。", characterSrc: "./assets/background/title-key-art.png" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "スタート後にゲーム素材を読み込む軽量版です。", characterSrc: "./assets/background/title-key-art.webp" });
     refreshLeaderboard();
   }
 
@@ -441,22 +484,35 @@
 
   async function startRun() {
     if (game.phase === "playing" || game.phase === "upgrade") return;
+    const originalLabel = els.startButton.textContent;
+    els.startButton.disabled = true;
+    els.startButton.textContent = "読み込み中…";
+    els.overlayNote.textContent = "ゲーム素材を読み込んでいます…";
     resetGame();
     currentRunId = null;
     finishingRun = false;
 
-    if (ONLINE_CONFIGURED && supabaseClient) {
-      const { data, error } = await supabaseClient.rpc("start_game");
-      if (error) {
-        showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png" });
-        return;
-      }
-      currentRunId = data;
-    }
+    try {
+      await ensureGameplayAssets();
 
-    els.startOverlay.classList.add("hidden");
-    game.phase = "playing";
-    game.lastTime = performance.now();
+      if (ONLINE_CONFIGURED && supabaseClient) {
+        const { data, error } = await supabaseClient.rpc("start_game");
+        if (error) {
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png" });
+          return;
+        }
+        currentRunId = data;
+      }
+
+      els.startOverlay.classList.add("hidden");
+      game.phase = "playing";
+      game.lastTime = performance.now();
+    } catch (error) {
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png" });
+    } finally {
+      els.startButton.disabled = false;
+      els.startButton.textContent = originalLabel;
+    }
   }
 
   async function finishRun(reason = "敵にぶつかった！") {
@@ -494,7 +550,7 @@
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./assets/player/gameover.png" : "./assets/background/title-key-art.png"
+      characterSrc = variant === "gameover" ? "./assets/player/gameover.png" : "./assets/background/title-key-art.webp"
     } = options;
 
     els.startTitle.textContent = title;
@@ -664,7 +720,7 @@
     updateHud();
 
     if (game.coins >= game.nextUpgradeAt && game.phase === "playing") {
-      game.nextUpgradeAt += 10;
+      game.nextUpgradeAt += 100;
       openUpgradeSelection();
     }
   }
@@ -797,13 +853,13 @@
       button.innerHTML = `
         <span class="augment-corner top-left">♠</span>
         <span class="augment-corner bottom-right">♥</span>
-        <span class="augment-tier">${meta.tierMark} ${escapeHtml(meta.tierLabel)}</span>
+        <span class="augment-tier">${meta.tierMark} お茶会の祝福</span>
         <span class="augment-icon-wrap"><span class="icon">${escapeHtml(item.icon)}</span></span>
         <span class="name">${escapeHtml(item.name)}</span>
         <span class="augment-level">Lv.${meta.nextLevel}</span>
         <span class="augment-divider"></span>
         <span class="desc">${escapeHtml(item.desc)}</span>
-        <span class="augment-pick">この祝福を選ぶ</span>
+        <span class="augment-pick">この力をえらぶ</span>
       `;
       button.addEventListener("click", () => chooseUpgrade(item, button));
       els.upgradeCards.appendChild(button);
@@ -835,9 +891,9 @@
       game.phase = "playing";
       game.lastTime = performance.now();
 
-      // まとめて大量に紅茶カップを拾った場合は、次の10杯到達分も続けて選ばせる。
+      // 大量に紅茶カップを拾った場合は、次の100杯到達分も続けて選ばせる。
       if (game.coins >= game.nextUpgradeAt) {
-        game.nextUpgradeAt += 10;
+        game.nextUpgradeAt += 100;
         setTimeout(openUpgradeSelection, 120);
       }
     }, selectedCard ? 260 : 0);
@@ -1163,29 +1219,39 @@
   }
 
   function drawCoin(coin) {
-    const x = coin.x;
-    const y = coin.y;
-    const bob = Math.sin(coin.spin) * 2;
+    const bob = Math.sin(coin.spin) * 3;
+    const img = ART.teaCup;
+    const centerX = coin.x + coin.w / 2;
+    const centerY = coin.y + coin.h / 2 + bob;
+
     ctx.save();
-    ctx.translate(x + 10, y + 10 + bob);
+    ctx.translate(centerX, centerY);
+    const pulse = 1 + Math.sin(coin.spin * 0.7) * 0.035;
+    ctx.scale(pulse, pulse);
 
-    ctx.fillStyle = "rgba(255, 212, 143, 0.22)";
-    ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.fill();
+    // 収集物として見つけやすい、やわらかな光だけコードで追加。
+    const glow = ctx.createRadialGradient(0, 0, 2, 0, 0, 29);
+    glow.addColorStop(0, "rgba(255,245,184,0.62)");
+    glow.addColorStop(0.55, "rgba(255,212,232,0.28)");
+    glow.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, 29, 0, Math.PI * 2);
+    ctx.fill();
 
-    // saucer
-    ctx.fillStyle = "#ffd989";
-    ctx.beginPath(); ctx.ellipse(0, 8, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
-    // cup
-    ctx.fillStyle = "#fff9f3";
-    roundRect(-10, -6, 20, 14, 6, true, false);
-    ctx.strokeStyle = "#f1c879";
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(11, 0, 4, -Math.PI / 2, Math.PI / 2); ctx.stroke();
-    ctx.fillStyle = "#8a6249";
-    ctx.fillRect(-7, -2, 14, 5);
-    ctx.fillStyle = "rgba(255,255,255,0.75)";
-    ctx.fillRect(-3, -13, 2, 5);
-    ctx.fillRect(2, -11, 2, 4);
+    if (img?.complete && img.naturalWidth) {
+      const drawH = 38;
+      const drawW = Math.round(img.naturalWidth * (drawH / img.naturalHeight));
+      ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+    } else {
+      // 画像読込前の最低限フォールバック
+      ctx.fillStyle = "#fff9f5";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 14, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#ce844c";
+      ctx.fillRect(-9, -4, 18, 5);
+    }
     ctx.restore();
   }
 
@@ -1296,12 +1362,12 @@
       drawn = drawPlayerFrame(img, centerX + 3, feetY - 5, 104, { rotate, xOffset: 3 });
     } else if (game.phase === "idle" || game.phase === "upgrade") {
       const idleBob = Math.sin(performance.now() / 260) * 2;
-      drawn = drawPlayerFrame(ART.playerIdle, centerX, feetY + idleBob, 112, { yOffset: idleBob });
+      drawn = drawPlayerFrame(ART.playerIdle, centerX + 2, feetY - 2, 108, { yOffset: idleBob * 0.45 });
     } else {
       const frames = ART.playerRuns;
       const index = Math.floor(game.elapsed * 11) % frames.length;
       const strideBob = Math.abs(Math.sin(game.elapsed * 11)) * 2;
-      drawn = drawPlayerFrame(frames[index], centerX + 2, feetY + strideBob, 108, { yOffset: strideBob });
+      drawn = drawPlayerFrame(frames[index], centerX + 6, feetY - 4, 100, { yOffset: -strideBob * 0.35 });
     }
 
     if (!drawn) {
