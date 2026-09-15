@@ -469,7 +469,7 @@
     els.userBadge.classList.remove("hidden");
     els.currentUsername.textContent = currentUsername;
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "スタート後にゲーム素材を読み込む軽量版です。", characterSrc: "./assets/background/title-key-art.webp" });
+    showStartOverlay("ほげの紅茶の国の大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。100杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "スタート後にゲーム素材を読み込む軽量版です。", characterSrc: "./assets/background/title-key-art.webp" });
     refreshLeaderboard();
   }
 
