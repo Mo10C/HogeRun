@@ -84,21 +84,22 @@
   }
 
   const ART = {
-    logo: loadImage("./assets/title-logo.png?v=30"),
+    logo: loadImage("./assets/title-logo.png?v=31"),
     background: loadImage("./assets/stage-bg.png?v=30"),
-    titleScene: loadImage("./assets/title-key-art.png?v=30"),
+    titleScene: loadImage("./assets/title-key-art.png?v=14"),
     playerIdle: loadImage("./assets/player-idle.png?v=30"),
-    playerRuns: Array.from({ length: 48 }, (_, i) => loadImage(`./assets/player-run-${i + 1}.png?v=48`)),
+    playerRuns: Array.from({ length: 8 }, (_, i) => loadImage(`./assets/player-run-${i + 1}.png?v=14`)),
+    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player-land-${i + 1}.png?v=14`)),
     playerJumpUp: loadImage("./assets/player-jump-up.png?v=30"),
-    playerJumpApex: loadImage("./assets/player-jump-apex.png?v=30"),
-    playerJumpDown: loadImage("./assets/player-jump-down.png?v=30"),
+    playerJumpApex: loadImage("./assets/player-jump-apex.png?v=14"),
+    playerJumpDown: loadImage("./assets/player-jump-down.png?v=14"),
     playerSlides: [
-      loadImage("./assets/player-slide-1.png?v=30"),
-      loadImage("./assets/player-slide-2.png?v=30"),
-      loadImage("./assets/player-slide-3.png?v=30")
+      loadImage("./assets/player-slide-1.png?v=14"),
+      loadImage("./assets/player-slide-2.png?v=14"),
+      loadImage("./assets/player-slide-3.png?v=14")
     ],
-    playerGameover: loadImage("./assets/player-gameover.png?v=30"),
-    playerHero: loadImage("./assets/title-key-art.png?v=30"),
+    playerGameover: loadImage("./assets/player-gameover.png?v=14"),
+    playerHero: loadImage("./assets/title-key-art.png?v=14"),
     enemySheet: loadImage("./assets/enemy-sheet.png?v=30"),
     teaCup: loadImage("./assets/tea-cup.png?v=30")
   };
@@ -110,6 +111,7 @@
         ensureImageLoaded(ART.background, "ステージ背景"),
         ensureImageLoaded(ART.playerIdle, "待機キャラ"),
         ...ART.playerRuns.map((img, i) => ensureImageLoaded(img, `走行キャラ${i + 1}`)),
+        ...ART.playerLandings.map((img, i) => ensureImageLoaded(img, `着地${i + 1}`)),
         ensureImageLoaded(ART.playerJumpUp, "ジャンプ上昇"),
         ensureImageLoaded(ART.playerJumpApex, "ジャンプ頂点"),
         ensureImageLoaded(ART.playerJumpDown, "ジャンプ下降"),
@@ -149,8 +151,8 @@
       return;
     }
     if (now - loadingRunnerLastFrame >= 42) {
-      loadingRunnerFrame = (loadingRunnerFrame + 1) % 48;
-      els.loadingRunner.src = `./assets/player-run-${loadingRunnerFrame + 1}.png?v=48`;
+      loadingRunnerFrame = (loadingRunnerFrame + 1) % 8;
+      els.loadingRunner.src = `./assets/player-run-${loadingRunnerFrame + 1}.png?v=14`;
       loadingRunnerLastFrame = now;
     }
     loadingRunnerRaf = requestAnimationFrame(animateLoadingRunner);
@@ -339,7 +341,8 @@
       onGround: true,
       crouching: false,
       airJumpsUsed: 0,
-      invincible: 0
+      invincible: 0,
+      landingTimer: 0
     },
     upgrades: null,
     upgradeLevels: {},
@@ -471,6 +474,7 @@
     game.player.crouching = false;
     game.player.airJumpsUsed = 0;
     game.player.invincible = 0;
+    game.player.landingTimer = 0;
     resetUpgrades();
     updateHud();
     renderBuild();
@@ -567,7 +571,7 @@
     els.userBadge.classList.remove("hidden");
     els.currentUsername.textContent = currentUsername;
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/title-key-art.png?v=30" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/title-key-art.png?v=14" });
     refreshLeaderboard();
   }
 
@@ -596,7 +600,7 @@
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
         if (error) {
-          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player-gameover.png?v=30" });
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player-gameover.png?v=14" });
           return;
         }
         currentRunId = data;
@@ -606,7 +610,7 @@
       game.phase = "playing";
       game.lastTime = performance.now();
     } catch (error) {
-      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player-gameover.png?v=30" });
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player-gameover.png?v=14" });
     } finally {
       els.startButton.disabled = false;
       els.startButton.textContent = originalLabel;
@@ -623,7 +627,7 @@
     els.bestLabel.textContent = `${currentBest}m`;
 
     let saveMessage = ONLINE_CONFIGURED ? "ランキングへ保存中..." : "オフライン練習モード";
-    showStartOverlay("GAME OVER", `${reason}　${finalScore}m / ${game.coins} TEA\n${saveMessage}`, "もう一回", { variant: "gameover", eyebrow: "OOPS! TEA TIME OVER", note: "紅茶をこぼしちゃった… もう一回走ろう！", characterSrc: "./assets/player-gameover.png?v=30" });
+    showStartOverlay("GAME OVER", `${reason}　${finalScore}m / ${game.coins} TEA\n${saveMessage}`, "もう一回", { variant: "gameover", eyebrow: "OOPS! TEA TIME OVER", note: "紅茶をこぼしちゃった… もう一回走ろう！", characterSrc: "./assets/player-gameover.png?v=14" });
 
     if (ONLINE_CONFIGURED && supabaseClient && currentRunId) {
       const { error } = await supabaseClient.rpc("finish_game", {
@@ -648,7 +652,7 @@
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./assets/player-gameover.png?v=30" : "./assets/title-key-art.png?v=30"
+      characterSrc = variant === "gameover" ? "./assets/player-gameover.png?v=14" : "./assets/title-key-art.png?v=14"
     } = options;
 
     els.startTitle.textContent = title;
@@ -685,11 +689,13 @@
       game.duckHeld = false;
       p.vy = -power;
       p.onGround = false;
+      p.landingTimer = 0;
       p.airJumpsUsed = 0;
       puff(p.x + 20, feetY - 4, 5, "#f6dfb5");
     } else if (p.airJumpsUsed < game.upgrades.extraAirJumps) {
       p.vy = -power * 0.93;
       p.airJumpsUsed += 1;
+      p.landingTimer = 0;
       puff(p.x + 20, p.y + p.h, 7, "#b7f0ff");
     }
   }
@@ -701,7 +707,9 @@
   function updatePlayer(dt) {
     const p = game.player;
     if (p.invincible > 0) p.invincible = Math.max(0, p.invincible - dt);
+    if (p.landingTimer > 0) p.landingTimer = Math.max(0, p.landingTimer - dt);
 
+    const wasOnGround = p.onGround;
     const shouldCrouch = game.duckHeld && p.onGround;
     if (shouldCrouch !== p.crouching) {
       p.crouching = shouldCrouch;
@@ -719,6 +727,7 @@
       p.vy = 0;
       p.onGround = true;
       p.airJumpsUsed = 0;
+      if (!wasOnGround) p.landingTimer = 0.18;
     } else {
       p.onGround = false;
     }
@@ -971,7 +980,7 @@
     if (els.upgradeConfirm) {
       els.upgradeConfirm.disabled = false;
       els.upgradeConfirm.classList.add('ready');
-      els.upgradeConfirm.textContent = 'えらぶ';
+      els.upgradeConfirm.textContent = 'この力をえらぶ';
     }
   }
 
@@ -984,7 +993,7 @@
     if (els.upgradeConfirm) {
       els.upgradeConfirm.disabled = true;
       els.upgradeConfirm.classList.remove('ready', 'confirmed');
-      els.upgradeConfirm.textContent = 'えらぶ';
+      els.upgradeConfirm.textContent = 'この力をえらぶ';
     }
 
     randomUpgradeChoices().forEach((item, index) => {
@@ -1034,6 +1043,7 @@
 
     setTimeout(() => {
       els.upgradeOverlay.classList.add("hidden");
+      els.upgradeCards.classList.remove('has-selection');
       pendingUpgradeCard = null;
       game.phase = "playing";
       game.lastTime = performance.now();
@@ -1542,15 +1552,20 @@
         img = ART.playerJumpDown;
         rotate = 0.05;
       }
-      drawn = drawPlayerFrame(img, centerX + 3, feetY - 5, 104, { rotate, xOffset: 3 });
+      drawn = drawPlayerFrame(img, centerX + 3, feetY - 5, 106, { rotate, xOffset: 3 });
+    } else if (p.landingTimer > 0 && game.phase === "playing") {
+      const frames = ART.playerLandings;
+      const progress = 1 - p.landingTimer / 0.18;
+      const index = Math.min(frames.length - 1, Math.floor(progress * frames.length));
+      drawn = drawPlayerFrame(frames[index], centerX + 3, feetY + 2, 96, { xOffset: 4 });
     } else if (game.phase === "idle" || game.phase === "upgrade") {
       const idleBob = Math.sin(performance.now() / 260) * 2;
       drawn = drawPlayerFrame(ART.playerIdle, centerX + 2, feetY - 2, 108, { yOffset: idleBob * 0.45 });
     } else {
       const frames = ART.playerRuns;
-      const index = Math.floor(game.elapsed * 30) % frames.length;
-      const strideBob = Math.abs(Math.sin(game.elapsed * 8)) * 1.6;
-      drawn = drawPlayerFrame(frames[index], centerX + 6, feetY - 3, 104, { yOffset: -strideBob * 0.22 });
+      const index = Math.floor(game.elapsed * 18) % frames.length;
+      const strideBob = Math.abs(Math.sin(game.elapsed * 6)) * 2.1;
+      drawn = drawPlayerFrame(frames[index], centerX + 6, feetY - 3, 106, { yOffset: -strideBob * 0.28 });
     }
 
     if (!drawn) {

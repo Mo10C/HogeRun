@@ -11,7 +11,7 @@
   <div id="boot-splash" class="boot-splash" role="status" aria-live="polite">
     <div class="loading-scene">
       <div class="loading-brand">
-        <div class="loading-logo-row"><span>☕</span><strong>ほげ走</strong><span>🐇</span></div>
+        <img class="loading-logo-image" src="./assets/title-logo.png?v=32" alt="ほげ走" />
         <p class="loading-kicker">TEA KINGDOM RUNNER</p>
       </div>
 
@@ -41,7 +41,7 @@
           <span class="now-loading-text">Now Loading</span>
           <span class="loading-ellipsis"><i></i><i></i><i></i></span>
         </div>
-        <img id="loading-runner" class="loading-runner" src="./assets/player-run-1.png?v=48" alt="走っているメインキャラクター" />
+        <img id="loading-runner" class="loading-runner" src="./assets/player-run-1.png?v=14" alt="走っているメインキャラクター" />
       </div>
       <p id="boot-status" class="boot-status">ゲーム素材を読み込んでいます…</p>
     </div>
@@ -51,9 +51,7 @@
       <div>
         <div class="eyebrow">TEA ROGUELIKE RUNNER</div>
         <div class="title-logo" aria-label="ほげ走">
-          <span class="title-icon">☕</span>
-          <span class="title-main">ほげ走</span>
-          <span class="title-icon">🐇</span>
+          <img class="title-logo-image" src="./assets/title-logo.png?v=32" alt="ほげ走" />
         </div>
       </div>
       <div id="user-badge" class="user-badge hidden">
@@ -98,9 +96,9 @@
             <div class="overlay-inner">
               <p id="overlay-eyebrow" class="eyebrow">WELCOME TO THE TEA KINGDOM</p>
               <div class="overlay-logo" aria-hidden="true">
-                <span>☕</span><span class="logo-text">ほげ走</span><span>🎀</span>
+                <img class="overlay-logo-image" src="./assets/title-logo.png?v=32" alt="" />
               </div>
-              <img id="overlay-character" class="overlay-character" src="./assets/title-key-art.png" alt="ほげ走のキャラクター" />
+              <img id="overlay-character" class="overlay-character" src="./assets/title-key-art.png?v=14" alt="ほげ走のキャラクター" />
               <h2 id="start-title">ほげ走</h2>
               <p id="start-description">ジャンプとしゃがみで敵をかわし、紅茶入りのカップを集めよう。</p>
               <p id="overlay-note" class="overlay-note">ふしぎな紅茶の国を駆け抜けよう！</p>
@@ -114,8 +112,13 @@
 
           <div id="upgrade-overlay" class="upgrade-overlay hidden">
             <div class="upgrade-box">
+              <div class="upgrade-heading">
+                <p class="upgrade-kicker">SPECIAL TEA TIME</p>
+                <h2>どの力をえらぶ？</h2>
+                <p class="upgrade-subtitle">ほげっと すてきな力で もっと先へ！</p>
+              </div>
               <div id="upgrade-cards" class="upgrade-cards"></div>
-              <button id="upgrade-confirm" class="upgrade-confirm" type="button" disabled>えらぶ</button>
+              <button id="upgrade-confirm" class="upgrade-confirm" type="button" disabled>この力をえらぶ</button>
             </div>
           </div>
         </div>
