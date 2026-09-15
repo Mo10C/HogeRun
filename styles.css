@@ -3874,3 +3874,117 @@ body.upgrade-active .build-pop {
     margin: -4px auto 4px !important;
   }
 }
+
+
+/* === v41 ranking top packing + full long names === */
+@media (min-width: 1101px) {
+  .ranking-panel {
+    padding: 98px 12px 12px !important;
+    overflow: hidden !important;
+  }
+}
+.ranking-header-badge {
+  position: absolute !important;
+  top: 0 !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: min(138px, 56%) !important;
+  max-height: 112px !important;
+  object-fit: contain !important;
+  object-position: top center !important;
+  margin: 0 !important;
+  z-index: 5 !important;
+}
+.ranking-corner-top {
+  top: -10px !important;
+  right: -18px !important;
+  width: 92px !important;
+  opacity: .78 !important;
+  z-index: 4 !important;
+}
+.ranking-corner-bottom {
+  bottom: -24px !important;
+  left: -18px !important;
+  width: 76px !important;
+  opacity: .44 !important;
+}
+.ranking-logo-row {
+  margin: -18px 0 -2px !important;
+  min-height: 54px;
+  align-items: center;
+}
+.ranking-logo-image {
+  width: min(176px, 84%) !important;
+  max-height: 68px !important;
+  object-fit: contain !important;
+  margin: 0 auto !important;
+}
+.ranking-logo-row .icon-button {
+  width: 34px !important;
+  height: 34px !important;
+  align-self: center;
+}
+.ranking-divider-wrap {
+  margin: -2px 0 1px !important;
+}
+.ranking-divider {
+  width: min(150px, 70%) !important;
+  max-height: 34px !important;
+  object-fit: contain !important;
+}
+.ranking-status {
+  margin: 0 0 5px !important;
+  min-height: 14px;
+  line-height: 1.1;
+}
+.ranking-list {
+  gap: 6px !important;
+}
+.ranking-item {
+  grid-template-columns: 40px minmax(0, 1fr) auto !important;
+  gap: 7px !important;
+  padding: 7px 8px !important;
+  min-height: 50px;
+}
+.rank-medal {
+  width: 38px !important;
+  height: 38px !important;
+}
+.rank-meta {
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+.rank-name {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  font-size: 13px !important;
+  line-height: 1.14 !important;
+  max-width: 100% !important;
+}
+.rank-label {
+  font-size: 8px !important;
+  line-height: 1 !important;
+  margin-top: 2px;
+}
+.rank-score {
+  white-space: nowrap !important;
+  font-size: 15px !important;
+  align-self: center;
+}
+@media (max-width: 1100px) {
+  .ranking-panel {
+    padding-top: 92px !important;
+  }
+  .ranking-header-badge {
+    position: absolute !important;
+    top: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: min(138px, 46%) !important;
+    margin: 0 !important;
+  }
+  .ranking-logo-row { margin-top: -15px !important; }
+}
