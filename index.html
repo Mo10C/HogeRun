@@ -54,11 +54,6 @@
           <img class="title-logo-image" src="./assets/title-logo.png?v=32" alt="ほげ走" />
         </div>
       </div>
-      <div id="user-badge" class="user-badge hidden">
-        <span class="status-dot"></span>
-        <span id="current-username"></span>
-        <button id="rename-button" class="text-button" type="button">名前変更</button>
-      </div>
     </header>
 
     <section id="login-screen" class="panel login-panel">
@@ -82,14 +77,23 @@
 
     <section id="game-screen" class="game-layout hidden">
       <div class="game-column">
-        <div class="hud-strip panel">
-          <div class="hud-item"><span>SCORE</span><strong id="score-label">0m</strong></div>
-          <div class="hud-item"><span>TEA CUP</span><strong id="coin-label">0</strong></div>
-          <div class="hud-item"><span>NEXT ITEM</span><strong id="upgrade-label">10</strong></div>
-          <div class="hud-item"><span>BEST</span><strong id="best-label">0m</strong></div>
-        </div>
-
         <div class="game-frame panel">
+          <div class="in-game-ui" aria-label="ゲーム情報表示">
+            <div class="in-game-ui-row">
+              <div id="user-badge" class="user-badge game-user-badge hidden">
+                <span class="status-dot"></span>
+                <span class="user-badge-label">PLAYER</span>
+                <span id="current-username"></span>
+                <button id="rename-button" class="text-button" type="button">名前変更</button>
+              </div>
+              <div class="scoreboard-pop">
+                <div class="game-stat game-stat-score"><span>SCORE</span><strong id="score-label">0m</strong></div>
+                <div class="game-stat game-stat-cup"><span>TEA CUP</span><strong id="coin-label">0</strong></div>
+                <div class="game-stat game-stat-next"><span>NEXT ITEM</span><strong id="upgrade-label">10</strong></div>
+                <div class="game-stat game-stat-best"><span>BEST</span><strong id="best-label">0m</strong></div>
+              </div>
+            </div>
+          </div>
           <canvas id="game-canvas" width="960" height="540" aria-label="ほげ走ゲーム画面"></canvas>
 
           <div id="start-overlay" class="overlay-card overlay-start">

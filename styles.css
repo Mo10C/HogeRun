@@ -1409,3 +1409,292 @@ body.app-ready .footer {
   .hud-item strong { font-size: 20px; }
   .hud-item span { font-size: 10px; }
 }
+
+
+/* === v16 in-game pop HUD === */
+.topbar {
+  justify-content: center;
+}
+
+.hud-strip { display: none; }
+
+.in-game-ui {
+  position: absolute;
+  z-index: 6;
+  inset: 14px 14px auto;
+  pointer-events: none;
+}
+.in-game-ui-row {
+  display: grid;
+  gap: 10px;
+}
+.game-user-badge {
+  width: fit-content;
+  max-width: min(100%, 420px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 2px solid rgba(255,255,255,.96);
+  border-radius: 999px;
+  color: #5f6f92;
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,251,255,.92));
+  box-shadow: 0 10px 22px rgba(95,122,171,.16);
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+.game-user-badge #current-username {
+  font-weight: 1000;
+  color: #4f679a;
+  font-size: 14px;
+}
+.user-badge-label {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #bdebdc, #8ad7c7);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 1000;
+  letter-spacing: .08em;
+}
+.game-user-badge .text-button {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(139, 171, 223, .12);
+  font-size: 12px;
+  font-weight: 900;
+}
+.scoreboard-pop {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  pointer-events: none;
+}
+.game-stat {
+  min-width: 0;
+  padding: 11px 14px 12px;
+  border: 2px solid rgba(255,255,255,.95);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,248,252,.92));
+  box-shadow: 0 12px 24px rgba(113,136,179,.15);
+  backdrop-filter: blur(7px);
+}
+.game-stat span {
+  display: block;
+  margin-bottom: 4px;
+  color: #6d82aa;
+  font-size: 10px;
+  font-weight: 1000;
+  letter-spacing: .14em;
+}
+.game-stat strong {
+  display: block;
+  color: #50689d;
+  font-size: clamp(18px, 2vw, 26px);
+  line-height: 1.1;
+}
+.game-stat-score {
+  background: linear-gradient(180deg, rgba(255,255,255,.97), rgba(242,248,255,.94));
+}
+.game-stat-cup {
+  background: linear-gradient(180deg, rgba(255,250,242,.97), rgba(255,244,225,.94));
+}
+.game-stat-next {
+  background: linear-gradient(180deg, rgba(248,244,255,.97), rgba(240,236,255,.94));
+}
+.game-stat-best {
+  background: linear-gradient(180deg, rgba(244,255,251,.97), rgba(233,251,244,.94));
+}
+.game-stat-score strong { color: #5b75ae; }
+.game-stat-cup strong { color: #bf7b52; }
+.game-stat-next strong { color: #7e69ba; }
+.game-stat-best strong { color: #58a080; }
+
+@media (max-width: 980px) {
+  .topbar { justify-content: flex-start; }
+  .in-game-ui { inset: 10px 10px auto; }
+  .scoreboard-pop {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .game-user-badge {
+    max-width: 100%;
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding: 8px 10px;
+  }
+  .game-user-badge #current-username {
+    font-size: 13px;
+  }
+  .game-stat {
+    padding: 9px 10px 10px;
+    border-radius: 16px;
+  }
+  .game-stat span {
+    font-size: 9px;
+  }
+  .game-stat strong {
+    font-size: 18px;
+  }
+}
+
+
+/* === v17 rabbit & tea motif HUD frame === */
+.game-user-badge {
+  position: relative;
+  overflow: visible;
+  padding: 12px 16px 12px 18px;
+  border: 2px solid rgba(255,255,255,.97);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 18% 26%, rgba(255,255,255,.82), rgba(255,255,255,0) 34%),
+    linear-gradient(180deg, rgba(255,252,254,.98), rgba(241,247,255,.94));
+  box-shadow: 0 12px 24px rgba(95,122,171,.16);
+}
+.game-user-badge::before,
+.game-user-badge::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  width: 18px;
+  height: 28px;
+  border-radius: 999px 999px 12px 12px;
+  background: linear-gradient(180deg, #ffffff, #eef4ff);
+  border: 2px solid rgba(255,255,255,.95);
+  box-shadow: 0 6px 10px rgba(129, 153, 194, .10);
+  z-index: -1;
+}
+.game-user-badge::before {
+  left: 20px;
+  transform: rotate(-10deg);
+}
+.game-user-badge::after {
+  left: 40px;
+  transform: rotate(10deg);
+}
+.game-user-badge .status-dot {
+  background: #8edfd0;
+  box-shadow: 0 0 0 4px rgba(142,223,208,.20), 0 0 14px rgba(142,223,208,.60);
+}
+.user-badge-label {
+  background: linear-gradient(180deg, #ffbfd6, #f29abe);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.35);
+}
+.game-user-badge .text-button {
+  border: 1px solid rgba(216,229,250,.95);
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(243,248,255,.92));
+  color: #7287ad;
+}
+
+.scoreboard-pop {
+  gap: 12px;
+}
+.game-stat {
+  position: relative;
+  overflow: visible;
+  padding: 16px 14px 13px;
+  border: 2px solid rgba(255,255,255,.97);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.74), rgba(255,255,255,0) 42%),
+    linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,249,255,.94));
+  box-shadow: 0 12px 26px rgba(113,136,179,.14);
+}
+.game-stat::before,
+.game-stat::after {
+  content: "";
+  position: absolute;
+  top: -10px;
+  width: 16px;
+  height: 24px;
+  border-radius: 999px 999px 12px 12px;
+  background: linear-gradient(180deg, #fff, #eff5ff);
+  border: 2px solid rgba(255,255,255,.96);
+  box-shadow: 0 4px 10px rgba(120, 143, 184, .10);
+  z-index: -1;
+}
+.game-stat::before { left: 22px; transform: rotate(-12deg); }
+.game-stat::after { left: 40px; transform: rotate(12deg); }
+.game-stat span {
+  padding-left: 2px;
+}
+.game-stat strong {
+  position: relative;
+}
+.game-stat strong::after {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.78);
+  border: 1px solid rgba(255,255,255,.92);
+  box-shadow: 0 6px 12px rgba(129,153,194,.12);
+  font-size: 18px;
+}
+.game-stat-score strong::after { content: "🐇"; }
+.game-stat-cup strong::after { content: "☕"; }
+.game-stat-next strong::after { content: "🎁"; }
+.game-stat-best strong::after { content: "👑"; }
+.game-stat-score {
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255,255,255,.72), rgba(255,255,255,0) 38%),
+    linear-gradient(180deg, rgba(242,248,255,.98), rgba(232,242,255,.94));
+}
+.game-stat-cup {
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255,255,255,.72), rgba(255,255,255,0) 38%),
+    linear-gradient(180deg, rgba(255,250,242,.98), rgba(255,240,223,.95));
+}
+.game-stat-next {
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255,255,255,.72), rgba(255,255,255,0) 38%),
+    linear-gradient(180deg, rgba(248,244,255,.98), rgba(240,236,255,.95));
+}
+.game-stat-best {
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255,255,255,.72), rgba(255,255,255,0) 38%),
+    linear-gradient(180deg, rgba(244,255,251,.98), rgba(232,249,241,.95));
+}
+.game-stat .stat-ribbon,
+.game-stat::marker { display:none; }
+.game-stat-score { border-color: rgba(194, 220, 255, .95); }
+.game-stat-cup { border-color: rgba(255, 225, 186, .95); }
+.game-stat-next { border-color: rgba(224, 205, 255, .95); }
+.game-stat-best { border-color: rgba(191, 237, 211, .95); }
+.game-stat-score span::after,
+.game-stat-cup span::after,
+.game-stat-next span::after,
+.game-stat-best span::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 0;
+  margin-top: 6px;
+  border-bottom: 2px dotted rgba(144, 170, 211, .45);
+}
+.game-stat-cup span::after { border-bottom-color: rgba(212, 159, 109, .44); }
+.game-stat-next span::after { border-bottom-color: rgba(158, 141, 214, .44); }
+.game-stat-best span::after { border-bottom-color: rgba(103, 178, 145, .44); }
+
+@media (max-width: 980px) {
+  .game-user-badge::before,
+  .game-user-badge::after,
+  .game-stat::before,
+  .game-stat::after {
+    transform: scale(.9);
+  }
+  .game-stat {
+    padding: 12px 10px 10px;
+    border-radius: 18px;
+  }
+  .game-stat strong::after {
+    width: 28px;
+    height: 28px;
+    font-size: 15px;
+  }
+}
