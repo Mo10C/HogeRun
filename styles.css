@@ -3771,3 +3771,106 @@ body.upgrade-active .build-pop {
 .ranking-item:nth-child(-n+3) .rank-score {
   text-shadow: 0 1px 0 rgba(255,255,255,.7);
 }
+
+/* === v40 ranking height sync + header overlap + ranking logo === */
+@media (min-width: 1101px) {
+  .ranking-panel {
+    box-sizing: border-box;
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    padding: 72px 14px 14px !important;
+  }
+}
+.ranking-header-badge {
+  position: absolute !important;
+  top: -54px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: min(190px, 78%) !important;
+  margin: 0 !important;
+  z-index: 4 !important;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 18px rgba(124, 145, 192, 0.18));
+}
+.ranking-logo-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 2px;
+}
+.ranking-logo-image {
+  display: block;
+  width: min(190px, 100%);
+  max-height: 90px;
+  object-fit: contain;
+  justify-self: center;
+  filter: drop-shadow(0 8px 14px rgba(120, 145, 190, 0.16));
+}
+.ranking-logo-row .icon-button {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(203, 218, 244, 0.95);
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(241,247,255,.94));
+  box-shadow: 0 6px 12px rgba(122,145,192,.10);
+  color: #6d86bb;
+}
+.ranking-divider-wrap {
+  margin: 0 0 4px !important;
+}
+.ranking-divider {
+  width: min(160px, 76%) !important;
+}
+.ranking-status {
+  margin: 2px 0 7px !important;
+  text-align: center;
+}
+.ranking-list {
+  gap: 7px !important;
+}
+.ranking-item {
+  padding: 7px 8px !important;
+  border-radius: 17px !important;
+}
+.rank-medal {
+  width: 42px !important;
+  height: 42px !important;
+}
+.rank-number-badge {
+  width: 30px !important;
+  height: 30px !important;
+  font-size: 13px !important;
+}
+.rank-score {
+  font-size: 16px !important;
+}
+.ranking-corner-top {
+  top: 6px !important;
+  right: -10px !important;
+  width: 94px !important;
+  opacity: .68 !important;
+}
+.ranking-corner-bottom {
+  bottom: -14px !important;
+  left: -14px !important;
+  width: 86px !important;
+  opacity: .48 !important;
+}
+@media (max-width: 1100px) {
+  .ranking-panel {
+    height: auto !important;
+    overflow: hidden !important;
+    padding-top: 26px !important;
+  }
+  .ranking-header-badge {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: min(180px, 72%) !important;
+    margin: -4px auto 4px !important;
+  }
+}

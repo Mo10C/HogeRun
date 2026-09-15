@@ -51,6 +51,8 @@
     rankingStatus: $("ranking-status"),
     rankingList: $("ranking-list"),
     refreshRanking: $("refresh-ranking"),
+    gameFrame: document.querySelector(".game-frame"),
+    rankingPanel: document.querySelector(".ranking-panel"),
     jumpHelp: $("jump-help"),
     duckHelp: $("duck-help"),
     keybindStatus: $("keybind-status"),
@@ -95,24 +97,24 @@
   }
 
   const ART = {
-    logo: loadImage("./assets/ui/title-logo.png?v=39"),
-    background: loadImage("./assets/backgrounds/stage-bg.png?v=39"),
-    titleScene: loadImage("./assets/ui/title-key-art.png?v=39"),
-    playerIdle: loadImage("./assets/player/idle.png?v=39"),
-    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=39`)),
-    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=39`)),
-    playerJumpUp: loadImage("./assets/player/jump/up.png?v=39"),
-    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=39"),
-    playerJumpDown: loadImage("./assets/player/jump/down.png?v=39"),
+    logo: loadImage("./assets/ui/title-logo.png?v=40"),
+    background: loadImage("./assets/backgrounds/stage-bg.png?v=40"),
+    titleScene: loadImage("./assets/ui/title-key-art.png?v=40"),
+    playerIdle: loadImage("./assets/player/idle.png?v=40"),
+    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=40`)),
+    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=40`)),
+    playerJumpUp: loadImage("./assets/player/jump/up.png?v=40"),
+    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=40"),
+    playerJumpDown: loadImage("./assets/player/jump/down.png?v=40"),
     playerSlides: [
-      loadImage("./assets/player/slide/slide-1.png?v=39"),
-      loadImage("./assets/player/slide/slide-2.png?v=39"),
-      loadImage("./assets/player/slide/slide-3.png?v=39")
+      loadImage("./assets/player/slide/slide-1.png?v=40"),
+      loadImage("./assets/player/slide/slide-2.png?v=40"),
+      loadImage("./assets/player/slide/slide-3.png?v=40")
     ],
-    playerGameover: loadImage("./assets/player/gameover.png?v=39"),
-    playerHero: loadImage("./assets/ui/title-key-art.png?v=39"),
-    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=39"),
-    teaCup: loadImage("./assets/items/tea-cup.png?v=39")
+    playerGameover: loadImage("./assets/player/gameover.png?v=40"),
+    playerHero: loadImage("./assets/ui/title-key-art.png?v=40"),
+    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=40"),
+    teaCup: loadImage("./assets/items/tea-cup.png?v=40")
   };
 
   let gameplayAssetsPromise = null;
@@ -168,7 +170,7 @@
     }
     if (now - loadingRunnerLastFrame >= 42) {
       loadingRunnerFrame = (loadingRunnerFrame + 1) % 16;
-      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=39`; }
+      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=40`; }
       loadingRunnerLastFrame = now;
     }
     loadingRunnerRaf = requestAnimationFrame(animateLoadingRunner);
@@ -437,7 +439,7 @@
     {
       id: "double_jump",
       icon: "⇧⇧",
-      iconImage: "./assets/upgrades/double-jump.png?v=39",
+      iconImage: "./assets/upgrades/double-jump.png?v=40",
       name: "二段ジャンプ",
       uiDesc: "空中ジャンプ回数 +1。\n最大3回まで重ね掛け可能。",
       desc: "空中ジャンプ回数 +1。最大3回まで重ね掛け可能。",
@@ -447,7 +449,7 @@
     {
       id: "jump_boots",
       icon: "靴",
-      iconImage: "./assets/upgrades/jump-boots.png?v=39",
+      iconImage: "./assets/upgrades/jump-boots.png?v=40",
       name: "バネ靴",
       uiDesc: "ジャンプ力 +12%。\n高い敵配置を越えやすくなる。",
       desc: "ジャンプ力 +12%。高い敵配置を越えやすくなる。",
@@ -457,7 +459,7 @@
     {
       id: "shield",
       icon: "盾",
-      iconImage: "./assets/upgrades/shield.png?v=39",
+      iconImage: "./assets/upgrades/shield.png?v=40",
       name: "ほげシールド",
       uiDesc: "敵との衝突を1回無効化。\n取るたびに1枚追加。",
       desc: "敵との衝突を1回無効化。取るたびに1枚追加。",
@@ -467,7 +469,7 @@
     {
       id: "magnet",
       icon: "磁",
-      iconImage: "./assets/upgrades/magnet.png?v=39",
+      iconImage: "./assets/upgrades/magnet.png?v=40",
       name: "ティーカップ磁石",
       uiDesc: "近くの紅茶カップを吸い寄せる\n範囲が広くなる。",
       desc: "近くの紅茶カップを吸い寄せる範囲が広くなる。",
@@ -477,7 +479,7 @@
     {
       id: "slow_clock",
       icon: "時",
-      iconImage: "./assets/upgrades/slow-clock.png?v=39",
+      iconImage: "./assets/upgrades/slow-clock.png?v=40",
       name: "のろのろ時計",
       uiDesc: "敵と紅茶カップの流れる速度を\n7%低下。重ね掛け可能。",
       desc: "敵と紅茶カップの流れる速度を7%低下。重ね掛け可能。",
@@ -487,7 +489,7 @@
     {
       id: "tiny_charm",
       icon: "小",
-      iconImage: "./assets/upgrades/tiny-charm.png?v=39",
+      iconImage: "./assets/upgrades/tiny-charm.png?v=40",
       name: "ちびチャーム",
       uiDesc: "当たり判定を少し小さくして\nギリギリ回避しやすくする。",
       desc: "当たり判定を少し小さくして、ギリギリ回避しやすくする。",
@@ -497,7 +499,7 @@
     {
       id: "revive",
       icon: "羽",
-      iconImage: "./assets/upgrades/revive.png?v=39",
+      iconImage: "./assets/upgrades/revive.png?v=40",
       name: "復活の羽",
       uiDesc: "致命的な衝突を1回だけ無効化し\n短時間無敵になる。",
       desc: "致命的な衝突を1回だけ無効化し、短時間無敵になる。",
@@ -507,7 +509,7 @@
     {
       id: "coin_sense",
       icon: "金",
-      iconImage: "./assets/upgrades/tea-sensor.png?v=39",
+      iconImage: "./assets/upgrades/tea-sensor.png?v=40",
       name: "ティーセンサー",
       uiDesc: "紅茶カップの出現間隔が短くなり\n次の強化を狙いやすくなる。",
       desc: "紅茶カップの出現間隔が短くなり、次の強化を狙いやすくなる。",
@@ -675,9 +677,10 @@
     els.loginScreen?.classList.add("hidden");
     els.gameScreen.classList.remove("hidden");
     els.userBadge.classList.remove("hidden");
+    requestAnimationFrame(syncRankingHeight);
     syncUsernameUi();
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "名前を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=39" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "名前を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=40" });
     refreshLeaderboard();
   }
 
@@ -698,7 +701,7 @@
       "うさぎのティーパーティー大冒険",
       "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。",
       "スタート",
-      { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=39" }
+      { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=40" }
     );
   }
 
@@ -731,7 +734,7 @@
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
         if (error) {
-          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=39" });
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=40" });
           return;
         }
         currentRunId = data;
@@ -741,7 +744,7 @@
       game.phase = "playing";
       game.lastTime = performance.now();
     } catch (error) {
-      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=39" });
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=40" });
     } finally {
       els.startButton.disabled = false;
       els.startButton.textContent = originalLabel;
@@ -763,7 +766,7 @@ ${saveMessage}`, "もう一回", {
       variant: "gameover",
       eyebrow: "OOPS! TEA TIME OVER",
       note: "紅茶をこぼしちゃった… もう一回走ろう！",
-      characterSrc: "./assets/player/gameover.png?v=39",
+      characterSrc: "./assets/player/gameover.png?v=40",
       resultScore: finalScore,
       resultCoins: game.coins
     });
@@ -791,7 +794,7 @@ ${saveMessage}`, "もう一回", {
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=39" : "./assets/ui/title-key-art.png?v=39",
+      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=40" : "./assets/ui/title-key-art.png?v=40",
       resultScore = null,
       resultCoins = null
     } = options;
@@ -1316,7 +1319,7 @@ ${saveMessage}`, "もう一回", {
     els.buildPop?.classList.remove("hidden");
     els.buildList.innerHTML = entries.map(([id, level]) => {
       const item = UPGRADE_DEFS.find((def) => def.id === id);
-      const icon = item?.iconImage || './assets/ui/hud/build.png?v=39';
+      const icon = item?.iconImage || './assets/ui/hud/build.png?v=40';
       const name = escapeHtml(item?.name || id);
       let extra = `<span class="build-item-level">Lv.${level}</span>`;
       if (id === 'revive') {
@@ -1342,6 +1345,16 @@ ${saveMessage}`, "もう一回", {
     }).join('');
   }
 
+  function syncRankingHeight() {
+    if (!els.gameFrame || !els.rankingPanel) return;
+    if (window.matchMedia("(max-width: 1100px)").matches) {
+      els.rankingPanel.style.height = "";
+      return;
+    }
+    const height = Math.round(els.gameFrame.getBoundingClientRect().height);
+    if (height > 0) els.rankingPanel.style.height = `${height}px`;
+  }
+
   async function refreshLeaderboard() {
     if (!ONLINE_CONFIGURED || !supabaseClient) {
       els.rankingStatus.textContent = "オンラインランキングはSupabase設定後に有効になります。";
@@ -1363,9 +1376,9 @@ ${saveMessage}`, "もう一回", {
 
     els.rankingStatus.textContent = rows.length ? `TOP ${rows.length}` : "まだ記録がありません。最初のランナーになろう。";
     const rankIcons = [
-      "./assets/ui/ranking/rank-1.png?v=39",
-      "./assets/ui/ranking/rank-2.png?v=39",
-      "./assets/ui/ranking/rank-3.png?v=39",
+      "./assets/ui/ranking/rank-1.png?v=40",
+      "./assets/ui/ranking/rank-2.png?v=40",
+      "./assets/ui/ranking/rank-3.png?v=40",
     ];
 
     els.rankingList.innerHTML = rows.map((row, index) => {
@@ -2132,6 +2145,11 @@ ${saveMessage}`, "もう一回", {
     chooseUpgrade(pendingUpgradeChoice, pendingUpgradeCard);
   });
     els.refreshRanking.addEventListener("click", refreshLeaderboard);
+    window.addEventListener("resize", syncRankingHeight);
+    if (window.ResizeObserver && els.gameFrame) {
+      const rankingHeightObserver = new ResizeObserver(syncRankingHeight);
+      rankingHeightObserver.observe(els.gameFrame);
+    }
 
     document.querySelectorAll(".keybind-button").forEach((button) => {
       button.addEventListener("click", () => {
