@@ -88,24 +88,24 @@
   }
 
   const ART = {
-    logo: loadImage("./assets/ui/title-logo.png?v=29"),
-    background: loadImage("./assets/backgrounds/stage-bg.png?v=29"),
-    titleScene: loadImage("./assets/ui/title-key-art.png?v=29"),
-    playerIdle: loadImage("./assets/player/idle.png?v=29"),
-    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=29`)),
-    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=29`)),
-    playerJumpUp: loadImage("./assets/player/jump/up.png?v=29"),
-    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=29"),
-    playerJumpDown: loadImage("./assets/player/jump/down.png?v=29"),
+    logo: loadImage("./assets/ui/title-logo.png?v=30"),
+    background: loadImage("./assets/backgrounds/stage-bg.png?v=30"),
+    titleScene: loadImage("./assets/ui/title-key-art.png?v=30"),
+    playerIdle: loadImage("./assets/player/idle.png?v=30"),
+    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=30`)),
+    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=30`)),
+    playerJumpUp: loadImage("./assets/player/jump/up.png?v=30"),
+    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=30"),
+    playerJumpDown: loadImage("./assets/player/jump/down.png?v=30"),
     playerSlides: [
-      loadImage("./assets/player/slide/slide-1.png?v=29"),
-      loadImage("./assets/player/slide/slide-2.png?v=29"),
-      loadImage("./assets/player/slide/slide-3.png?v=29")
+      loadImage("./assets/player/slide/slide-1.png?v=30"),
+      loadImage("./assets/player/slide/slide-2.png?v=30"),
+      loadImage("./assets/player/slide/slide-3.png?v=30")
     ],
-    playerGameover: loadImage("./assets/player/gameover.png?v=29"),
-    playerHero: loadImage("./assets/ui/title-key-art.png?v=29"),
-    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=29"),
-    teaCup: loadImage("./assets/items/tea-cup.png?v=29")
+    playerGameover: loadImage("./assets/player/gameover.png?v=30"),
+    playerHero: loadImage("./assets/ui/title-key-art.png?v=30"),
+    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=30"),
+    teaCup: loadImage("./assets/items/tea-cup.png?v=30")
   };
 
   let gameplayAssetsPromise = null;
@@ -161,7 +161,7 @@
     }
     if (now - loadingRunnerLastFrame >= 42) {
       loadingRunnerFrame = (loadingRunnerFrame + 1) % 16;
-      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=29`; }
+      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=30`; }
       loadingRunnerLastFrame = now;
     }
     loadingRunnerRaf = requestAnimationFrame(animateLoadingRunner);
@@ -383,7 +383,8 @@
       crouching: false,
       airJumpsUsed: 0,
       invincible: 0,
-      landingTimer: 0
+      landingTimer: 0,
+      lane: 0
     },
     upgrades: null,
     upgradeLevels: {},
@@ -391,14 +392,49 @@
   };
 
   const GROUND_Y = 430;
+  const UPPER_GROUND_Y = 304;
+  const LANE_UNLOCK_DISTANCE = 50000;
   const GRAVITY = 1950;
   const BASE_JUMP = 720;
+
+  function isUpperLaneUnlocked() {
+    return game.distance >= LANE_UNLOCK_DISTANCE;
+  }
+
+  function getLaneGroundY(lane = game.player.lane) {
+    return lane === 1 && isUpperLaneUnlocked() ? UPPER_GROUND_Y : GROUND_Y;
+  }
+
+  function movePlayerToLane(targetLane) {
+    const p = game.player;
+    const nextLane = isUpperLaneUnlocked() && targetLane === 1 ? 1 : 0;
+    p.lane = nextLane;
+    p.crouching = false;
+    p.h = p.standH;
+    p.vy = 0;
+    p.onGround = true;
+    p.landingTimer = 0.08;
+    p.y = getLaneGroundY(nextLane) - p.h;
+    if (nextLane === 1) {
+      puff(p.x + p.w / 2, p.y + p.h - 6, 6, '#d8ecff');
+    } else {
+      puff(p.x + p.w / 2, p.y + p.h - 2, 6, '#ffe8f1');
+    }
+  }
+
+  function getStageDifficulty(distance = game.distance) {
+    if (distance >= 70000) return { jumpChance: 0.34, fastChance: 0.24, upperCoinChance: 0.50 };
+    if (distance >= 50000) return { jumpChance: 0.22, fastChance: 0.16, upperCoinChance: 0.38 };
+    if (distance >= 30000) return { jumpChance: 0.10, fastChance: 0.08, upperCoinChance: 0.00 };
+    if (distance >= 10000) return { jumpChance: 0.09, fastChance: 0.00, upperCoinChance: 0.00 };
+    return { jumpChance: 0.00, fastChance: 0.00, upperCoinChance: 0.00 };
+  }
 
   const UPGRADE_DEFS = [
     {
       id: "double_jump",
       icon: "⇧⇧",
-      iconImage: "./assets/upgrades/double-jump.png?v=29",
+      iconImage: "./assets/upgrades/double-jump.png?v=30",
       name: "二段ジャンプ",
       uiDesc: "空中ジャンプ回数 +1。\n最大3回まで重ね掛け可能。",
       desc: "空中ジャンプ回数 +1。最大3回まで重ね掛け可能。",
@@ -408,7 +444,7 @@
     {
       id: "jump_boots",
       icon: "靴",
-      iconImage: "./assets/upgrades/jump-boots.png?v=29",
+      iconImage: "./assets/upgrades/jump-boots.png?v=30",
       name: "バネ靴",
       uiDesc: "ジャンプ力 +12%。\n高い敵配置を越えやすくなる。",
       desc: "ジャンプ力 +12%。高い敵配置を越えやすくなる。",
@@ -418,7 +454,7 @@
     {
       id: "shield",
       icon: "盾",
-      iconImage: "./assets/upgrades/shield.png?v=29",
+      iconImage: "./assets/upgrades/shield.png?v=30",
       name: "ほげシールド",
       uiDesc: "敵との衝突を1回無効化。\n取るたびに1枚追加。",
       desc: "敵との衝突を1回無効化。取るたびに1枚追加。",
@@ -428,7 +464,7 @@
     {
       id: "magnet",
       icon: "磁",
-      iconImage: "./assets/upgrades/magnet.png?v=29",
+      iconImage: "./assets/upgrades/magnet.png?v=30",
       name: "ティーカップ磁石",
       uiDesc: "近くの紅茶カップを吸い寄せる\n範囲が広くなる。",
       desc: "近くの紅茶カップを吸い寄せる範囲が広くなる。",
@@ -438,7 +474,7 @@
     {
       id: "slow_clock",
       icon: "時",
-      iconImage: "./assets/upgrades/slow-clock.png?v=29",
+      iconImage: "./assets/upgrades/slow-clock.png?v=30",
       name: "のろのろ時計",
       uiDesc: "敵と紅茶カップの流れる速度を\n7%低下。重ね掛け可能。",
       desc: "敵と紅茶カップの流れる速度を7%低下。重ね掛け可能。",
@@ -448,7 +484,7 @@
     {
       id: "tiny_charm",
       icon: "小",
-      iconImage: "./assets/upgrades/tiny-charm.png?v=29",
+      iconImage: "./assets/upgrades/tiny-charm.png?v=30",
       name: "ちびチャーム",
       uiDesc: "当たり判定を少し小さくして\nギリギリ回避しやすくする。",
       desc: "当たり判定を少し小さくして、ギリギリ回避しやすくする。",
@@ -458,7 +494,7 @@
     {
       id: "revive",
       icon: "羽",
-      iconImage: "./assets/upgrades/revive.png?v=29",
+      iconImage: "./assets/upgrades/revive.png?v=30",
       name: "復活の羽",
       uiDesc: "致命的な衝突を1回だけ無効化し\n短時間無敵になる。",
       desc: "致命的な衝突を1回だけ無効化し、短時間無敵になる。",
@@ -468,7 +504,7 @@
     {
       id: "coin_sense",
       icon: "金",
-      iconImage: "./assets/upgrades/tea-sensor.png?v=29",
+      iconImage: "./assets/upgrades/tea-sensor.png?v=30",
       name: "ティーセンサー",
       uiDesc: "紅茶カップの出現間隔が短くなり\n次の強化を狙いやすくなる。",
       desc: "紅茶カップの出現間隔が短くなり、次の強化を狙いやすくなる。",
@@ -517,7 +553,9 @@
     game.player.airJumpsUsed = 0;
     game.player.invincible = 0;
     game.player.landingTimer = 0;
+    game.player.lane = 0;
     resetUpgrades();
+    document.body.classList.remove("upgrade-active");
     updateHud();
     renderBuild();
   }
@@ -613,7 +651,7 @@
     els.userBadge.classList.remove("hidden");
     els.currentUsername.textContent = currentUsername;
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=29" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=30" });
     refreshLeaderboard();
   }
 
@@ -642,7 +680,7 @@
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
         if (error) {
-          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=29" });
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=30" });
           return;
         }
         currentRunId = data;
@@ -652,7 +690,7 @@
       game.phase = "playing";
       game.lastTime = performance.now();
     } catch (error) {
-      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=29" });
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=30" });
     } finally {
       els.startButton.disabled = false;
       els.startButton.textContent = originalLabel;
@@ -674,7 +712,7 @@ ${saveMessage}`, "もう一回", {
       variant: "gameover",
       eyebrow: "OOPS! TEA TIME OVER",
       note: "紅茶をこぼしちゃった… もう一回走ろう！",
-      characterSrc: "./assets/player/gameover.png?v=29",
+      characterSrc: "./assets/player/gameover.png?v=30",
       resultScore: finalScore,
       resultCoins: game.coins
     });
@@ -702,7 +740,7 @@ ${saveMessage}`, "もう一回", {
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=29" : "./assets/ui/title-key-art.png?v=29",
+      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=30" : "./assets/ui/title-key-art.png?v=30",
       resultScore = null,
       resultCoins = null
     } = options;
@@ -739,6 +777,12 @@ ${saveMessage}`, "もう一回", {
     const p = game.player;
     const power = BASE_JUMP * game.upgrades.jumpBoost;
 
+    if (p.onGround && isUpperLaneUnlocked() && p.lane === 0) {
+      game.duckHeld = false;
+      movePlayerToLane(1);
+      return;
+    }
+
     if (p.onGround) {
       // Preserve the feet position when leaving a slide/crouch.
       // Without this, switching from crouchH to standH puts the collider below ground
@@ -763,19 +807,25 @@ ${saveMessage}`, "もう一回", {
 
   function setDuck(held) {
     game.duckHeld = held;
+    const p = game.player;
+    if (held && game.phase === "playing" && isUpperLaneUnlocked() && p.onGround && p.lane === 1) {
+      movePlayerToLane(0);
+    }
   }
 
   function updatePlayer(dt) {
     const p = game.player;
+    if (!isUpperLaneUnlocked() && p.lane !== 0) p.lane = 0;
     if (p.invincible > 0) p.invincible = Math.max(0, p.invincible - dt);
     if (p.landingTimer > 0) p.landingTimer = Math.max(0, p.landingTimer - dt);
 
+    const laneGroundY = getLaneGroundY(p.lane);
     const wasOnGround = p.onGround;
-    const shouldCrouch = game.duckHeld && p.onGround;
+    const shouldCrouch = game.duckHeld && p.onGround && p.lane === 0;
     if (shouldCrouch !== p.crouching) {
       p.crouching = shouldCrouch;
       p.h = shouldCrouch ? p.crouchH : p.standH;
-      p.y = GROUND_Y - p.h;
+      p.y = laneGroundY - p.h;
     }
 
     if (!p.onGround && game.duckHeld) p.vy += 900 * dt;
@@ -783,8 +833,8 @@ ${saveMessage}`, "もう一回", {
     p.vy += GRAVITY * dt;
     p.y += p.vy * dt;
 
-    if (p.y + p.h >= GROUND_Y) {
-      p.y = GROUND_Y - p.h;
+    if (p.y + p.h >= laneGroundY) {
+      p.y = laneGroundY - p.h;
       p.vy = 0;
       p.onGround = true;
       p.airJumpsUsed = 0;
@@ -804,6 +854,7 @@ ${saveMessage}`, "もう一回", {
 
   function spawnEnemy() {
     const roll = Math.random();
+    const difficulty = getStageDifficulty();
     let enemy;
 
     if (roll < 0.57) {
@@ -814,12 +865,34 @@ ${saveMessage}`, "もう一回", {
         broccoli: [52, 58],
         eggplant: [40, 58]
       }[veggie];
-      enemy = { kind: veggie, x: 1000, y: GROUND_Y - dims[1], w: dims[0], h: dims[1], dead: false };
+      const useUpperLane = isUpperLaneUnlocked() && Math.random() < 0.18;
+      const baseY = (useUpperLane ? UPPER_GROUND_Y : GROUND_Y) - dims[1];
+      enemy = {
+        kind: veggie,
+        x: 1000,
+        y: baseY,
+        baseY,
+        lane: useUpperLane ? 1 : 0,
+        w: dims[0],
+        h: dims[1],
+        dead: false,
+        speedMul: Math.random() < difficulty.fastChance ? randomBetween(1.18, 1.42) : 1,
+        jumpy: Math.random() < difficulty.jumpChance,
+        jumpAmp: 0,
+        jumpSpeed: 0,
+        jumpPhase: Math.random() * Math.PI * 1.5
+      };
+      if (enemy.jumpy) {
+        enemy.jumpAmp = randomBetween(24, 42);
+        enemy.jumpSpeed = randomBetween(2.1, 2.9);
+      }
     } else if (roll < 0.79) {
-      enemy = { kind: "zombie", x: 1000, y: GROUND_Y - 72, w: 44, h: 72, dead: false };
+      const useUpperLane = isUpperLaneUnlocked() && Math.random() < 0.10;
+      const baseY = (useUpperLane ? UPPER_GROUND_Y : GROUND_Y) - 72;
+      enemy = { kind: "zombie", x: 1000, y: baseY, baseY, lane: useUpperLane ? 1 : 0, w: 44, h: 72, dead: false, speedMul: 1 };
     } else {
-      // 立っていると当たるが、しゃがむと頭上を抜ける高さ。
-      enemy = { kind: "ghost", x: 1000, y: 360, w: 62, h: 32, dead: false };
+      // 通常ジャンプ1回では越えられず、ジャンプ強化系を取っていれば突破しやすい高さ。
+      enemy = { kind: "ghost", x: 1000, y: 300, baseY: 300, lane: 0, w: 68, h: 58, dead: false, speedMul: 1 };
     }
 
     game.enemies.push(enemy);
@@ -828,12 +901,18 @@ ${saveMessage}`, "もう一回", {
   function spawnCoins() {
     const count = Math.floor(randomBetween(3, 7));
     const baseX = 1000;
-    const pattern = choose(["line", "arc", "high"]);
+    const difficulty = getStageDifficulty();
+    let pattern = choose(["line", "arc", "high"]);
+    if (isUpperLaneUnlocked() && Math.random() < difficulty.upperCoinChance) {
+      pattern = choose(["upper_line", "upper_arc"]);
+    }
 
     for (let i = 0; i < count; i += 1) {
       let y = GROUND_Y - 72;
       if (pattern === "arc") y -= Math.sin((i / Math.max(1, count - 1)) * Math.PI) * 84;
       if (pattern === "high") y = GROUND_Y - 145;
+      if (pattern === "upper_line") y = UPPER_GROUND_Y - 72;
+      if (pattern === "upper_arc") y = (UPPER_GROUND_Y - 76) - Math.sin((i / Math.max(1, count - 1)) * Math.PI) * 54;
       game.coinObjects.push({ x: baseX + i * 34, y, w: 20, h: 20, collected: false, spin: Math.random() * 10 });
     }
   }
@@ -921,7 +1000,13 @@ ${saveMessage}`, "もう一回", {
     const pBox = playerHitbox();
 
     for (const enemy of game.enemies) {
-      enemy.x -= speed * dt;
+      enemy.x -= speed * dt * (enemy.speedMul || 1);
+      if (enemy.jumpy) {
+        enemy.jumpPhase = (enemy.jumpPhase || 0) + dt * (enemy.jumpSpeed || 2.4);
+        enemy.y = (enemy.baseY ?? enemy.y) - Math.max(0, Math.sin(enemy.jumpPhase)) * (enemy.jumpAmp || 0);
+      } else if (typeof enemy.baseY === 'number') {
+        enemy.y = enemy.baseY;
+      }
       if (!enemy.dead && intersects(pBox, enemy)) handleEnemyCollision(enemy);
     }
     game.enemies = game.enemies.filter((enemy) => !enemy.dead && enemy.x + enemy.w > -60);
@@ -980,7 +1065,7 @@ ${saveMessage}`, "もう一回", {
   }
 
   function randomUpgradeChoices() {
-    const pool = [...availableUpgrades()];
+    const pool = [...new Map(availableUpgrades().map((item) => [item.id, item])).values()];
     for (let i = pool.length - 1; i > 0; i -= 1) {
       const j = Math.floor(Math.random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
@@ -1113,6 +1198,7 @@ ${saveMessage}`, "もう一回", {
       els.upgradeCards.appendChild(button);
     });
 
+    document.body.classList.add("upgrade-active");
     els.upgradeOverlay.classList.remove("hidden");
   }
 
@@ -1151,6 +1237,7 @@ ${saveMessage}`, "もう一回", {
 
     setTimeout(() => {
       els.upgradeOverlay.classList.add("hidden");
+      document.body.classList.remove("upgrade-active");
       els.upgradeCards.classList.remove('has-selection');
       pendingUpgradeCard = null;
       game.phase = "playing";
@@ -1174,7 +1261,7 @@ ${saveMessage}`, "もう一回", {
 
     els.buildList.innerHTML = entries.map(([id, level]) => {
       const item = UPGRADE_DEFS.find((def) => def.id === id);
-      const icon = item?.iconImage || './assets/ui/hud/build.png?v=29';
+      const icon = item?.iconImage || './assets/ui/hud/build.png?v=30';
       const name = escapeHtml(item?.name || id);
       let extra = `<span class="build-item-level">Lv.${level}</span>`;
       if (id === 'revive') {
@@ -1356,6 +1443,33 @@ ${saveMessage}`, "もう一回", {
       ctx.beginPath();
       ctx.ellipse(x + 24, GROUND_Y + 74, 28, 12, 0, 0, Math.PI * 2);
       ctx.fill();
+    }
+
+    if (isUpperLaneUnlocked()) {
+      const upperGlow = ctx.createLinearGradient(0, UPPER_GROUND_Y - 34, 0, UPPER_GROUND_Y + 26);
+      upperGlow.addColorStop(0, "rgba(255,255,255,0.02)");
+      upperGlow.addColorStop(0.5, "rgba(255,239,247,0.24)");
+      upperGlow.addColorStop(1, "rgba(255,223,235,0.05)");
+      ctx.fillStyle = upperGlow;
+      ctx.fillRect(0, UPPER_GROUND_Y - 34, w, 64);
+
+      ctx.fillStyle = "rgba(255,255,255,0.72)";
+      ctx.fillRect(0, UPPER_GROUND_Y - 4, w, 6);
+      ctx.fillStyle = "rgba(255, 247, 250, 0.34)";
+      ctx.fillRect(0, UPPER_GROUND_Y - 26, w, 18);
+
+      const upperTileOffset = -((game.distance * 2.8) % 96);
+      for (let x = upperTileOffset - 96; x < w + 96; x += 96) {
+        ctx.fillStyle = "rgba(244, 248, 255, 0.78)";
+        ctx.fillRect(x + 10, UPPER_GROUND_Y + 10, 30, 10);
+        ctx.fillRect(x + 44, UPPER_GROUND_Y + 10, 30, 10);
+        ctx.fillStyle = "rgba(192, 206, 233, 0.42)";
+        ctx.fillRect(x + 40, UPPER_GROUND_Y + 10, 4, 10);
+        ctx.fillStyle = "rgba(255, 214, 230, 0.30)";
+        ctx.beginPath();
+        ctx.ellipse(x + 22, UPPER_GROUND_Y + 34, 18, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
   }
 
