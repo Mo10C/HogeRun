@@ -38,7 +38,11 @@
     buildList: $("build-list"),
     rankingStatus: $("ranking-status"),
     rankingList: $("ranking-list"),
-    refreshRanking: $("refresh-ranking")
+    refreshRanking: $("refresh-ranking"),
+    jumpHelp: $("jump-help"),
+    duckHelp: $("duck-help"),
+    keybindStatus: $("keybind-status"),
+    resetKeybinds: $("reset-keybinds")
   };
 
   const ctx = els.canvas.getContext("2d");
@@ -52,15 +56,111 @@
   const PLAYER_SPRITE = {
     cols: 4,
     rows: 4,
-    cellW: 317,
-    cellH: 317,
-    runFrames: [0, 1, 2, 3, 4, 5, 6, 7],
-    jumpFrames: [8, 9, 10, 11],
-    crouchFrames: [12, 13, 14, 15],
-    idleFrames: [0, 4],
+    cellW: 332,
+    cellH: 332,
+    runFrames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    jumpFrames: [2, 6, 10, 14],
+    crouchFrames: [1, 5, 9, 13],
+    idleFrames: [0, 4, 8, 12],
     startFrame: 0,
-    gameOverFrame: 15
+    gameOverFrame: 14
   };
+
+
+  const DEFAULT_KEYBINDS = {
+    jump: ["Space", "KeyW", "ArrowUp"],
+    duck: ["KeyS", "ArrowDown"]
+  };
+
+  let keybinds = loadKeybinds();
+  let listeningBind = null;
+  const pressedKeys = new Set();
+
+  function syncDuckFromPressedKeys() {
+    const shouldDuck = keybinds.duck.some((code) => code && pressedKeys.has(code));
+    setDuck(shouldDuck);
+  }
+
+  function clearKeyboardState() {
+    pressedKeys.clear();
+    setDuck(false);
+  }
+
+  function loadKeybinds() {
+    try {
+      const saved = JSON.parse(localStorage.getItem("hoge-run-keybinds") || "null");
+      if (saved?.jump?.length === 3 && saved?.duck?.length === 2) {
+        return { jump: [...saved.jump], duck: [...saved.duck] };
+      }
+    } catch (_) {}
+    return { jump: [...DEFAULT_KEYBINDS.jump], duck: [...DEFAULT_KEYBINDS.duck] };
+  }
+
+  function saveKeybinds() {
+    localStorage.setItem("hoge-run-keybinds", JSON.stringify(keybinds));
+  }
+
+  function keyLabel(code) {
+    if (!code) return "未設定";
+    const labels = {
+      Space: "Space",
+      ArrowUp: "↑",
+      ArrowDown: "↓",
+      ArrowLeft: "←",
+      ArrowRight: "→",
+      Escape: "Esc",
+      Enter: "Enter",
+      Tab: "Tab",
+      Backspace: "Backspace",
+      Delete: "Delete",
+      ShiftLeft: "L-Shift", ShiftRight: "R-Shift",
+      ControlLeft: "L-Ctrl", ControlRight: "R-Ctrl",
+      AltLeft: "L-Alt", AltRight: "R-Alt"
+    };
+    if (labels[code]) return labels[code];
+    if (code.startsWith("Key")) return code.slice(3);
+    if (code.startsWith("Digit")) return code.slice(5);
+    if (code.startsWith("Numpad")) return `Num ${code.slice(6)}`;
+    return code;
+  }
+
+  function renderKeybinds() {
+    document.querySelectorAll(".keybind-button").forEach((button) => {
+      const action = button.dataset.action;
+      const slot = Number(button.dataset.slot);
+      const code = keybinds[action]?.[slot];
+      button.textContent = code ? keyLabel(code) : "未設定";
+      button.classList.toggle("listening", !!listeningBind && listeningBind.action === action && listeningBind.slot === slot);
+    });
+    els.jumpHelp.textContent = `JUMP：${keybinds.jump.map(keyLabel).join(" / ")}`;
+    els.duckHelp.textContent = `DUCK：${keybinds.duck.map(keyLabel).join(" / ")}`;
+  }
+
+  function assignKey(action, slot, code) {
+    for (const otherAction of ["jump", "duck"]) {
+      keybinds[otherAction] = keybinds[otherAction].map((existing, i) => {
+        if (otherAction === action && i === slot) return existing;
+        return existing === code ? "" : existing;
+      });
+    }
+    keybinds[action][slot] = code;
+    saveKeybinds();
+    listeningBind = null;
+    clearKeyboardState();
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    els.keybindStatus.textContent = `${action === "jump" ? "ジャンプ" : "しゃがみ"}を「${keyLabel(code)}」に設定しました。`;
+    renderKeybinds();
+  }
+
+  function resetKeybindsToDefault() {
+    keybinds = { jump: [...DEFAULT_KEYBINDS.jump], duck: [...DEFAULT_KEYBINDS.duck] };
+    listeningBind = null;
+    clearKeyboardState();
+    saveKeybinds();
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    els.keybindStatus.textContent = "初期設定に戻しました。";
+    renderKeybinds();
+  }
 
   let supabaseClient = null;
   let currentUserId = null;
@@ -202,6 +302,7 @@
     game.particles = [];
     game.flash = 0;
     game.duckHeld = false;
+    pressedKeys.clear();
     game.player.x = 142;
     game.player.h = game.player.standH;
     game.player.y = GROUND_Y - game.player.h;
@@ -971,7 +1072,7 @@
       return PLAYER_SPRITE.idleFrames[Math.floor((performance.now() / 420) % PLAYER_SPRITE.idleFrames.length)];
     }
 
-    return PLAYER_SPRITE.runFrames[Math.floor((game.elapsed * 14) % PLAYER_SPRITE.runFrames.length)];
+    return PLAYER_SPRITE.runFrames[Math.floor((game.elapsed * 18) % PLAYER_SPRITE.runFrames.length)];
   }
 
   function drawPlayer() {
@@ -992,11 +1093,11 @@
     const sy = frameRow * PLAYER_SPRITE.cellH;
 
     const drawScale = p.crouching ? 0.92 : (!p.onGround ? 0.98 : 1);
-    const drawW = Math.round(136 * drawScale);
-    const drawH = Math.round(136 * drawScale);
+    const drawW = Math.round(128 * drawScale);
+    const drawH = Math.round(128 * drawScale);
     const bob = (game.phase === "idle" || game.phase === "upgrade") ? Math.sin(performance.now() / 220) * 2 : 0;
-    const drawX = Math.round(p.x - 46 + (p.crouching ? 0 : 0));
-    const drawY = Math.round(GROUND_Y - drawH - (p.crouching ? -6 : 10) + bob);
+    const drawX = Math.round(p.x - 42);
+    const drawY = Math.round(GROUND_Y - drawH - (p.crouching ? 0 : 6) + bob);
 
     ctx.drawImage(
       PLAYER_SPRITE_SHEET,
@@ -1171,14 +1272,53 @@
     els.startButton.addEventListener("click", startRun);
     els.refreshRanking.addEventListener("click", refreshLeaderboard);
 
+    document.querySelectorAll(".keybind-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        listeningBind = { action: button.dataset.action, slot: Number(button.dataset.slot) };
+        els.keybindStatus.textContent = "割り当てたいキーを押してください。Escでキャンセル。";
+        renderKeybinds();
+      });
+    });
+    els.resetKeybinds.addEventListener("click", resetKeybindsToDefault);
+
     window.addEventListener("keydown", (event) => {
-      if (["Space", "ArrowUp", "ArrowDown", "KeyW", "KeyS"].includes(event.code)) event.preventDefault();
-      if ((event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") && !event.repeat) jump();
-      if (event.code === "ArrowDown" || event.code === "KeyS") setDuck(true);
+      if (listeningBind) {
+        event.preventDefault();
+        event.stopPropagation();
+        clearKeyboardState();
+        if (event.code === "Escape") {
+          listeningBind = null;
+          if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+          els.keybindStatus.textContent = "キー設定をキャンセルしました。";
+          renderKeybinds();
+          return;
+        }
+        if (["ShiftLeft", "ShiftRight", "ControlLeft", "ControlRight", "AltLeft", "AltRight", "MetaLeft", "MetaRight"].includes(event.code)) {
+          els.keybindStatus.textContent = "Shift / Ctrl / Alt / Command単独は設定できません。別のキーを押してください。";
+          return;
+        }
+        assignKey(listeningBind.action, listeningBind.slot, event.code);
+        return;
+      }
+
+      const allBoundCodes = [...keybinds.jump, ...keybinds.duck].filter(Boolean);
+      if (allBoundCodes.includes(event.code)) event.preventDefault();
+
+      pressedKeys.add(event.code);
+
+      if (keybinds.jump.includes(event.code) && !event.repeat) {
+        jump();
+      }
+      if (keybinds.duck.includes(event.code)) {
+        syncDuckFromPressedKeys();
+      }
     }, { passive: false });
 
     window.addEventListener("keyup", (event) => {
-      if (event.code === "ArrowDown" || event.code === "KeyS") setDuck(false);
+      pressedKeys.delete(event.code);
+      if (keybinds.duck.includes(event.code)) {
+        syncDuckFromPressedKeys();
+      }
     });
 
     els.jumpButton.addEventListener("pointerdown", (event) => {
@@ -1193,18 +1333,98 @@
     els.duckButton.addEventListener("pointercancel", duckOff);
     els.duckButton.addEventListener("pointerleave", duckOff);
 
+    // Smartphone swipe controls: swipe up = jump, swipe down = crouch.
+    // A plain tap does nothing so it does not accidentally trigger a jump.
+    const swipeState = {
+      active: false,
+      pointerId: null,
+      startX: 0,
+      startY: 0,
+      startTime: 0
+    };
+    let mobileDuckTimer = null;
+
+    const resetSwipeState = () => {
+      swipeState.active = false;
+      swipeState.pointerId = null;
+    };
+
+    const triggerMobileDuck = () => {
+      if (mobileDuckTimer) clearTimeout(mobileDuckTimer);
+      setDuck(true);
+      mobileDuckTimer = setTimeout(() => {
+        setDuck(false);
+        mobileDuckTimer = null;
+      }, 650);
+    };
+
     els.canvas.addEventListener("pointerdown", (event) => {
-      if (window.matchMedia("(pointer: coarse)").matches && game.phase === "playing") {
-        event.preventDefault();
-        jump();
+      if (!window.matchMedia("(pointer: coarse)").matches || game.phase !== "playing") return;
+      if (event.pointerType === "mouse") return;
+      event.preventDefault();
+      swipeState.active = true;
+      swipeState.pointerId = event.pointerId;
+      swipeState.startX = event.clientX;
+      swipeState.startY = event.clientY;
+      swipeState.startTime = performance.now();
+      try { els.canvas.setPointerCapture(event.pointerId); } catch (_) {}
+    }, { passive: false });
+
+    els.canvas.addEventListener("pointerup", (event) => {
+      if (!swipeState.active || event.pointerId !== swipeState.pointerId) return;
+      event.preventDefault();
+
+      const dx = event.clientX - swipeState.startX;
+      const dy = event.clientY - swipeState.startY;
+      const elapsed = performance.now() - swipeState.startTime;
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+
+      // Require a clear vertical flick: at least 42 px, mostly vertical, within 700 ms.
+      if (absY >= 42 && absY > absX * 1.25 && elapsed <= 700 && game.phase === "playing") {
+        if (dy < 0) {
+          jump();
+        } else {
+          triggerMobileDuck();
+        }
       }
+
+      resetSwipeState();
+      try { els.canvas.releasePointerCapture(event.pointerId); } catch (_) {}
+    }, { passive: false });
+
+    els.canvas.addEventListener("pointercancel", (event) => {
+      if (event.pointerId === swipeState.pointerId) resetSwipeState();
     });
 
-    window.addEventListener("blur", () => setDuck(false));
+    window.addEventListener("blur", () => {
+      clearKeyboardState();
+      resetSwipeState();
+      if (mobileDuckTimer) {
+        clearTimeout(mobileDuckTimer);
+        mobileDuckTimer = null;
+      }
+      setDuck(false);
+    });
+    window.addEventListener("pagehide", () => {
+      clearKeyboardState();
+      resetSwipeState();
+      if (mobileDuckTimer) { clearTimeout(mobileDuckTimer); mobileDuckTimer = null; }
+      setDuck(false);
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        clearKeyboardState();
+        resetSwipeState();
+        if (mobileDuckTimer) { clearTimeout(mobileDuckTimer); mobileDuckTimer = null; }
+        setDuck(false);
+      }
+    });
   }
 
   async function boot() {
     resetGame();
+    renderKeybinds();
     bindEvents();
     const offlineName = localStorage.getItem("hoge-run-offline-name");
     if (offlineName) els.usernameInput.value = offlineName;

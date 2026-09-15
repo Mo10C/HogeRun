@@ -67,8 +67,8 @@
               <p id="start-description">ジャンプとしゃがみで敵をかわし、紅茶入りのカップを集めよう。</p>
               <p id="overlay-note" class="overlay-note">ふしぎな紅茶の国を駆け抜けよう！</p>
               <div class="control-help">
-                <span>JUMP：Space / W / ↑</span>
-                <span>DUCK：S / ↓</span>
+                <span id="jump-help">JUMP：Space / W / ↑</span>
+                <span id="duck-help">DUCK：S / ↓</span>
               </div>
               <button id="start-button" class="primary-button big-button" type="button">スタート</button>
             </div>
@@ -84,9 +84,35 @@
           </div>
         </div>
 
+        <div class="mobile-gesture-help">スマホ操作：ゲーム画面を <strong>上フリック＝ジャンプ</strong> / <strong>下フリック＝しゃがみ</strong></div>
         <div class="mobile-controls">
           <button id="jump-button" class="control-button jump-button" type="button">JUMP</button>
           <button id="duck-button" class="control-button duck-button" type="button">DUCK</button>
+        </div>
+
+
+        <div class="panel keybind-panel">
+          <div class="keybind-heading">
+            <div>
+              <p class="eyebrow">KEY CONFIG</p>
+              <h3>操作キー設定</h3>
+            </div>
+            <button id="reset-keybinds" class="text-button key-reset" type="button">初期設定に戻す</button>
+          </div>
+          <p id="keybind-status" class="muted small">変更したいボタンを押してから、割り当てたいキーを入力してください。</p>
+          <div class="keybind-grid">
+            <div class="keybind-action">
+              <strong>ジャンプ</strong>
+              <button class="keybind-button" data-action="jump" data-slot="0" type="button">Space</button>
+              <button class="keybind-button" data-action="jump" data-slot="1" type="button">W</button>
+              <button class="keybind-button" data-action="jump" data-slot="2" type="button">↑</button>
+            </div>
+            <div class="keybind-action">
+              <strong>しゃがみ</strong>
+              <button class="keybind-button" data-action="duck" data-slot="0" type="button">S</button>
+              <button class="keybind-button" data-action="duck" data-slot="1" type="button">↓</button>
+            </div>
+          </div>
         </div>
 
         <div class="panel build-panel">
