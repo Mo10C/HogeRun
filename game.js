@@ -31,6 +31,9 @@
     overlayEyebrow: $("overlay-eyebrow"),
     overlayCharacter: $("overlay-character"),
     overlayNote: $("overlay-note"),
+    resultScorePanel: $("result-score-panel"),
+    resultScoreValue: $("result-score-value"),
+    resultTeaValue: $("result-tea-value"),
     upgradeOverlay: $("upgrade-overlay"),
     upgradeCards: $("upgrade-cards"),
     upgradeConfirm: $("upgrade-confirm"),
@@ -84,24 +87,24 @@
   }
 
   const ART = {
-    logo: loadImage("./assets/ui/title-logo.png?v=21"),
-    background: loadImage("./assets/backgrounds/stage-bg.png?v=21"),
-    titleScene: loadImage("./assets/ui/title-key-art.png?v=21"),
-    playerIdle: loadImage("./assets/player/idle.png?v=21"),
-    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=20`)),
-    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=20`)),
-    playerJumpUp: loadImage("./assets/player/jump/up.png?v=21"),
-    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=21"),
-    playerJumpDown: loadImage("./assets/player/jump/down.png?v=21"),
+    logo: loadImage("./assets/ui/title-logo.png?v=27"),
+    background: loadImage("./assets/backgrounds/stage-bg.png?v=27"),
+    titleScene: loadImage("./assets/ui/title-key-art.png?v=27"),
+    playerIdle: loadImage("./assets/player/idle.png?v=27"),
+    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=27`)),
+    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=27`)),
+    playerJumpUp: loadImage("./assets/player/jump/up.png?v=27"),
+    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=27"),
+    playerJumpDown: loadImage("./assets/player/jump/down.png?v=27"),
     playerSlides: [
-      loadImage("./assets/player/slide/slide-1.png?v=21"),
-      loadImage("./assets/player/slide/slide-2.png?v=21"),
-      loadImage("./assets/player/slide/slide-3.png?v=21")
+      loadImage("./assets/player/slide/slide-1.png?v=27"),
+      loadImage("./assets/player/slide/slide-2.png?v=27"),
+      loadImage("./assets/player/slide/slide-3.png?v=27")
     ],
-    playerGameover: loadImage("./assets/player/gameover.png?v=21"),
-    playerHero: loadImage("./assets/ui/title-key-art.png?v=21"),
-    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=21"),
-    teaCup: loadImage("./assets/items/tea-cup.png?v=21")
+    playerGameover: loadImage("./assets/player/gameover.png?v=27"),
+    playerHero: loadImage("./assets/ui/title-key-art.png?v=27"),
+    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=27"),
+    teaCup: loadImage("./assets/items/tea-cup.png?v=27")
   };
 
   let gameplayAssetsPromise = null;
@@ -150,9 +153,14 @@
       loadingRunnerRaf = 0;
       return;
     }
+    if ((els.loadingRunner?.dataset.loadingKind || "") === "teacup") {
+      loadingRunnerLastFrame = now;
+      loadingRunnerRaf = requestAnimationFrame(animateLoadingRunner);
+      return;
+    }
     if (now - loadingRunnerLastFrame >= 42) {
       loadingRunnerFrame = (loadingRunnerFrame + 1) % 16;
-      els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=20`;
+      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=27`; }
       loadingRunnerLastFrame = now;
     }
     loadingRunnerRaf = requestAnimationFrame(animateLoadingRunner);
@@ -274,8 +282,8 @@
     });
     const jumpText = keybinds.jump.filter(Boolean).map(keyLabel).join(" / ") || "未設定";
     const duckText = keybinds.duck.filter(Boolean).map(keyLabel).join(" / ") || "未設定";
-    els.jumpHelp.textContent = `JUMP：${jumpText}`;
-    els.duckHelp.textContent = `DUCK：${duckText}`;
+    if (els.jumpHelp) els.jumpHelp.textContent = `JUMP：${jumpText}`;
+    if (els.duckHelp) els.duckHelp.textContent = `DUCK：${duckText}`;
     if (els.loadingJumpKeys) els.loadingJumpKeys.textContent = jumpText;
     if (els.loadingDuckKeys) els.loadingDuckKeys.textContent = duckText;
   }
@@ -325,6 +333,7 @@
     worldSpeed: 330,
     enemyTimer: 0.9,
     coinTimer: 0.4,
+    postUpgradeGrace: 0,
     enemies: [],
     coinObjects: [],
     particles: [],
@@ -357,7 +366,7 @@
     {
       id: "double_jump",
       icon: "⇧⇧",
-      iconImage: "./assets/upgrades/double-jump.png?v=21",
+      iconImage: "./assets/upgrades/double-jump.png?v=27",
       name: "二段ジャンプ",
       uiDesc: "空中ジャンプ回数 +1。\n最大3回まで重ね掛け可能。",
       desc: "空中ジャンプ回数 +1。最大3回まで重ね掛け可能。",
@@ -367,7 +376,7 @@
     {
       id: "jump_boots",
       icon: "靴",
-      iconImage: "./assets/upgrades/jump-boots.png?v=21",
+      iconImage: "./assets/upgrades/jump-boots.png?v=27",
       name: "バネ靴",
       uiDesc: "ジャンプ力 +12%。\n高い敵配置を越えやすくなる。",
       desc: "ジャンプ力 +12%。高い敵配置を越えやすくなる。",
@@ -377,7 +386,7 @@
     {
       id: "shield",
       icon: "盾",
-      iconImage: "./assets/upgrades/shield.png?v=21",
+      iconImage: "./assets/upgrades/shield.png?v=27",
       name: "ほげシールド",
       uiDesc: "敵との衝突を1回無効化。\n取るたびに1枚追加。",
       desc: "敵との衝突を1回無効化。取るたびに1枚追加。",
@@ -387,7 +396,7 @@
     {
       id: "magnet",
       icon: "磁",
-      iconImage: "./assets/upgrades/magnet.png?v=21",
+      iconImage: "./assets/upgrades/magnet.png?v=27",
       name: "ティーカップ磁石",
       uiDesc: "近くの紅茶カップを吸い寄せる\n範囲が広くなる。",
       desc: "近くの紅茶カップを吸い寄せる範囲が広くなる。",
@@ -397,7 +406,7 @@
     {
       id: "slow_clock",
       icon: "時",
-      iconImage: "./assets/upgrades/slow-clock.png?v=21",
+      iconImage: "./assets/upgrades/slow-clock.png?v=27",
       name: "のろのろ時計",
       uiDesc: "敵と紅茶カップの流れる速度を\n7%低下。重ね掛け可能。",
       desc: "敵と紅茶カップの流れる速度を7%低下。重ね掛け可能。",
@@ -407,7 +416,7 @@
     {
       id: "tiny_charm",
       icon: "小",
-      iconImage: "./assets/upgrades/tiny-charm.png?v=21",
+      iconImage: "./assets/upgrades/tiny-charm.png?v=27",
       name: "ちびチャーム",
       uiDesc: "当たり判定を少し小さくして\nギリギリ回避しやすくする。",
       desc: "当たり判定を少し小さくして、ギリギリ回避しやすくする。",
@@ -417,7 +426,7 @@
     {
       id: "revive",
       icon: "羽",
-      iconImage: "./assets/upgrades/revive.png?v=21",
+      iconImage: "./assets/upgrades/revive.png?v=27",
       name: "復活の羽",
       uiDesc: "致命的な衝突を1回だけ無効化し\n短時間無敵になる。",
       desc: "致命的な衝突を1回だけ無効化し、短時間無敵になる。",
@@ -427,7 +436,7 @@
     {
       id: "coin_sense",
       icon: "金",
-      iconImage: "./assets/upgrades/tea-sensor.png?v=21",
+      iconImage: "./assets/upgrades/tea-sensor.png?v=27",
       name: "ティーセンサー",
       uiDesc: "紅茶カップの出現間隔が短くなり\n次の強化を狙いやすくなる。",
       desc: "紅茶カップの出現間隔が短くなり、次の強化を狙いやすくなる。",
@@ -460,6 +469,7 @@
     game.worldSpeed = 330;
     game.enemyTimer = 0.85;
     game.coinTimer = 0.35;
+    game.postUpgradeGrace = 0;
     game.enemies = [];
     game.coinObjects = [];
     game.particles = [];
@@ -571,7 +581,7 @@
     els.userBadge.classList.remove("hidden");
     els.currentUsername.textContent = currentUsername;
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=21" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=27" });
     refreshLeaderboard();
   }
 
@@ -600,7 +610,7 @@
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
         if (error) {
-          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=21" });
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=27" });
           return;
         }
         currentRunId = data;
@@ -610,7 +620,7 @@
       game.phase = "playing";
       game.lastTime = performance.now();
     } catch (error) {
-      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=21" });
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=27" });
     } finally {
       els.startButton.disabled = false;
       els.startButton.textContent = originalLabel;
@@ -627,7 +637,15 @@
     els.bestLabel.textContent = `${currentBest}m`;
 
     let saveMessage = ONLINE_CONFIGURED ? "ランキングへ保存中..." : "オフライン練習モード";
-    showStartOverlay("GAME OVER", `${reason}　${finalScore}m / ${game.coins} TEA\n${saveMessage}`, "もう一回", { variant: "gameover", eyebrow: "OOPS! TEA TIME OVER", note: "紅茶をこぼしちゃった… もう一回走ろう！", characterSrc: "./assets/player/gameover.png?v=21" });
+    showStartOverlay("GAME OVER", `${reason}
+${saveMessage}`, "もう一回", {
+      variant: "gameover",
+      eyebrow: "OOPS! TEA TIME OVER",
+      note: "紅茶をこぼしちゃった… もう一回走ろう！",
+      characterSrc: "./assets/player/gameover.png?v=27",
+      resultScore: finalScore,
+      resultCoins: game.coins
+    });
 
     if (ONLINE_CONFIGURED && supabaseClient && currentRunId) {
       const { error } = await supabaseClient.rpc("finish_game", {
@@ -637,9 +655,9 @@
       });
 
       if (error) {
-        els.startDescription.textContent = `${reason}　${finalScore}m / ${game.coins} TEA　※保存失敗: ${error.message}`;
+        els.startDescription.textContent = `${reason}　※保存失敗: ${error.message}`;
       } else {
-        els.startDescription.textContent = `${reason}　${finalScore}m / ${game.coins} TEA　ランキング保存完了！`;
+        els.startDescription.textContent = `${reason}　ランキング保存完了！`;
         await refreshLeaderboard();
       }
     }
@@ -652,7 +670,9 @@
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=21" : "./assets/ui/title-key-art.png?v=21"
+      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=27" : "./assets/ui/title-key-art.png?v=27",
+      resultScore = null,
+      resultCoins = null
     } = options;
 
     els.startTitle.textContent = title;
@@ -661,6 +681,10 @@
     els.overlayEyebrow.textContent = eyebrow;
     els.overlayNote.textContent = note;
     els.overlayCharacter.src = characterSrc;
+    const isResult = variant === "gameover" && Number.isFinite(Number(resultScore));
+    if (els.resultScorePanel) els.resultScorePanel.classList.toggle("hidden", !isResult);
+    if (isResult && els.resultScoreValue) els.resultScoreValue.textContent = `${Number(resultScore).toLocaleString()}m`;
+    if (isResult && els.resultTeaValue) els.resultTeaValue.textContent = `${Number(resultCoins || 0).toLocaleString()} TEA`;
     els.startOverlay.classList.remove("overlay-start", "overlay-gameover");
     els.startOverlay.classList.add(variant === "gameover" ? "overlay-gameover" : "overlay-start");
     els.startOverlay.classList.remove("hidden");
@@ -837,17 +861,23 @@
     game.worldSpeed = Math.min(720, 330 + game.elapsed * 7.2) * game.upgrades.speedFactor;
     game.distance += (game.worldSpeed * dt) / 12;
 
-    game.enemyTimer -= dt;
-    if (game.enemyTimer <= 0) {
-      spawnEnemy();
-      const difficulty = Math.min(0.35, game.elapsed / 180);
-      game.enemyTimer = randomBetween(0.92 - difficulty, 1.55 - difficulty * 0.65);
-    }
+    // 能力選択直後の安全時間。
+    // 1秒間は新しい敵・紅茶カップを出現させず、選択直後の事故死を防ぐ。
+    if (game.postUpgradeGrace > 0) {
+      game.postUpgradeGrace = Math.max(0, game.postUpgradeGrace - dt);
+    } else {
+      game.enemyTimer -= dt;
+      if (game.enemyTimer <= 0) {
+        spawnEnemy();
+        const difficulty = Math.min(0.35, game.elapsed / 180);
+        game.enemyTimer = randomBetween(0.92 - difficulty, 1.55 - difficulty * 0.65);
+      }
 
-    game.coinTimer -= dt;
-    if (game.coinTimer <= 0) {
-      spawnCoins();
-      game.coinTimer = randomBetween(0.75, 1.25) * game.upgrades.coinSpawnFactor;
+      game.coinTimer -= dt;
+      if (game.coinTimer <= 0) {
+        spawnCoins();
+        game.coinTimer = randomBetween(0.75, 1.25) * game.upgrades.coinSpawnFactor;
+      }
     }
 
     const speed = game.worldSpeed;
@@ -1041,11 +1071,16 @@
     renderBuild();
     updateHud();
 
+    // 能力を決定した瞬間に画面上の敵を全消去。
+    // 紅茶カップは既に存在しているものは残すが、新規出現は再開後1秒間止める。
+    game.enemies = [];
+
     setTimeout(() => {
       els.upgradeOverlay.classList.add("hidden");
       els.upgradeCards.classList.remove('has-selection');
       pendingUpgradeCard = null;
       game.phase = "playing";
+      game.postUpgradeGrace = 1.0;
       game.lastTime = performance.now();
 
       // 大量に紅茶カップを拾った場合は、次の100杯到達分も続けて選ばせる。
