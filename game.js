@@ -1092,29 +1092,73 @@
     const sx = frameCol * PLAYER_SPRITE.cellW;
     const sy = frameRow * PLAYER_SPRITE.cellH;
 
-    const drawScale = p.crouching ? 0.92 : (!p.onGround ? 0.98 : 1);
-    const drawW = Math.round(128 * drawScale);
-    const drawH = Math.round(128 * drawScale);
     const bob = (game.phase === "idle" || game.phase === "upgrade") ? Math.sin(performance.now() / 220) * 2 : 0;
-    const drawX = Math.round(p.x - 42);
-    const drawY = Math.round(GROUND_Y - drawH - (p.crouching ? 0 : 6) + bob);
+    const feetY = p.y + p.h;
 
-    ctx.drawImage(
-      PLAYER_SPRITE_SHEET,
-      sx,
-      sy,
-      PLAYER_SPRITE.cellW,
-      PLAYER_SPRITE.cellH,
-      drawX,
-      drawY,
-      drawW,
-      drawH
-    );
+    let drawW;
+    let drawH;
+    let drawX;
+    let drawY;
+
+    if (p.crouching) {
+      // Sliding pose: stretch horizontally, squash vertically, tilt forward,
+      // and anchor the character to the ground so the motion reads as a slide.
+      drawW = 142;
+      drawH = 84;
+      drawX = Math.round(p.x - 48);
+      drawY = Math.round(feetY - drawH + 4);
+
+      ctx.save();
+      ctx.translate(drawX + drawW / 2, drawY + drawH / 2);
+      ctx.rotate(-0.10);
+      ctx.drawImage(
+        PLAYER_SPRITE_SHEET,
+        sx,
+        sy,
+        PLAYER_SPRITE.cellW,
+        PLAYER_SPRITE.cellH,
+        -drawW / 2,
+        -drawH / 2,
+        drawW,
+        drawH
+      );
+      ctx.restore();
+
+      // Slide speed lines and dust.
+      ctx.globalAlpha = 0.72;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(Math.round(p.x - 54), Math.round(GROUND_Y - 34), 32, 4);
+      ctx.fillRect(Math.round(p.x - 66), Math.round(GROUND_Y - 22), 42, 3);
+      ctx.fillStyle = "#dbeaff";
+      ctx.fillRect(Math.round(p.x - 42), Math.round(GROUND_Y - 12), 13, 7);
+      ctx.fillRect(Math.round(p.x - 56), Math.round(GROUND_Y - 8), 9, 5);
+      ctx.globalAlpha = 1;
+    } else {
+      const drawScale = !p.onGround ? 0.98 : 1;
+      drawW = Math.round(128 * drawScale);
+      drawH = Math.round(128 * drawScale);
+      drawX = Math.round(p.x - 42);
+      // Anchor the sprite's feet to the physics collider's feet.
+      // This makes the visible character actually rise/fall with jump physics.
+      drawY = Math.round(feetY - drawH - 6 + bob);
+
+      ctx.drawImage(
+        PLAYER_SPRITE_SHEET,
+        sx,
+        sy,
+        PLAYER_SPRITE.cellW,
+        PLAYER_SPRITE.cellH,
+        drawX,
+        drawY,
+        drawW,
+        drawH
+      );
+    }
 
     if (game.upgrades.shield > 0) {
       ctx.strokeStyle = "#ffe66d";
       ctx.lineWidth = 4;
-      ctx.strokeRect(drawX + 16, drawY + 8, drawW - 30, drawH - 18);
+      ctx.strokeRect(drawX + 12, drawY + 6, drawW - 24, drawH - 12);
     }
   }
 
