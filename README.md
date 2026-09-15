@@ -1,26 +1,32 @@
-# ほげ走（v17 PNG復帰版）
+# ほげ走 v18 — PNG直置き・確実読み込み版
 
-この版では、**WebP 読み込みをやめて PNG をそのまま読む構成**に戻しています。
-基本PC想定で使いやすいように、画像アセット参照をすべて PNG に戻しました。
+スクリーンショットで画像が表示されずフォールバック描画になっていたため、GitHubブラウザアップロードで事故りにくいように構成を変更しました。
 
-## 主な修正
-- `assets/logo/title-logo.png`
-- `assets/background/title-key-art.png`
-- `assets/background/stage-bg.png`
-- `assets/enemy/enemy-sheet.png`
-- `assets/collectible/tea-cup.png`
-- `assets/ui/ability-select.png`
+## 重要
+この版は **assets フォルダを廃止** しています。
+画像を含む全ファイルが `hoge-run` の1階層に入っています。
 
-上記を実ファイルとして同梱し、`index.html` / `styles.css` / `game.js` の参照先も PNG に差し替えています。
+GitHubではZIPを解凍し、`hoge-run` フォルダ内のファイルを **全部選択して** `Add file → Upload files` へドラッグしてください。
 
-## 維持している仕様
-- ティーカップ収集物の画像差し替え
-- アビリティ閾値: 100 → 200 → 300 → …
-- かわいいアビリティ選択UI
-- プレイヤーのミニキャラ素材
-- キーバインド変更
-- スマホ操作対応（既存実装）
+## 修正内容
+- WebPを使用しない
+- PNGをそのまま使用
+- サブフォルダを使用しない
+- 全画像をゲーム起動時から読み込み開始
+- スタート時に全ゲーム画像の読込完了を確認してから開始
+- 読み込み失敗時はゲームを開始せずエラーを表示
+- `?v=18` を付けてGitHub Pages/ブラウザの古いキャッシュを回避
+- 背景・敵・ティーカップ・メインキャラ・アビリティUIをすべて実画像で使用
 
-## 補足
-- v15で入れた遅延読み込みロジックは残していますが、読み込む実体は PNG です。
-- PC想定のため、見た目優先でPNGをそのまま使います。
+## GitHubに必ずアップロードする画像
+- title-logo.png
+- title-key-art.png
+- stage-bg.png
+- enemy-sheet.png
+- tea-cup.png
+- ability-select.png
+- player-idle.png
+- player-run-1.png / 2 / 3
+- player-jump-up.png / apex / down.png
+- player-slide-1.png / 2 / 3
+- player-gameover.png

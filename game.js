@@ -48,74 +48,77 @@
   const ctx = els.canvas.getContext("2d");
   ctx.imageSmoothingEnabled = true;
 
-  function loadImage(src, eager = true) {
+  function loadImage(src) {
     const img = new Image();
-    img.dataset.src = src;
-    if (eager) img.src = src;
+    img.decoding = "async";
+    img.src = src;
     return img;
   }
 
-  function ensureImageLoaded(img) {
-    if (!img) return Promise.resolve();
-    const src = img.dataset?.src || img.src;
-    if (!img.src && src) img.src = src;
-    if (img.complete && img.naturalWidth) return Promise.resolve(img);
+  function ensureImageLoaded(img, label = "画像") {
+    if (!img) return Promise.reject(new Error(`${label} がありません`));
+    if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) return Promise.resolve(img);
     return new Promise((resolve, reject) => {
       const done = () => {
-        img.removeEventListener("load", done);
-        img.removeEventListener("error", fail);
-        resolve(img);
+        cleanup();
+        if (img.naturalWidth > 0) resolve(img);
+        else reject(new Error(`${label} を読み込めませんでした`));
       };
       const fail = () => {
+        cleanup();
+        reject(new Error(`${label} を読み込めませんでした: ${img.src}`));
+      };
+      const cleanup = () => {
         img.removeEventListener("load", done);
         img.removeEventListener("error", fail);
-        reject(new Error(`画像の読み込みに失敗しました: ${src}`));
       };
       img.addEventListener("load", done, { once: true });
       img.addEventListener("error", fail, { once: true });
-      if (!img.src && src) img.src = src;
     });
   }
 
   const ART = {
-    logo: loadImage("./assets/logo/title-logo.png"),
-    background: loadImage("./assets/background/stage-bg.png", false),
-    titleScene: loadImage("./assets/background/title-key-art.png"),
-    playerIdle: loadImage("./assets/player/idle.png", false),
+    logo: loadImage("./title-logo.png?v=18"),
+    background: loadImage("./stage-bg.png?v=18"),
+    titleScene: loadImage("./title-key-art.png?v=18"),
+    playerIdle: loadImage("./player-idle.png?v=18"),
     playerRuns: [
-      loadImage("./assets/player/run-1.png", false),
-      loadImage("./assets/player/run-2.png", false),
-      loadImage("./assets/player/run-3.png", false)
+      loadImage("./player-run-1.png?v=18"),
+      loadImage("./player-run-2.png?v=18"),
+      loadImage("./player-run-3.png?v=18")
     ],
-    playerJumpUp: loadImage("./assets/player/jump-up.png", false),
-    playerJumpApex: loadImage("./assets/player/jump-apex.png", false),
-    playerJumpDown: loadImage("./assets/player/jump-down.png", false),
+    playerJumpUp: loadImage("./player-jump-up.png?v=18"),
+    playerJumpApex: loadImage("./player-jump-apex.png?v=18"),
+    playerJumpDown: loadImage("./player-jump-down.png?v=18"),
     playerSlides: [
-      loadImage("./assets/player/slide-1.png", false),
-      loadImage("./assets/player/slide-2.png", false),
-      loadImage("./assets/player/slide-3.png", false)
+      loadImage("./player-slide-1.png?v=18"),
+      loadImage("./player-slide-2.png?v=18"),
+      loadImage("./player-slide-3.png?v=18")
     ],
-    playerGameover: loadImage("./assets/player/gameover.png", false),
-    playerHero: loadImage("./assets/background/title-key-art.png"),
-    enemySheet: loadImage("./assets/enemy/enemy-sheet.png", false),
-    teaCup: loadImage("./assets/collectible/tea-cup.png", false)
+    playerGameover: loadImage("./player-gameover.png?v=18"),
+    playerHero: loadImage("./title-key-art.png?v=18"),
+    enemySheet: loadImage("./enemy-sheet.png?v=18"),
+    teaCup: loadImage("./tea-cup.png?v=18")
   };
 
   let gameplayAssetsPromise = null;
   function ensureGameplayAssets() {
     if (!gameplayAssetsPromise) {
       gameplayAssetsPromise = Promise.all([
-        ensureImageLoaded(ART.background),
-        ensureImageLoaded(ART.playerIdle),
-        ...ART.playerRuns.map(ensureImageLoaded),
-        ensureImageLoaded(ART.playerJumpUp),
-        ensureImageLoaded(ART.playerJumpApex),
-        ensureImageLoaded(ART.playerJumpDown),
-        ...ART.playerSlides.map(ensureImageLoaded),
-        ensureImageLoaded(ART.playerGameover),
-        ensureImageLoaded(ART.enemySheet),
-        ensureImageLoaded(ART.teaCup)
-      ]);
+        ensureImageLoaded(ART.background, "ステージ背景"),
+        ensureImageLoaded(ART.playerIdle, "待機キャラ"),
+        ...ART.playerRuns.map((img, i) => ensureImageLoaded(img, `走行キャラ${i + 1}`)),
+        ensureImageLoaded(ART.playerJumpUp, "ジャンプ上昇"),
+        ensureImageLoaded(ART.playerJumpApex, "ジャンプ頂点"),
+        ensureImageLoaded(ART.playerJumpDown, "ジャンプ下降"),
+        ...ART.playerSlides.map((img, i) => ensureImageLoaded(img, `スライド${i + 1}`)),
+        ensureImageLoaded(ART.playerGameover, "ゲームオーバーキャラ"),
+        ensureImageLoaded(ART.enemySheet, "敵キャラ"),
+        ensureImageLoaded(ART.teaCup, "ティーカップ")
+      ]).catch((error) => {
+        gameplayAssetsPromise = null;
+        throw error;
+      });
     }
     return gameplayAssetsPromise;
   }
@@ -469,7 +472,7 @@
     els.userBadge.classList.remove("hidden");
     els.currentUsername.textContent = currentUsername;
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "スタート後にゲーム素材を読み込む軽量版です。", characterSrc: "./assets/background/title-key-art.png" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "スタート後にゲーム素材を読み込む軽量版です。", characterSrc: "./title-key-art.png?v=18" });
     refreshLeaderboard();
   }
 
@@ -498,7 +501,7 @@
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
         if (error) {
-          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png" });
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./player-gameover.png?v=18" });
           return;
         }
         currentRunId = data;
@@ -508,7 +511,7 @@
       game.phase = "playing";
       game.lastTime = performance.now();
     } catch (error) {
-      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png" });
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./player-gameover.png?v=18" });
     } finally {
       els.startButton.disabled = false;
       els.startButton.textContent = originalLabel;
@@ -525,7 +528,7 @@
     els.bestLabel.textContent = `${currentBest}m`;
 
     let saveMessage = ONLINE_CONFIGURED ? "ランキングへ保存中..." : "オフライン練習モード";
-    showStartOverlay("GAME OVER", `${reason}　${finalScore}m / ${game.coins} TEA\n${saveMessage}`, "もう一回", { variant: "gameover", eyebrow: "OOPS! TEA TIME OVER", note: "紅茶をこぼしちゃった… もう一回走ろう！", characterSrc: "./assets/player/gameover.png" });
+    showStartOverlay("GAME OVER", `${reason}　${finalScore}m / ${game.coins} TEA\n${saveMessage}`, "もう一回", { variant: "gameover", eyebrow: "OOPS! TEA TIME OVER", note: "紅茶をこぼしちゃった… もう一回走ろう！", characterSrc: "./player-gameover.png?v=18" });
 
     if (ONLINE_CONFIGURED && supabaseClient && currentRunId) {
       const { error } = await supabaseClient.rpc("finish_game", {
@@ -550,7 +553,7 @@
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./assets/player/gameover.png" : "./assets/background/title-key-art.png"
+      characterSrc = variant === "gameover" ? "./player-gameover.png?v=18" : "./title-key-art.png?v=18"
     } = options;
 
     els.startTitle.textContent = title;
@@ -992,7 +995,7 @@
     const w = els.canvas.width;
     const h = els.canvas.height;
 
-    if (ART.background.complete) {
+    if (ART.background.complete && ART.background.naturalWidth > 0) {
       drawImageCover(ART.background, 0, 0, w, h);
     } else {
       const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
