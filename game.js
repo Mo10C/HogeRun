@@ -33,6 +33,7 @@
     overlayNote: $("overlay-note"),
     upgradeOverlay: $("upgrade-overlay"),
     upgradeCards: $("upgrade-cards"),
+    upgradeConfirm: $("upgrade-confirm"),
     jumpButton: $("jump-button"),
     duckButton: $("duck-button"),
     buildList: $("build-list"),
@@ -80,27 +81,23 @@
   }
 
   const ART = {
-    logo: loadImage("./title-logo.png?v=20"),
-    background: loadImage("./stage-bg.png?v=20"),
-    titleScene: loadImage("./title-key-art.png?v=20"),
-    playerIdle: loadImage("./player-idle.png?v=20"),
-    playerRuns: [
-      loadImage("./player-run-1.png?v=20"),
-      loadImage("./player-run-2.png?v=20"),
-      loadImage("./player-run-3.png?v=20")
-    ],
-    playerJumpUp: loadImage("./player-jump-up.png?v=20"),
-    playerJumpApex: loadImage("./player-jump-apex.png?v=20"),
-    playerJumpDown: loadImage("./player-jump-down.png?v=20"),
+    logo: loadImage("./assets/title-logo.png?v=30"),
+    background: loadImage("./assets/stage-bg.png?v=30"),
+    titleScene: loadImage("./assets/title-key-art.png?v=30"),
+    playerIdle: loadImage("./assets/player-idle.png?v=30"),
+    playerRuns: Array.from({ length: 48 }, (_, i) => loadImage(`./assets/player-run-${i + 1}.png?v=48`)),
+    playerJumpUp: loadImage("./assets/player-jump-up.png?v=30"),
+    playerJumpApex: loadImage("./assets/player-jump-apex.png?v=30"),
+    playerJumpDown: loadImage("./assets/player-jump-down.png?v=30"),
     playerSlides: [
-      loadImage("./player-slide-1.png?v=20"),
-      loadImage("./player-slide-2.png?v=20"),
-      loadImage("./player-slide-3.png?v=20")
+      loadImage("./assets/player-slide-1.png?v=30"),
+      loadImage("./assets/player-slide-2.png?v=30"),
+      loadImage("./assets/player-slide-3.png?v=30")
     ],
-    playerGameover: loadImage("./player-gameover.png?v=20"),
-    playerHero: loadImage("./title-key-art.png?v=20"),
-    enemySheet: loadImage("./enemy-sheet.png?v=20"),
-    teaCup: loadImage("./tea-cup.png?v=20")
+    playerGameover: loadImage("./assets/player-gameover.png?v=30"),
+    playerHero: loadImage("./assets/title-key-art.png?v=30"),
+    enemySheet: loadImage("./assets/enemy-sheet.png?v=30"),
+    teaCup: loadImage("./assets/tea-cup.png?v=30")
   };
 
   let gameplayAssetsPromise = null;
@@ -310,7 +307,9 @@
     {
       id: "double_jump",
       icon: "⇧⇧",
+      iconImage: "./assets/upgrade-double-jump.png?v=1",
       name: "二段ジャンプ",
+      uiDesc: "空中ジャンプ回数 +1。\n最大3回まで重ね掛け可能。",
       desc: "空中ジャンプ回数 +1。最大3回まで重ね掛け可能。",
       max: 3,
       apply: () => { game.upgrades.extraAirJumps += 1; }
@@ -318,7 +317,9 @@
     {
       id: "jump_boots",
       icon: "靴",
+      iconImage: "./assets/upgrade-jump-boots.png?v=1",
       name: "バネ靴",
+      uiDesc: "ジャンプ力 +12%。\n高い敵配置を越えやすくなる。",
       desc: "ジャンプ力 +12%。高い敵配置を越えやすくなる。",
       max: 4,
       apply: () => { game.upgrades.jumpBoost *= 1.12; }
@@ -326,7 +327,9 @@
     {
       id: "shield",
       icon: "盾",
+      iconImage: "./assets/upgrade-shield.png?v=1",
       name: "ほげシールド",
+      uiDesc: "敵との衝突を1回無効化。\n取るたびに1枚追加。",
       desc: "敵との衝突を1回無効化。取るたびに1枚追加。",
       max: 6,
       apply: () => { game.upgrades.shield += 1; }
@@ -334,7 +337,9 @@
     {
       id: "magnet",
       icon: "磁",
+      iconImage: "./assets/upgrade-magnet.png?v=1",
       name: "ティーカップ磁石",
+      uiDesc: "近くの紅茶カップを吸い寄せる\n範囲が広くなる。",
       desc: "近くの紅茶カップを吸い寄せる範囲が広くなる。",
       max: 4,
       apply: () => { game.upgrades.magnetRadius += 72; }
@@ -342,7 +347,9 @@
     {
       id: "slow_clock",
       icon: "時",
+      iconImage: "./assets/upgrade-slow-clock.png?v=1",
       name: "のろのろ時計",
+      uiDesc: "敵と紅茶カップの流れる速度を\n7%低下。重ね掛け可能。",
       desc: "敵と紅茶カップの流れる速度を7%低下。重ね掛け可能。",
       max: 4,
       apply: () => { game.upgrades.speedFactor *= 0.93; }
@@ -350,7 +357,9 @@
     {
       id: "tiny_charm",
       icon: "小",
+      iconImage: "./assets/upgrade-tiny-charm.png?v=1",
       name: "ちびチャーム",
+      uiDesc: "当たり判定を少し小さくして\nギリギリ回避しやすくする。",
       desc: "当たり判定を少し小さくして、ギリギリ回避しやすくする。",
       max: 3,
       apply: () => { game.upgrades.hitboxInset += 3; }
@@ -358,7 +367,9 @@
     {
       id: "revive",
       icon: "羽",
+      iconImage: "./assets/upgrade-revive.png?v=1",
       name: "復活の羽",
+      uiDesc: "致命的な衝突を1回だけ無効化し\n短時間無敵になる。",
       desc: "致命的な衝突を1回だけ無効化し、短時間無敵になる。",
       max: 3,
       apply: () => { game.upgrades.revive += 1; }
@@ -366,7 +377,9 @@
     {
       id: "coin_sense",
       icon: "金",
+      iconImage: "./assets/upgrade-coin-sense.png?v=1",
       name: "ティーセンサー",
+      uiDesc: "紅茶カップの出現間隔が短くなり\n次の強化を狙いやすくなる。",
       desc: "紅茶カップの出現間隔が短くなり、次の強化を狙いやすくなる。",
       max: 3,
       apply: () => { game.upgrades.coinSpawnFactor *= 0.88; }
@@ -496,7 +509,7 @@
     els.userBadge.classList.remove("hidden");
     els.currentUsername.textContent = currentUsername;
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./title-key-art.png?v=20" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/title-key-art.png?v=30" });
     refreshLeaderboard();
   }
 
@@ -525,7 +538,7 @@
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
         if (error) {
-          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./player-gameover.png?v=20" });
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player-gameover.png?v=30" });
           return;
         }
         currentRunId = data;
@@ -535,7 +548,7 @@
       game.phase = "playing";
       game.lastTime = performance.now();
     } catch (error) {
-      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./player-gameover.png?v=20" });
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player-gameover.png?v=30" });
     } finally {
       els.startButton.disabled = false;
       els.startButton.textContent = originalLabel;
@@ -552,7 +565,7 @@
     els.bestLabel.textContent = `${currentBest}m`;
 
     let saveMessage = ONLINE_CONFIGURED ? "ランキングへ保存中..." : "オフライン練習モード";
-    showStartOverlay("GAME OVER", `${reason}　${finalScore}m / ${game.coins} TEA\n${saveMessage}`, "もう一回", { variant: "gameover", eyebrow: "OOPS! TEA TIME OVER", note: "紅茶をこぼしちゃった… もう一回走ろう！", characterSrc: "./player-gameover.png?v=20" });
+    showStartOverlay("GAME OVER", `${reason}　${finalScore}m / ${game.coins} TEA\n${saveMessage}`, "もう一回", { variant: "gameover", eyebrow: "OOPS! TEA TIME OVER", note: "紅茶をこぼしちゃった… もう一回走ろう！", characterSrc: "./assets/player-gameover.png?v=30" });
 
     if (ONLINE_CONFIGURED && supabaseClient && currentRunId) {
       const { error } = await supabaseClient.rpc("finish_game", {
@@ -577,7 +590,7 @@
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./player-gameover.png?v=20" : "./title-key-art.png?v=20"
+      characterSrc = variant === "gameover" ? "./assets/player-gameover.png?v=30" : "./assets/title-key-art.png?v=30"
     } = options;
 
     els.startTitle.textContent = title;
@@ -868,29 +881,66 @@
     };
   }
 
+  function renderUpgradeCardMarkup(item, meta) {
+    const desc = escapeHtml(item.uiDesc || item.desc).replace(/\n/g, "<br>");
+    const iconMarkup = item.iconImage
+      ? `<img class="augment-icon-image" src="${item.iconImage}" alt="">`
+      : `<span class="icon">${escapeHtml(item.icon)}</span>`;
+    return `
+      <span class="augment-hit-glow" aria-hidden="true"></span>
+      <span class="augment-select-mark" aria-hidden="true">✓</span>
+      <span class="augment-icon-wrap">${iconMarkup}</span>
+      <span class="augment-name">${escapeHtml(item.name)}</span>
+      <span class="augment-level">Lv.${meta.nextLevel}</span>
+      <span class="augment-desc">${desc}</span>
+      <span class="augment-pick">この力を選ぶ</span>
+    `;
+  }
+
+  function selectUpgradeCard(item, button) {
+    if (button.disabled) return;
+    pendingUpgradeChoice = item;
+    pendingUpgradeCard = button;
+    els.upgradeCards.classList.add('has-selection');
+    els.upgradeCards.querySelectorAll('.augment-card').forEach((card) => {
+      const isSelected = card === button;
+      card.classList.toggle('selected', isSelected);
+      card.classList.toggle('unselected', !isSelected);
+      card.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      const pickLabel = card.querySelector('.augment-pick');
+      if (pickLabel) pickLabel.textContent = isSelected ? '選択中' : 'この力を選ぶ';
+    });
+    if (els.upgradeConfirm) {
+      els.upgradeConfirm.disabled = false;
+      els.upgradeConfirm.classList.add('ready');
+      els.upgradeConfirm.textContent = 'えらぶ';
+    }
+  }
+
   function openUpgradeSelection() {
     game.phase = "upgrade";
+    pendingUpgradeChoice = null;
+    pendingUpgradeCard = null;
+    els.upgradeCards.classList.remove('has-selection', 'confirming');
     els.upgradeCards.innerHTML = "";
+    if (els.upgradeConfirm) {
+      els.upgradeConfirm.disabled = true;
+      els.upgradeConfirm.classList.remove('ready', 'confirmed');
+      els.upgradeConfirm.textContent = 'えらぶ';
+    }
 
-    for (const item of randomUpgradeChoices()) {
+    randomUpgradeChoices().forEach((item, index) => {
       const meta = getUpgradePresentation(item);
       const button = document.createElement("button");
-      button.className = `upgrade-card augment-card ${meta.tier}`;
+      button.className = `upgrade-card augment-card slot-${index + 1} ${meta.tier}`;
       button.type = "button";
-      button.innerHTML = `
-        <span class="augment-corner top-left">♠</span>
-        <span class="augment-corner bottom-right">♥</span>
-        <span class="augment-tier">${meta.tierMark} お茶会の祝福</span>
-        <span class="augment-icon-wrap"><span class="icon">${escapeHtml(item.icon)}</span></span>
-        <span class="name">${escapeHtml(item.name)}</span>
-        <span class="augment-level">Lv.${meta.nextLevel}</span>
-        <span class="augment-divider"></span>
-        <span class="desc">${escapeHtml(item.desc)}</span>
-        <span class="augment-pick">この力をえらぶ</span>
-      `;
-      button.addEventListener("click", () => chooseUpgrade(item, button));
+      button.setAttribute('aria-pressed', 'false');
+      button.style.setProperty('--card-delay', `${index * 70}ms`);
+      button.innerHTML = renderUpgradeCardMarkup(item, meta);
+      button.addEventListener("click", () => selectUpgradeCard(item, button));
+      button.addEventListener("dblclick", () => chooseUpgrade(item, button));
       els.upgradeCards.appendChild(button);
-    }
+    });
 
     els.upgradeOverlay.classList.remove("hidden");
   }
@@ -898,16 +948,27 @@
   function chooseUpgrade(item, selectedCard = null) {
     const level = game.upgradeLevels[item.id] || 0;
     if (level >= item.max) return;
+    pendingUpgradeChoice = null;
     item.apply();
     game.upgradeLevels[item.id] = level + 1;
     game.upgradeHistory.push(item.id);
 
     if (selectedCard) {
-      selectedCard.classList.add("selected");
+      els.upgradeCards.classList.add('confirming');
+      selectedCard.classList.add("selected", "confirmed");
+      selectedCard.classList.remove("unselected");
+      const selectedLabel = selectedCard.querySelector('.augment-pick');
+      if (selectedLabel) selectedLabel.textContent = '決定！';
       els.upgradeCards.querySelectorAll(".augment-card").forEach((card) => {
-        if (card !== selectedCard) card.classList.add("not-selected");
+        if (card !== selectedCard) card.classList.add("unselected", "not-selected");
         card.disabled = true;
       });
+      if (els.upgradeConfirm) {
+        els.upgradeConfirm.disabled = true;
+        els.upgradeConfirm.classList.remove('ready');
+        els.upgradeConfirm.classList.add('confirmed');
+        els.upgradeConfirm.textContent = '決定！';
+      }
     }
 
     renderBuild();
@@ -915,6 +976,7 @@
 
     setTimeout(() => {
       els.upgradeOverlay.classList.add("hidden");
+      pendingUpgradeCard = null;
       game.phase = "playing";
       game.lastTime = performance.now();
 
@@ -923,7 +985,7 @@
         game.nextUpgradeAt += 100;
         setTimeout(openUpgradeSelection, 120);
       }
-    }, selectedCard ? 260 : 0);
+    }, selectedCard ? 620 : 0);
   }
 
   function renderBuild() {
@@ -1392,9 +1454,9 @@
       drawn = drawPlayerFrame(ART.playerIdle, centerX + 2, feetY - 2, 108, { yOffset: idleBob * 0.45 });
     } else {
       const frames = ART.playerRuns;
-      const index = Math.floor(game.elapsed * 11) % frames.length;
-      const strideBob = Math.abs(Math.sin(game.elapsed * 11)) * 2;
-      drawn = drawPlayerFrame(frames[index], centerX + 6, feetY - 4, 100, { yOffset: -strideBob * 0.35 });
+      const index = Math.floor(game.elapsed * 30) % frames.length;
+      const strideBob = Math.abs(Math.sin(game.elapsed * 8)) * 1.6;
+      drawn = drawPlayerFrame(frames[index], centerX + 6, feetY - 3, 104, { yOffset: -strideBob * 0.22 });
     }
 
     if (!drawn) {
@@ -1649,6 +1711,10 @@
 
     els.renameButton.addEventListener("click", showLoginForRename);
     els.startButton.addEventListener("click", startRun);
+  els.upgradeConfirm?.addEventListener("click", () => {
+    if (!pendingUpgradeChoice || !pendingUpgradeCard) return;
+    chooseUpgrade(pendingUpgradeChoice, pendingUpgradeCard);
+  });
     els.refreshRanking.addEventListener("click", refreshLeaderboard);
 
     document.querySelectorAll(".keybind-button").forEach((button) => {

@@ -5,22 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#171923" />
   <title>ほげ走</title>
-  <link rel="stylesheet" href="./styles.css?v=20" />
+  <link rel="stylesheet" href="./styles.css" />
 </head>
-<body class="app-loading">
-  <div id="boot-splash" class="boot-splash" role="status" aria-live="polite">
-    <div class="boot-splash-card">
-      <div class="boot-tea-mark" aria-hidden="true">☕</div>
-      <div class="boot-title">TEA PARTY LOADING</div>
-      <div class="boot-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-      <p id="boot-status">紅茶の国を準備しています…</p>
-    </div>
-  </div>
+<body>
   <main class="app-shell">
     <header class="topbar">
-      <div class="brand-wrap">
-        <div class="eyebrow">TEA PARTY MINI RUNNER</div>
-        <img class="header-logo-image" src="./title-logo.png?v=19" alt="ほげ走 ロゴ" />
+      <div>
+        <div class="eyebrow">TEA ROGUELIKE RUNNER</div>
+        <div class="title-logo" aria-label="ほげ走">
+          <span class="title-icon">☕</span>
+          <span class="title-main">ほげ走</span>
+          <span class="title-icon">🐇</span>
+        </div>
       </div>
       <div id="user-badge" class="user-badge hidden">
         <span class="status-dot"></span>
@@ -30,18 +26,17 @@
     </header>
 
     <section id="login-screen" class="panel login-panel">
-      <div class="hero-visual hero-card">
-        <img class="login-hero-logo" src="./title-logo.png?v=19" alt="ほげ走 ロゴ" />
-        <img class="login-character" src="./title-key-art.png?v=19" alt="ほげ走の操作キャラ" />
+      <div class="hero-visual">
+        <img class="login-character" src="./assets/player-portrait.jpg" alt="ほげ走の操作キャラ" />
       </div>
-      <div class="login-copy-card">
+      <div>
         <p class="eyebrow">USERNAME ONLY</p>
         <h2>名前を入れたら、すぐスタート。</h2>
-        <p class="muted">メールアドレス・パスワードは不要です。このブラウザに匿名セッションを保存します。紅茶の国をかわいく駆けぬけよう！</p>
+        <p class="muted">メールアドレス・パスワードは不要です。このブラウザに匿名セッションを保存します。</p>
         <form id="login-form" class="login-form">
           <label for="username-input">プレイヤー名</label>
           <div class="login-row">
-            <input id="username-input" type="text" maxlength="16" minlength="1" placeholder="例：羽餅ほげ" autocomplete="nickname" required />
+            <input id="username-input" type="text" maxlength="16" minlength="1" placeholder="例：けんたん" autocomplete="nickname" required />
             <button class="primary-button" type="submit">この名前で遊ぶ</button>
           </div>
           <p id="login-error" class="error-text" role="alert"></p>
@@ -64,41 +59,33 @@
           <div id="start-overlay" class="overlay-card overlay-start">
             <div class="overlay-inner">
               <p id="overlay-eyebrow" class="eyebrow">WELCOME TO THE TEA KINGDOM</p>
-              <div class="overlay-logo">
-                <img class="overlay-logo-image" src="./title-logo.png?v=19" alt="ほげ走 ロゴ" />
+              <div class="overlay-logo" aria-hidden="true">
+                <span>☕</span><span class="logo-text">ほげ走</span><span>🎀</span>
               </div>
-              <img id="overlay-character" class="overlay-character" src="./title-key-art.png?v=19" alt="ほげ走のキャラクター" />
-              <h2 id="start-title">うさぎのティーパーティー大冒険</h2>
-              <p id="start-description">このロゴ・背景・敵キャラ素材をそのまま使ったブラウザゲーム版です。ジャンプとスライディングで敵をかわし、紅茶のカップを集めよう。</p>
-              <p id="overlay-note" class="overlay-note">画像素材は GitHub に同梱して使います。</p>
+              <img id="overlay-character" class="overlay-character" src="./assets/title-key-art.png" alt="ほげ走のキャラクター" />
+              <h2 id="start-title">ほげ走</h2>
+              <p id="start-description">ジャンプとしゃがみで敵をかわし、紅茶入りのカップを集めよう。</p>
+              <p id="overlay-note" class="overlay-note">ふしぎな紅茶の国を駆け抜けよう！</p>
               <div class="control-help">
                 <span id="jump-help">JUMP：Space / W / ↑</span>
-                <span id="duck-help">SLIDE：S / ↓</span>
+                <span id="duck-help">DUCK：S / ↓</span>
               </div>
               <button id="start-button" class="primary-button big-button" type="button">スタート</button>
             </div>
           </div>
 
           <div id="upgrade-overlay" class="upgrade-overlay hidden">
-            <div class="upgrade-box augment-box">
-              <div class="augment-topline">
-                <span class="tea-ornament">☕</span>
-                <p class="eyebrow">TEA PARTY AUGMENT</p>
-                <span class="tea-ornament">⌚</span>
-              </div>
-              <h2>お茶会の祝福を選んで！</h2>
-              <p class="augment-subtitle">3つの不思議な力から、今回の冒険に1つだけ。</p>
-              <div class="augment-rule"><span>♣</span><span>♦</span><span>♥</span><span>♠</span></div>
+            <div class="upgrade-box">
               <div id="upgrade-cards" class="upgrade-cards"></div>
-              <p class="augment-footer">選択するとゲームが再開します</p>
+              <button id="upgrade-confirm" class="upgrade-confirm" type="button" disabled>えらぶ</button>
             </div>
           </div>
         </div>
 
-        <div class="mobile-gesture-help">スマホ操作：ゲーム画面を <strong>上フリック＝ジャンプ</strong> / <strong>下フリック＝スライディング</strong></div>
+        <div class="mobile-gesture-help">スマホ操作：ゲーム画面を <strong>上フリック＝ジャンプ</strong> / <strong>下フリック＝しゃがみ</strong></div>
         <div class="mobile-controls">
           <button id="jump-button" class="control-button jump-button" type="button">JUMP</button>
-          <button id="duck-button" class="control-button duck-button" type="button">SLIDE</button>
+          <button id="duck-button" class="control-button duck-button" type="button">DUCK</button>
         </div>
 
 
@@ -119,7 +106,7 @@
               <button class="keybind-button" data-action="jump" data-slot="2" type="button">↑</button>
             </div>
             <div class="keybind-action">
-              <strong>スライディング</strong>
+              <strong>しゃがみ</strong>
               <button class="keybind-button" data-action="duck" data-slot="0" type="button">S</button>
               <button class="keybind-button" data-action="duck" data-slot="1" type="button">↓</button>
             </div>
@@ -150,10 +137,10 @@
     </section>
   </main>
 
-  <footer class="footer">ほげ走 — browser-only cute tea-party runner</footer>
+  <footer class="footer">ほげ走 — browser-only pixel roguelike runner</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js"></script>
-  <script src="./game.js?v=20" defer></script>
+  <script src="./game.js" defer></script>
 </body>
 </html>
