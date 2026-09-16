@@ -832,6 +832,11 @@
   const ULTRA_CHIPS_MIN_DISTANCE = 10000;
   const ULTRA_CHIPS_CHANCE = 0.20;
   const ULTRA_CHIPS_VALUE = 100;
+  // ティーカップ磁石がこの回数に達した時だけ、ポテチも吸い寄せて取れる
+  const ULTRA_CHIPS_MAGNET_LEVEL = 4;
+  // ほげシールドの無敵時間
+  const SHIELD_BASE_SEC = 10;
+  const SHIELD_STEP_SEC = 5;
   const ULTRA_CHIPS_Y = 130;       // 当たり判定の上端Y座標（小さいほど高い）
   const ULTRA_CHIPS_HITBOX = 64;   // 当たり判定サイズ(px)
   const ULTRA_CHIPS_DRAW_H = 114;  // 表示の高さ(px)。紅茶カップ(38px)の3倍
@@ -911,13 +916,15 @@
       icon: "盾",
       iconImage: "./assets/upgrades/shield.png?v=63",
       name: "ほげシールド",
-      uiDesc: "獲得した瞬間から10秒間無敵。\n残り2秒でシールドが点滅する。",
-      desc: "獲得した瞬間から10秒間無敵。残り2秒でシールドが点滅する。",
+      uiDesc: "獲得した瞬間から無敵。取るたびに+5秒\n（10秒→15秒→20秒…）",
+      desc: "獲得した瞬間から無敵。取るたびに無敵時間が5秒ずつ延びる（10秒→15秒→20秒…）。",
       max: 6,
       apply: () => {
         game.upgrades.shield += 1;
-        game.player.shieldTimer = Math.max(game.player.shieldTimer || 0, 10);
-        game.player.invincible = Math.max(game.player.invincible || 0, 10);
+        // Lv1=10秒、以降1回ごとに+5秒（SHIELD_BASE_SEC / SHIELD_STEP_SEC）
+        const duration = SHIELD_BASE_SEC + SHIELD_STEP_SEC * (game.upgrades.shield - 1);
+        game.player.shieldTimer = Math.max(game.player.shieldTimer || 0, duration);
+        game.player.invincible = Math.max(game.player.invincible || 0, duration);
         game.flash = Math.max(game.flash || 0, 0.16);
       }
     },
@@ -1557,7 +1564,7 @@
       }[veggie];
       const useUpperLane = isUpperLaneUnlocked() && Math.random() < 0.18;
       const baseY = (useUpperLane ? UPPER_GROUND_Y : GROUND_Y) - dims[1];
-      const speedMul = Math.random() < difficulty.fastChance ? randomBetween(2.8, 3.2) : 1;
+      const speedMul = Math.random() < difficulty.fastChance ? randomBetween(1.9, 2.1) : 1; // 高速野菜：約2倍速
       enemy = {
         kind: veggie,
         x: getEnemySpawnX(speedMul),
@@ -1760,13 +1767,15 @@
       const dx = px - cx;
       const dy = py - cy;
       const dist = Math.hypot(dx, dy);
-      // ウルトラレインボーポテチは磁石で吸い寄せない（高さを保つ）
-      if (!coin.ultra && dist < game.upgrades.magnetRadius) {
+      // ウルトラレインボーポテチは、ティーカップ磁石Lv4の時だけ吸い寄せる
+      const magnetMaxed = (game.upgradeLevels.magnet || 0) >= ULTRA_CHIPS_MAGNET_LEVEL;
+      if ((!coin.ultra || magnetMaxed) && dist < game.upgrades.magnetRadius) {
         const pull = Math.min(1, dt * (5 + (game.upgrades.magnetRadius - dist) / 35));
         coin.x += dx * pull;
         coin.y += dy * pull;
       }
-      const canTakeUltra = !coin.ultra || (!game.player.onGround && game.player.airJumpsUsed >= 1);
+      // ポテチは「2段ジャンプ中」または「ティーカップ磁石Lv4」で取れる
+      const canTakeUltra = !coin.ultra || magnetMaxed || (!game.player.onGround && game.player.airJumpsUsed >= 1);
       if (!coin.collected && canTakeUltra && intersects(pBox, coin)) collectCoin(coin);
     }
     game.coinObjects = game.coinObjects.filter((coin) => !coin.collected && coin.x + coin.w > (coin.ultra ? -120 : -40));
