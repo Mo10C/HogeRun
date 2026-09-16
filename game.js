@@ -121,6 +121,8 @@
     playerHero: loadImage("./assets/ui/title-key-art.png?v=63"),
     enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=63"),
     teaCup: loadImage("./assets/items/tea-cup.png?v=63"),
+    // ウルトラレインボーポテチ（画像が無い場合はコードで描いた仮の袋を表示）
+    ultraChips: loadImage("./assets/items/ultra-rainbow-chips.png?v=76"),
     shieldAura: loadImage("./assets/effects/shield-aura.png?v=69")
   };
 
@@ -436,7 +438,9 @@
   // ===== サウンド（BGM / 効果音） =====
   // assets/audio/ に音声ファイルを置くとそれを再生。無い場合は内蔵のシンセ音で鳴らす。
   const AUDIO_FILES = {
-    bgm: "./assets/audio/bgm.mp3",
+    bgm: "./assets/audio/bgm.mp3",     // 0m〜
+    bgm2: "./assets/audio/bgm-2.mp3",  // 15000m〜
+    bgm3: "./assets/audio/bgm-3.mp3",  // 30000m〜（45000m〜 は再び bgm-2）
     jump: "./assets/audio/jump.mp3",
     slide: "./assets/audio/slide.mp3",
     tea: "./assets/audio/tea.mp3"
@@ -453,10 +457,7 @@
     bgmGain: null,
     buffers: {},
     loading: null,
-    bgmSource: null,
-    bgmTimer: null,
-    bgmStep: 0,
-    bgmNextTime: 0,
+    bgmTrack: null, // 再生中のBGM { stage, gain, source | timer, step, nextTime }
     lastPlayed: {}
   };
 
@@ -496,10 +497,10 @@
           const p = sound.ctx.decodeAudioData(data, resolve, reject);
           if (p && typeof p.then === "function") p.then(resolve, reject);
         });
-        // ファイル版BGMが後から読み込めた場合、シンセBGMから切り替える。
-        if (key === "bgm" && sound.bgmTimer) {
-          stopBgm();
-          startBgm();
+        // ファイル版BGMが後から読み込めた場合、再生中の内蔵BGMから切り替える。
+        const track = sound.bgmTrack;
+        if (track && !track.source && BGM_STAGES[track.stage].file === key) {
+          switchBgmStage(track.stage, { force: true });
         }
       } catch (_) { /* ファイル無し → シンセ音を使用 */ }
     }));
@@ -575,61 +576,145 @@
     }
   }
 
-  // 内蔵BGM：ゆるいメルヘン風ループ（ファイルが無い時用）
-  const SYNTH_BGM = {
-    bpm: 132,
-    melody: [72, 76, 79, 76, 74, 77, 81, 77, 72, 76, 79, 84, 83, 79, 76, 74],
-    bass: [48, 48, 53, 53, 55, 55, 48, 48]
-  };
+  // ===== BGM（距離で切り替え） =====
+  // minDistance を超えたらそのBGMに切り替わる。file は AUDIO_FILES のキー。
+  // 音声ファイルが無い場合は synth（内蔵BGM）で鳴らす。
+  const BGM_STAGES = [
+    {
+      minDistance: 0,
+      file: "bgm",
+      synth: {
+        bpm: 132, lead: "triangle",
+        melody: [72, 76, 79, 76, 74, 77, 81, 77, 72, 76, 79, 84, 83, 79, 76, 74],
+        bass: [48, 48, 53, 53, 55, 55, 48, 48]
+      }
+    },
+    {
+      minDistance: 15000,
+      file: "bgm2",
+      synth: {
+        bpm: 150, lead: "square",
+        melody: [74, 78, 81, 78, 76, 79, 83, 79, 74, 78, 81, 86, 85, 81, 78, 76],
+        bass: [50, 50, 55, 55, 57, 57, 50, 50]
+      }
+    },
+    {
+      minDistance: 30000,
+      file: "bgm3",
+      synth: {
+        bpm: 168, lead: "sawtooth",
+        melody: [69, 72, 76, 72, 71, 74, 77, 74, 69, 72, 76, 81, 80, 76, 72, 71],
+        bass: [45, 45, 41, 41, 43, 43, 44, 44]
+      }
+    },
+    {
+      minDistance: 45000,
+      file: "bgm2", // 45000m〜 は bgm-2.mp3 に戻す
+      synth: {
+        bpm: 150, lead: "square",
+        melody: [74, 78, 81, 78, 76, 79, 83, 79, 74, 78, 81, 86, 85, 81, 78, 76],
+        bass: [50, 50, 55, 55, 57, 57, 50, 50]
+      }
+    }
+  ];
+  const BGM_FADE_SEC = 0.8;
   const midiToHz = (m) => 440 * Math.pow(2, (m - 69) / 12);
 
-  function scheduleSynthBgm() {
+  function getBgmStageIndex(distance = game.distance) {
+    let index = 0;
+    BGM_STAGES.forEach((stage, i) => { if (distance >= stage.minDistance) index = i; });
+    return index;
+  }
+
+  function scheduleSynthBgm(track) {
     const ctx = sound.ctx;
-    const stepDur = 60 / SYNTH_BGM.bpm / 2;
-    while (sound.bgmNextTime < ctx.currentTime + 0.25) {
-      const at = sound.bgmNextTime - ctx.currentTime;
-      const step = sound.bgmStep;
-      const note = SYNTH_BGM.melody[step % SYNTH_BGM.melody.length];
-      synthTone({ type: "triangle", from: midiToHz(note), dur: stepDur * 0.9, vol: 0.08, at: Math.max(0, at), dest: sound.bgmGain });
+    const cfg = BGM_STAGES[track.stage].synth;
+    const stepDur = 60 / cfg.bpm / 2;
+    while (track.nextTime < ctx.currentTime + 0.25) {
+      const at = Math.max(0, track.nextTime - ctx.currentTime);
+      const step = track.step;
+      const note = cfg.melody[step % cfg.melody.length];
+      const leadVol = cfg.lead === "triangle" ? 0.08 : 0.035;
+      synthTone({ type: cfg.lead, from: midiToHz(note), dur: stepDur * 0.9, vol: leadVol, at, dest: track.gain });
       if (step % 2 === 0) {
-        const bass = SYNTH_BGM.bass[(step / 2) % SYNTH_BGM.bass.length];
-        synthTone({ type: "sine", from: midiToHz(bass), dur: stepDur * 1.8, vol: 0.13, at: Math.max(0, at), dest: sound.bgmGain });
+        const bass = cfg.bass[(step / 2) % cfg.bass.length];
+        synthTone({ type: "sine", from: midiToHz(bass), dur: stepDur * 1.8, vol: 0.13, at, dest: track.gain });
       }
-      sound.bgmStep += 1;
-      sound.bgmNextTime += stepDur;
+      track.step += 1;
+      track.nextTime += stepDur;
     }
+  }
+
+  function createBgmTrack(stageIndex, fadeIn) {
+    const ctx = sound.ctx;
+    const gain = ctx.createGain();
+    const t = ctx.currentTime;
+    gain.gain.setValueAtTime(fadeIn ? 0.0001 : 1, t);
+    if (fadeIn) gain.gain.exponentialRampToValueAtTime(1, t + BGM_FADE_SEC);
+    gain.connect(sound.bgmGain);
+
+    const track = { stage: stageIndex, gain, source: null, timer: null, step: 0, nextTime: t + 0.05 };
+    const buffer = sound.buffers[BGM_STAGES[stageIndex].file];
+    if (buffer) {
+      const src = ctx.createBufferSource();
+      const fileGain = ctx.createGain();
+      src.buffer = buffer;
+      src.loop = true;
+      fileGain.gain.value = AUDIO_VOLUME.bgm;
+      src.connect(fileGain).connect(gain);
+      src.start();
+      track.source = src;
+    } else {
+      scheduleSynthBgm(track);
+      track.timer = window.setInterval(() => scheduleSynthBgm(track), 100);
+    }
+    return track;
+  }
+
+  function releaseBgmTrack(track, fadeOut) {
+    if (!track) return;
+    if (track.timer) window.clearInterval(track.timer);
+    track.timer = null;
+    const ctx = sound.ctx;
+    const t = ctx.currentTime;
+    const endAt = fadeOut ? t + BGM_FADE_SEC : t;
+    try {
+      track.gain.gain.cancelScheduledValues(t);
+      track.gain.gain.setValueAtTime(Math.max(0.0001, track.gain.gain.value), t);
+      if (fadeOut) track.gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
+      else track.gain.gain.setValueAtTime(0, t);
+    } catch (_) { /* ignore */ }
+    if (track.source) {
+      try { track.source.stop(endAt + 0.05); } catch (_) { /* already stopped */ }
+    }
+    window.setTimeout(() => { try { track.gain.disconnect(); } catch (_) { /* ignore */ } }, (endAt - t) * 1000 + 400);
+  }
+
+  function switchBgmStage(stageIndex, { force = false } = {}) {
+    if (!sound.enabled || !ensureAudioContext()) return;
+    const current = sound.bgmTrack;
+    if (current && current.stage === stageIndex && !force) return;
+    releaseBgmTrack(current, !!current);
+    sound.bgmTrack = createBgmTrack(stageIndex, !!current);
+  }
+
+  // 走行中に毎フレーム呼ぶ。距離がしきい値を超えたらBGMをクロスフェードで切り替える。
+  function updateBgmStage() {
+    if (!sound.bgmTrack) return;
+    const stageIndex = getBgmStageIndex();
+    if (stageIndex !== sound.bgmTrack.stage) switchBgmStage(stageIndex);
   }
 
   function startBgm() {
     if (!sound.enabled || !ensureAudioContext()) return;
-    if (sound.bgmSource || sound.bgmTimer) return;
-    const buffer = sound.buffers.bgm;
-    if (buffer) {
-      const src = sound.ctx.createBufferSource();
-      const gain = sound.ctx.createGain();
-      src.buffer = buffer;
-      src.loop = true;
-      gain.gain.value = AUDIO_VOLUME.bgm;
-      src.connect(gain).connect(sound.bgmGain);
-      src.start();
-      sound.bgmSource = src;
-      // 目印として timer にも値を入れておく（二重再生防止）
-      sound.bgmTimer = -1;
-      return;
-    }
-    sound.bgmStep = 0;
-    sound.bgmNextTime = sound.ctx.currentTime + 0.05;
-    scheduleSynthBgm();
-    sound.bgmTimer = window.setInterval(scheduleSynthBgm, 100);
+    if (sound.bgmTrack) return;
+    sound.bgmTrack = createBgmTrack(getBgmStageIndex(), false);
   }
 
   function stopBgm() {
-    if (sound.bgmSource) {
-      try { sound.bgmSource.stop(); } catch (_) { /* already stopped */ }
-      sound.bgmSource = null;
-    }
-    if (sound.bgmTimer && sound.bgmTimer !== -1) window.clearInterval(sound.bgmTimer);
-    sound.bgmTimer = null;
+    if (!sound.bgmTrack || !sound.ctx) return;
+    releaseBgmTrack(sound.bgmTrack, false);
+    sound.bgmTrack = null;
   }
 
   function renderSoundToggle() {
@@ -703,6 +788,7 @@
     postUpgradeGrace: 0,
     enemies: [],
     coinObjects: [],
+    popTexts: [],
     particles: [],
     flash: 0,
     duckHeld: false,
@@ -737,6 +823,18 @@
   const BASE_JUMP = 720;
   // ゴースト本体の見た目の高さ（足元から頭上まで）。2段ジャンプ時はこの高さを越えればかわせる。
   const GHOST_BODY_HEIGHT = 122;
+  // レインボー紅茶：RAINBOW_TEA_MIN_DISTANCE 以降、紅茶の出現1回ごとに RAINBOW_TEA_CHANCE の確率で出現。
+  const RAINBOW_TEA_MIN_DISTANCE = 5000;
+  const RAINBOW_TEA_CHANCE = 0.10;
+  const RAINBOW_TEA_VALUE = 50;
+  // ウルトラレインボーポテチ：ULTRA_CHIPS_MIN_DISTANCE 以降、紅茶の出現1回ごとに ULTRA_CHIPS_CHANCE の確率で
+  // 2段ジャンプでしか届かない高さに流れる。2段ジャンプ中（空中ジャンプ1回以上）でないと取れない。
+  const ULTRA_CHIPS_MIN_DISTANCE = 10000;
+  const ULTRA_CHIPS_CHANCE = 0.20;
+  const ULTRA_CHIPS_VALUE = 100;
+  const ULTRA_CHIPS_Y = 130;       // 当たり判定の上端Y座標（小さいほど高い）
+  const ULTRA_CHIPS_HITBOX = 64;   // 当たり判定サイズ(px)
+  const ULTRA_CHIPS_DRAW_H = 114;  // 表示の高さ(px)。紅茶カップ(38px)の3倍
 
   // 高速域でも「見えてから反応できる時間」と敵同士の間隔を一定以上確保する。
   const MAX_WORLD_SPEED = 720;
@@ -928,6 +1026,7 @@
     game.enemies = [];
     game.coinObjects = [];
     game.particles = [];
+    game.popTexts = [];
     game.flash = 0;
     game.duckHeld = false;
     pressedKeys.clear();
@@ -1494,6 +1593,18 @@
   }
 
   function spawnCoins() {
+    if (game.distance >= ULTRA_CHIPS_MIN_DISTANCE && Math.random() < ULTRA_CHIPS_CHANCE) {
+      game.coinObjects.push({
+        x: 1200, y: ULTRA_CHIPS_Y, w: ULTRA_CHIPS_HITBOX, h: ULTRA_CHIPS_HITBOX,
+        collected: false, spin: Math.random() * 10, ultra: true
+      });
+    }
+    if (game.distance >= RAINBOW_TEA_MIN_DISTANCE && Math.random() < RAINBOW_TEA_CHANCE) {
+      // 通常の紅茶の列の代わりに、レインボー紅茶を1個だけ出す。
+      const y = choose([GROUND_Y - 72, GROUND_Y - 120]);
+      game.coinObjects.push({ x: 1000, y, w: 24, h: 24, collected: false, spin: Math.random() * 10, rainbow: true });
+      return;
+    }
     const count = Math.floor(randomBetween(3, 7));
     const baseX = 1000;
     const difficulty = getStageDifficulty();
@@ -1546,10 +1657,24 @@
   function collectCoin(coin) {
     if (coin.collected) return;
     coin.collected = true;
-    game.coins += 1;
-    playSfx("tea");
+    const value = coin.ultra ? ULTRA_CHIPS_VALUE : coin.rainbow ? RAINBOW_TEA_VALUE : 1;
+    game.coins += value;
+    playSfx("tea", { high: !!(coin.rainbow || coin.ultra) });
     game.distance += 4;
-    puff(coin.x + 10, coin.y + 10, 5, "#ffe66d");
+    if (coin.ultra) {
+      ["#ff6b8b", "#ffb86b", "#ffe66d", "#7be08f", "#6bc8ff", "#b28bff", "#ffffff"].forEach((color) => {
+        puff(coin.x + coin.w / 2, coin.y + coin.h / 2, 6, color);
+      });
+      game.flash = Math.max(game.flash || 0, 0.12);
+      game.popTexts.push({ x: coin.x + coin.w / 2, y: coin.y - 8, text: `+${value}`, life: 1.1, big: true });
+    } else if (coin.rainbow) {
+      ["#ff6b8b", "#ffb86b", "#ffe66d", "#7be08f", "#6bc8ff", "#b28bff"].forEach((color) => {
+        puff(coin.x + 12, coin.y + 12, 4, color);
+      });
+      game.popTexts.push({ x: coin.x + 12, y: coin.y - 6, text: `+${value}`, life: 0.9 });
+    } else {
+      puff(coin.x + 10, coin.y + 10, 5, "#ffe66d");
+    }
     updateHud();
 
     if (game.coins >= game.nextUpgradeAt && game.phase === "playing") {
@@ -1564,6 +1689,7 @@
     game.distance += (game.worldSpeed * dt) / 12;
     // スクロール演出専用の距離。紅茶カップ取得時の距離ボーナス(+4)を含めず、背景・地面が一定速度で流れるようにする。
     game.scrollDistance += (game.worldSpeed * dt) / 12;
+    updateBgmStage();
 
     // 能力選択直後の安全時間。
     // 1秒間は新しい敵・紅茶カップを出現させず、選択直後の事故死を防ぐ。
@@ -1632,14 +1758,16 @@
       const dx = px - cx;
       const dy = py - cy;
       const dist = Math.hypot(dx, dy);
-      if (dist < game.upgrades.magnetRadius) {
+      // ウルトラレインボーポテチは磁石で吸い寄せない（高さを保つ）
+      if (!coin.ultra && dist < game.upgrades.magnetRadius) {
         const pull = Math.min(1, dt * (5 + (game.upgrades.magnetRadius - dist) / 35));
         coin.x += dx * pull;
         coin.y += dy * pull;
       }
-      if (!coin.collected && intersects(pBox, coin)) collectCoin(coin);
+      const canTakeUltra = !coin.ultra || (!game.player.onGround && game.player.airJumpsUsed >= 1);
+      if (!coin.collected && canTakeUltra && intersects(pBox, coin)) collectCoin(coin);
     }
-    game.coinObjects = game.coinObjects.filter((coin) => !coin.collected && coin.x + coin.w > -40);
+    game.coinObjects = game.coinObjects.filter((coin) => !coin.collected && coin.x + coin.w > (coin.ultra ? -120 : -40));
 
     updateParticles(dt);
     if (game.flash > 0) game.flash = Math.max(0, game.flash - dt);
@@ -1668,6 +1796,11 @@
       p.y += p.vy * dt;
     }
     game.particles = game.particles.filter((p) => p.life > 0);
+    for (const t of game.popTexts) {
+      t.life -= dt;
+      t.y -= 46 * dt;
+    }
+    game.popTexts = game.popTexts.filter((t) => t.life > 0);
   }
 
   function availableUpgrades() {
@@ -2280,6 +2413,17 @@
     const pulse = 1 + Math.sin(coin.spin * 0.7) * 0.035;
     ctx.scale(pulse, pulse);
 
+    if (coin.ultra) {
+      drawUltraChips();
+      ctx.restore();
+      return;
+    }
+    if (coin.rainbow) {
+      drawRainbowTea(img);
+      ctx.restore();
+      return;
+    }
+
     // 収集物として見つけやすい、やわらかな光だけコードで追加。
     const glow = ctx.createRadialGradient(0, 0, 2, 0, 0, 29);
     glow.addColorStop(0, "rgba(255,245,184,0.62)");
@@ -2307,6 +2451,122 @@
   }
 
 
+
+  // レインボー紅茶：虹色に回るオーラ＋色が変わり続けるティーカップ
+  function drawRainbowTea(img) {
+    const t = game.elapsed;
+    const hue = (t * 240) % 360;
+
+    ctx.save();
+    ctx.rotate(t * 2.2);
+    const ringColors = ["#ff6b8b", "#ffb86b", "#ffe66d", "#7be08f", "#6bc8ff", "#b28bff"];
+    ringColors.forEach((color, i) => {
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.55;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, 36, (i / ringColors.length) * Math.PI * 2, ((i + 1) / ringColors.length) * Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
+    });
+    ctx.restore();
+
+    const glow = ctx.createRadialGradient(0, 0, 4, 0, 0, 36);
+    glow.addColorStop(0, "rgba(255,255,255,0.95)");
+    glow.addColorStop(0.6, "rgba(255,255,255,0.55)");
+    glow.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, 36, 0, Math.PI * 2);
+    ctx.fill();
+
+    // キラキラ
+    for (let i = 0; i < 4; i += 1) {
+      const a = t * 3 + (i * Math.PI) / 2;
+      const r = 30 + Math.sin(t * 6 + i) * 4;
+      ctx.fillStyle = `hsl(${(hue + i * 90) % 360}, 95%, 70%)`;
+      ctx.fillRect(Math.cos(a) * r - 2, Math.sin(a) * r - 2, 4, 4);
+    }
+
+    if (img?.complete && img.naturalWidth) {
+      const drawH = 46;
+      const drawW = Math.round(img.naturalWidth * (drawH / img.naturalHeight));
+      ctx.filter = `hue-rotate(${hue}deg) saturate(1.8)`;
+      ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+      ctx.filter = "none";
+    }
+  }
+
+  // ウルトラレインボーポテチ：虹色の光線＋画像（未設置なら仮の袋）
+  function drawUltraChips() {
+    const t = game.elapsed;
+    const hue = (t * 300) % 360;
+    const size = ULTRA_CHIPS_DRAW_H / 2; // 光・キラキラの半径の基準
+
+    // 回転する虹色の光線
+    ctx.save();
+    ctx.rotate(t * 1.6);
+    for (let i = 0; i < 12; i += 1) {
+      ctx.fillStyle = `hsla(${(hue + i * 30) % 360}, 95%, 65%, 0.45)`;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      const a = (i / 12) * Math.PI * 2;
+      ctx.arc(0, 0, size * 1.25, a, a + Math.PI / 14);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+
+    const glow = ctx.createRadialGradient(0, 0, 6, 0, 0, size * 1.1);
+    glow.addColorStop(0, "rgba(255,255,255,0.95)");
+    glow.addColorStop(0.55, "rgba(255,255,255,0.45)");
+    glow.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, size * 1.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    const img = ART.ultraChips;
+    const tilt = Math.sin(t * 5) * 0.12;
+    ctx.save();
+    ctx.rotate(tilt);
+    if (img?.complete && img.naturalWidth) {
+      const drawH = ULTRA_CHIPS_DRAW_H;
+      const drawW = Math.round(img.naturalWidth * (drawH / img.naturalHeight));
+      ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+    } else {
+      // 仮の袋（画像を置くと自動で差し替わる）
+      const h = ULTRA_CHIPS_DRAW_H;
+      const w = h * 0.75;
+      const grad = ctx.createLinearGradient(-w / 2, -h / 2, w / 2, h / 2);
+      ["#ff6b8b", "#ffb86b", "#ffe66d", "#7be08f", "#6bc8ff", "#b28bff"].forEach((c, i, arr) => grad.addColorStop(i / (arr.length - 1), c));
+      ctx.fillStyle = grad;
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-w / 2, -h / 2);
+      ctx.lineTo(w / 2, -h / 2);
+      ctx.lineTo(w / 2 - 3, h / 2);
+      ctx.lineTo(-w / 2 + 3, h / 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "900 20px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("ULTRA", 0, -6);
+      ctx.fillText("CHIPS", 0, 18);
+    }
+    ctx.restore();
+
+    // キラキラ
+    for (let i = 0; i < 6; i += 1) {
+      const a = t * 2.5 + (i * Math.PI) / 3;
+      const r = size * 1.05 + Math.sin(t * 7 + i) * 6;
+      ctx.fillStyle = `hsl(${(hue + i * 60) % 360}, 100%, 72%)`;
+      ctx.fillRect(Math.cos(a) * r - 2.5, Math.sin(a) * r - 2.5, 5, 5);
+    }
+  }
 
   function shouldBlinkPlayerBody() {
     const p = game.player;
@@ -2654,6 +2914,22 @@
       ctx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size);
     }
     ctx.globalAlpha = 1;
+
+    // レインボー紅茶の「+50」表示
+    for (const t of game.popTexts) {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, Math.min(1, t.life * 2.5));
+      ctx.font = `900 ${t.big ? 36 : 26}px 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', sans-serif`;
+      ctx.textAlign = "center";
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = "rgba(255,255,255,0.95)";
+      ctx.strokeText(t.text, t.x, t.y);
+      const grad = ctx.createLinearGradient(t.x - 30, 0, t.x + 30, 0);
+      ["#ff6b8b", "#ffb86b", "#e6c21f", "#4fc86a", "#3fa9f5", "#9b6bff"].forEach((c, i, arr) => grad.addColorStop(i / (arr.length - 1), c));
+      ctx.fillStyle = grad;
+      ctx.fillText(t.text, t.x, t.y);
+      ctx.restore();
+    }
   }
 
   function draw() {
