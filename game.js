@@ -233,7 +233,9 @@
 
 
   function enemySpeechForKind(kind) {
-    return kind === "ghost" ? "ﾎﾗｹﾞﾔﾚ" : "ﾔｻｲｸｴ";
+    // おばけ系2種（ghost / zombie）はホラー側の台詞。
+    // 野菜4種は野菜側の台詞に分ける。
+    return kind === "ghost" || kind === "zombie" ? "ﾎﾗｹﾞﾔﾚ" : "ﾔｻｲｸｴ";
   }
 
   function drawResultEnemy(kind) {
