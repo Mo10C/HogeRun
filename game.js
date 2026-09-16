@@ -102,24 +102,24 @@
   }
 
   const ART = {
-    logo: loadImage("./assets/ui/title-logo.png?v=56"),
-    background: loadImage("./assets/backgrounds/stage-bg.png?v=56"),
-    titleScene: loadImage("./assets/ui/title-key-art.png?v=56"),
-    playerIdle: loadImage("./assets/player/idle.png?v=56"),
-    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=56`)),
-    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=56`)),
-    playerJumpUp: loadImage("./assets/player/jump/up.png?v=56"),
-    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=56"),
-    playerJumpDown: loadImage("./assets/player/jump/down.png?v=56"),
+    logo: loadImage("./assets/ui/title-logo.png?v=60"),
+    background: loadImage("./assets/backgrounds/stage-bg.png?v=60"),
+    titleScene: loadImage("./assets/ui/title-key-art.png?v=60"),
+    playerIdle: loadImage("./assets/player/idle.png?v=60"),
+    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=60`)),
+    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=60`)),
+    playerJumpUp: loadImage("./assets/player/jump/up.png?v=60"),
+    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=60"),
+    playerJumpDown: loadImage("./assets/player/jump/down.png?v=60"),
     playerSlides: [
-      loadImage("./assets/player/slide/slide-1.png?v=56"),
-      loadImage("./assets/player/slide/slide-2.png?v=56"),
-      loadImage("./assets/player/slide/slide-3.png?v=56")
+      loadImage("./assets/player/slide/slide-1.png?v=60"),
+      loadImage("./assets/player/slide/slide-2.png?v=60"),
+      loadImage("./assets/player/slide/slide-3.png?v=60")
     ],
-    playerGameover: loadImage("./assets/player/gameover.png?v=56"),
-    playerHero: loadImage("./assets/ui/title-key-art.png?v=56"),
-    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=56"),
-    teaCup: loadImage("./assets/items/tea-cup.png?v=56")
+    playerGameover: loadImage("./assets/player/gameover.png?v=60"),
+    playerHero: loadImage("./assets/ui/title-key-art.png?v=60"),
+    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=60"),
+    teaCup: loadImage("./assets/items/tea-cup.png?v=60")
   };
 
   let gameplayAssetsPromise = null;
@@ -175,7 +175,7 @@
     }
     if (now - loadingRunnerLastFrame >= 42) {
       loadingRunnerFrame = (loadingRunnerFrame + 1) % 16;
-      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=56`; }
+      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=60`; }
       loadingRunnerLastFrame = now;
     }
     loadingRunnerRaf = requestAnimationFrame(animateLoadingRunner);
@@ -501,7 +501,7 @@
     {
       id: "double_jump",
       icon: "⇧⇧",
-      iconImage: "./assets/upgrades/double-jump.png?v=56",
+      iconImage: "./assets/upgrades/double-jump.png?v=60",
       name: "二段ジャンプ",
       uiDesc: "空中ジャンプ回数 +1。\n最大3回まで重ね掛け可能。",
       desc: "空中ジャンプ回数 +1。最大3回まで重ね掛け可能。",
@@ -511,7 +511,7 @@
     {
       id: "jump_boots",
       icon: "靴",
-      iconImage: "./assets/upgrades/jump-boots.png?v=56",
+      iconImage: "./assets/upgrades/jump-boots.png?v=60",
       name: "バネ靴",
       uiDesc: "ジャンプ力 +12%。\n高い敵配置を越えやすくなる。",
       desc: "ジャンプ力 +12%。高い敵配置を越えやすくなる。",
@@ -521,7 +521,7 @@
     {
       id: "shield",
       icon: "盾",
-      iconImage: "./assets/upgrades/shield.png?v=56",
+      iconImage: "./assets/upgrades/shield.png?v=60",
       name: "ほげシールド",
       uiDesc: "敵との衝突を1回無効化。\n取るたびに1枚追加。",
       desc: "敵との衝突を1回無効化。取るたびに1枚追加。",
@@ -531,7 +531,7 @@
     {
       id: "magnet",
       icon: "磁",
-      iconImage: "./assets/upgrades/magnet.png?v=56",
+      iconImage: "./assets/upgrades/magnet.png?v=60",
       name: "ティーカップ磁石",
       uiDesc: "近くの紅茶カップを吸い寄せる\n範囲が広くなる。",
       desc: "近くの紅茶カップを吸い寄せる範囲が広くなる。",
@@ -541,7 +541,7 @@
     {
       id: "slow_clock",
       icon: "時",
-      iconImage: "./assets/upgrades/slow-clock.png?v=56",
+      iconImage: "./assets/upgrades/slow-clock.png?v=60",
       name: "のろのろ時計",
       uiDesc: "敵と紅茶カップの流れる速度を\n7%低下。重ね掛け可能。",
       desc: "敵と紅茶カップの流れる速度を7%低下。重ね掛け可能。",
@@ -551,7 +551,7 @@
     {
       id: "tiny_charm",
       icon: "小",
-      iconImage: "./assets/upgrades/tiny-charm.png?v=56",
+      iconImage: "./assets/upgrades/tiny-charm.png?v=60",
       name: "ちびチャーム",
       uiDesc: "当たり判定を少し小さくして\nギリギリ回避しやすくする。",
       desc: "当たり判定を少し小さくして、ギリギリ回避しやすくする。",
@@ -561,7 +561,7 @@
     {
       id: "revive",
       icon: "羽",
-      iconImage: "./assets/upgrades/revive.png?v=56",
+      iconImage: "./assets/upgrades/revive.png?v=60",
       name: "復活の羽",
       uiDesc: "致命的な衝突を1回だけ無効化し\n短時間無敵になる。",
       desc: "致命的な衝突を1回だけ無効化し、短時間無敵になる。",
@@ -571,7 +571,7 @@
     {
       id: "coin_sense",
       icon: "金",
-      iconImage: "./assets/upgrades/tea-sensor.png?v=56",
+      iconImage: "./assets/upgrades/tea-sensor.png?v=60",
       name: "ティーセンサー",
       uiDesc: "紅茶カップの出現間隔が短くなり\n次の強化を狙いやすくなる。",
       desc: "紅茶カップの出現間隔が短くなり、次の強化を狙いやすくなる。",
@@ -745,7 +745,7 @@
     requestAnimationFrame(syncRankingHeight);
     syncUsernameUi();
     resetGame();
-    showStartOverlay("ほげと一緒に紅茶の国を駆け抜けよう！", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。100杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "名前を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=56" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "名前を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=60" });
     refreshLeaderboard();
   }
 
@@ -763,10 +763,10 @@
     resetGame();
     syncUsernameUi();
     showStartOverlay(
-      "ほげと一緒に紅茶の国を駆け抜けよう！",
-      "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。100杯ごとにメルヘンな強化を1つ選べます。",
+      "うさぎのティーパーティー大冒険",
+      "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。",
       "スタート",
-      { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=56" }
+      { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=60" }
     );
   }
 
@@ -799,7 +799,7 @@
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
         if (error) {
-          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=56" });
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=60" });
           return;
         }
         currentRunId = data;
@@ -809,7 +809,7 @@
       game.phase = "playing";
       game.lastTime = performance.now();
     } catch (error) {
-      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=56" });
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=60" });
     } finally {
       els.startButton.disabled = false;
       els.startButton.textContent = originalLabel;
@@ -827,17 +827,20 @@
     currentBest = Math.max(currentBest, finalScore);
     els.bestLabel.textContent = `${currentBest}m`;
 
-    let saveMessage = ONLINE_CONFIGURED ? "ランキングへ保存中..." : "オフライン練習モード";
-    showStartOverlay("GAME OVER", `${reason}
-${saveMessage}`, "もう一回", {
+    const enemyKind = context.enemyKind || null;
+    const dislikeMessage = enemyKind === "ghost" || enemyKind === "zombie"
+      ? "ホラゲキライ"
+      : "ヤサイキライ、、、、";
+
+    showStartOverlay("GAME OVER", dislikeMessage, "もう一回", {
       variant: "gameover",
-      eyebrow: "OOPS! TEA TIME OVER",
-      note: "紅茶をこぼしちゃった… もう一回走ろう！",
-      characterSrc: "./assets/player/gameover.png?v=56",
+      eyebrow: "",
+      note: "",
+      characterSrc: "./assets/player/gameover.png?v=60",
       resultScore: finalScore,
       resultCoins: game.coins,
       newRecord: isNewRecord,
-      enemyKind: context.enemyKind || null
+      enemyKind
     });
 
     if (ONLINE_CONFIGURED && supabaseClient && currentRunId) {
@@ -848,13 +851,14 @@ ${saveMessage}`, "もう一回", {
       });
 
       if (error) {
-        els.startDescription.textContent = `${reason}　※保存失敗: ${error.message}`;
+        console.warn("ランキング保存に失敗しました:", error.message);
       } else {
-        els.startDescription.textContent = `${reason}　ランキング保存完了！`;
         await refreshLeaderboard();
       }
     }
 
+    // 保存状態に関係なく、リザルトのメッセージは敵タイプに合わせた一言を維持する。
+    if (els.startDescription) els.startDescription.textContent = dislikeMessage;
     finishingRun = false;
   }
 
@@ -862,8 +866,8 @@ ${saveMessage}`, "もう一回", {
     const {
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
-      note = variant === "gameover" ? "紅茶をこぼしちゃった… " : "紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=56" : "./assets/ui/title-key-art.png?v=56",
+      note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
+      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=60" : "./assets/ui/title-key-art.png?v=60",
       resultScore = null,
       resultCoins = null,
       newRecord = false,
@@ -886,11 +890,12 @@ ${saveMessage}`, "もう一回", {
     syncUsernameUi();
     if (els.resultScorePanel) els.resultScorePanel.classList.toggle("hidden", !isResult);
     if (isResult && els.resultScoreValue) els.resultScoreValue.textContent = `${Number(resultScore).toLocaleString()}m`;
-    if (isResult && els.resultTeaValue) els.resultTeaValue.textContent = `${Number(resultCoins || 0).toLocaleString()} TEA`;
+    if (isResult && els.resultTeaValue) els.resultTeaValue.textContent = Number(resultCoins || 0).toLocaleString();
     if (els.resultNewrecord) els.resultNewrecord.classList.toggle("hidden", !(isResult && newRecord));
     setResultEncounter(isResult ? enemyKind : null);
-    els.startOverlay.classList.remove("overlay-start", "overlay-gameover");
+    els.startOverlay.classList.remove("overlay-start", "overlay-gameover", "result-mode");
     els.startOverlay.classList.add(variant === "gameover" ? "overlay-gameover" : "overlay-start");
+    els.startOverlay.classList.toggle("result-mode", isResult);
     els.startOverlay.classList.remove("hidden");
   }
 
@@ -1319,6 +1324,10 @@ ${saveMessage}`, "もう一回", {
       ? `<img class="augment-icon-image" src="${item.iconImage}" alt="">`
       : `<span class="icon">${escapeHtml(item.icon)}</span>`;
     return `
+      <img class="ability-card-corner ability-card-corner-tl" src="./assets/ui/ranking/corner-flourish.png?v=60" alt="" aria-hidden="true">
+      <img class="ability-card-corner ability-card-corner-tr" src="./assets/ui/ranking/corner-flourish.png?v=60" alt="" aria-hidden="true">
+      <img class="ability-card-corner ability-card-corner-bl" src="./assets/ui/ranking/corner-flourish.png?v=60" alt="" aria-hidden="true">
+      <img class="ability-card-corner ability-card-corner-br" src="./assets/ui/ranking/corner-flourish.png?v=60" alt="" aria-hidden="true">
       <span class="augment-hit-glow" aria-hidden="true"></span>
       <span class="augment-hotkey">${escapeHtml(hotkeyLabel)}</span>
       <span class="augment-select-mark" aria-hidden="true">✓</span>
@@ -1448,7 +1457,7 @@ ${saveMessage}`, "もう一回", {
     els.buildPop?.classList.remove("hidden");
     els.buildList.innerHTML = entries.map(([id, level]) => {
       const item = UPGRADE_DEFS.find((def) => def.id === id);
-      const icon = item?.iconImage || './assets/ui/hud/build.png?v=56';
+      const icon = item?.iconImage || './assets/ui/hud/build.png?v=60';
       const name = escapeHtml(item?.name || id);
       let extra = `<span class="build-item-level">Lv.${level}</span>`;
       if (id === 'revive') {
@@ -1505,9 +1514,9 @@ ${saveMessage}`, "もう一回", {
 
     els.rankingStatus.textContent = rows.length ? "" : "まだ記録がありません。最初のランナーになろう。";
     const rankIcons = [
-      "./assets/ui/ranking/rank-1.png?v=56",
-      "./assets/ui/ranking/rank-2.png?v=56",
-      "./assets/ui/ranking/rank-3.png?v=56",
+      "./assets/ui/ranking/rank-1.png?v=60",
+      "./assets/ui/ranking/rank-2.png?v=60",
+      "./assets/ui/ranking/rank-3.png?v=60",
     ];
 
     els.rankingList.innerHTML = rows.map((row, index) => {

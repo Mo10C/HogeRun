@@ -256,7 +256,7 @@ body.app-ready .footer {
   padding: clamp(26px, 6vw, 52px);
   background:
     linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.44)),
-    url('./assets/ui/title-key-art.png?v=56') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=60') center / cover no-repeat;
 }
 
 .login-panel h2 { margin: 0 0 12px; font-size: clamp(30px, 4vw, 54px); }
@@ -344,7 +344,7 @@ body.app-ready .footer {
 .overlay-start {
   background:
     linear-gradient(180deg, rgba(232,242,255,.18), rgba(255,238,247,.30)),
-    url('./assets/ui/title-key-art.png?v=56') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=60') center / cover no-repeat;
 }
 
 .overlay-inner {
@@ -485,7 +485,7 @@ body.app-ready .footer {
   isolation: isolate;
   background:
     linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.22)),
-    url('./assets/backgrounds/ability-select-bg.png?v=56') center / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=60') center / cover no-repeat;
   border: 3px solid rgba(255,255,255,.96);
   border-radius: 30px;
   box-shadow: 0 18px 0 rgba(106, 131, 176, .13), 0 28px 60px rgba(98, 120, 158, .30);
@@ -718,7 +718,7 @@ body.app-ready .footer {
   position: relative;
   width: min(1020px, calc(100vw - 20px));
   aspect-ratio: 1448 / 1086;
-  background: url('./assets/backgrounds/ability-select-bg.png?v=56') center / contain no-repeat;
+  background: url('./assets/backgrounds/ability-select-bg.png?v=60') center / contain no-repeat;
 }
 
 .upgrade-cards {
@@ -1162,7 +1162,7 @@ body.app-ready .footer {
   overflow: hidden;
   background:
     linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.12)),
-    url('./assets/backgrounds/ability-select-bg.png?v=56') center / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=60') center / cover no-repeat;
   border: 3px solid rgba(255,255,255,.92);
   box-shadow: 0 18px 48px rgba(96,123,173,.24);
 }
@@ -1896,7 +1896,7 @@ body {
   background:
     radial-gradient(circle at 50% 18%, rgba(255,255,255,.18), rgba(255,255,255,0) 30%),
     linear-gradient(180deg, rgba(232,242,255,.20), rgba(255,238,247,.34)),
-    url('./assets/ui/title-key-art.png?v=56') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=60') center / cover no-repeat;
 }
 .overlay-start .overlay-inner {
   width: min(640px, 96%);
@@ -2376,7 +2376,7 @@ body {
   isolation: isolate;
   background:
     linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,247,251,.28)),
-    url('./assets/backgrounds/ability-select-bg.png?v=56') center 48% / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=60') center 48% / cover no-repeat;
 }
 
 .upgrade-box::before {
@@ -4434,7 +4434,7 @@ body.app-loading {
 .upgrade-box {
   background:
     linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,247,251,.22)),
-    url('./assets/backgrounds/ability-select-bg.png?v=58') center 48% / cover no-repeat !important;
+    url('./assets/backgrounds/ability-select-bg.png?v=60') center 48% / cover no-repeat !important;
 }
 .upgrade-frame-deco {
   display: block !important;
@@ -4521,5 +4521,314 @@ body.app-loading {
     top: 21.4% !important;
     bottom: 8.9% !important;
     gap: 2.0% !important;
+  }
+}
+
+
+/* === v59 result layout: HUD-style score/tea + unclipped result screen === */
+.overlay-gameover.result-mode .overlay-inner {
+  justify-content: center !important;
+  padding: 10px 22px 20px !important;
+  overflow: hidden !important;
+}
+.overlay-gameover.result-mode #overlay-eyebrow {
+  display: none !important;
+}
+.overlay-gameover.result-mode .overlay-note {
+  display: none !important;
+}
+.overlay-gameover.result-mode .result-scene {
+  position: relative !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-height: 150px !important;
+  max-height: 176px !important;
+  padding: 0 !important;
+  margin: 0 auto 4px !important;
+  gap: 0 !important;
+  overflow: visible !important;
+}
+.overlay-gameover.result-mode .overlay-character {
+  display: block !important;
+  width: clamp(240px, 31vw, 330px) !important;
+  max-height: 154px !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  object-fit: contain !important;
+  transform: translateY(5px) !important;
+  filter: drop-shadow(0 12px 20px rgba(98,126,168,.18)) !important;
+}
+.overlay-gameover.result-mode .result-encounter {
+  left: calc(50% + clamp(102px, 14.5vw, 154px)) !important;
+  bottom: 4px !important;
+}
+.overlay-gameover.result-mode .result-enemy-canvas {
+  width: clamp(82px, 8.8vw, 108px) !important;
+}
+.overlay-gameover.result-mode #start-title {
+  margin: 0 0 4px !important;
+  font-size: clamp(22px, 3.4vh, 30px) !important;
+  line-height: 1 !important;
+  letter-spacing: .11em !important;
+}
+.overlay-gameover.result-mode .result-score-panel {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: clamp(18px, 4vw, 46px) !important;
+  width: min(720px, 88%) !important;
+  margin: 3px auto 5px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.overlay-gameover.result-mode .result-stat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(7px, 1.2vw, 12px);
+  min-width: 0;
+}
+.overlay-gameover.result-mode .result-stat-icon {
+  width: clamp(48px, 6.5vw, 72px);
+  height: clamp(48px, 6.5vw, 72px);
+  object-fit: contain;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 6px 10px rgba(105,132,176,.13));
+}
+.overlay-gameover.result-mode .result-stat-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+.overlay-gameover.result-mode .result-stat-label {
+  color: #7890bd;
+  font-size: clamp(9px, 1.35vh, 12px);
+  line-height: 1;
+  font-weight: 1000;
+  letter-spacing: .16em;
+}
+.overlay-gameover.result-mode .result-stat strong {
+  display: block !important;
+  margin: 2px 0 0 !important;
+  color: #5571a8 !important;
+  font-size: clamp(42px, 8.8vh, 72px) !important;
+  line-height: .92 !important;
+  font-weight: 1000 !important;
+  letter-spacing: -.04em !important;
+  white-space: nowrap;
+  text-shadow: 0 3px 0 rgba(255,255,255,.9), 0 8px 18px rgba(91,117,169,.14) !important;
+}
+.overlay-gameover.result-mode .result-stat-tea strong {
+  color: #bc7854 !important;
+}
+.overlay-gameover.result-mode #start-description {
+  margin: 3px auto 5px !important;
+  color: #6579a3 !important;
+  font-size: clamp(14px, 2.0vh, 17px) !important;
+  line-height: 1.2 !important;
+  font-weight: 1000 !important;
+  letter-spacing: .05em;
+  white-space: normal !important;
+}
+.overlay-gameover.result-mode .result-newrecord {
+  width: auto !important;
+  max-width: 180px !important;
+  max-height: 68px !important;
+  margin: 0 auto 3px !important;
+  object-fit: contain;
+}
+.overlay-gameover.result-mode .result-action-row {
+  margin-top: 2px !important;
+  gap: 10px !important;
+}
+.overlay-gameover.result-mode .home-button,
+.overlay-gameover.result-mode .start-button-game {
+  min-height: 42px !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+.overlay-gameover.result-mode .start-press-hint {
+  display: block !important;
+  margin: 5px 0 0 !important;
+  padding-bottom: 2px !important;
+  font-size: 10px !important;
+  line-height: 1.2 !important;
+  flex: 0 0 auto;
+}
+@media (max-width: 760px), (max-height: 620px) {
+  .overlay-gameover.result-mode .overlay-inner {
+    padding: 7px 14px 14px !important;
+  }
+  .overlay-gameover.result-mode .result-scene {
+    min-height: 118px !important;
+    max-height: 134px !important;
+  }
+  .overlay-gameover.result-mode .overlay-character {
+    width: clamp(190px, 38vw, 270px) !important;
+    max-height: 120px !important;
+    transform: translateY(4px) !important;
+  }
+  .overlay-gameover.result-mode .result-encounter {
+    left: calc(50% + clamp(78px, 16vw, 120px)) !important;
+    bottom: 0 !important;
+  }
+  .overlay-gameover.result-mode .result-score-panel {
+    gap: 18px !important;
+    width: 94% !important;
+    margin-bottom: 3px !important;
+  }
+  .overlay-gameover.result-mode .result-stat-icon {
+    width: 46px !important;
+    height: 46px !important;
+  }
+  .overlay-gameover.result-mode .result-stat strong {
+    font-size: clamp(36px, 7.5vh, 54px) !important;
+  }
+  .overlay-gameover.result-mode #start-description {
+    margin: 2px auto 3px !important;
+    font-size: 13px !important;
+  }
+  .overlay-gameover.result-mode .result-newrecord {
+    max-height: 52px !important;
+  }
+  .overlay-gameover.result-mode .home-button,
+  .overlay-gameover.result-mode .start-button-game {
+    min-height: 38px !important;
+    padding: 6px 16px !important;
+  }
+  .overlay-gameover.result-mode .start-press-hint {
+    margin-top: 3px !important;
+    font-size: 9px !important;
+  }
+}
+
+
+/* === v60 ability select: clean logo header + ranking-style decorated ability cards === */
+/* The large decorative frame must not behave like a background around the whole selection screen. */
+.upgrade-frame-deco {
+  display: none !important;
+}
+
+/* Remove the pink header plate and move the logo upward. */
+.upgrade-heading {
+  top: -0.8% !important;
+  width: min(46%, 500px) !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  z-index: 8 !important;
+}
+.upgrade-kicker {
+  display: none !important;
+}
+.upgrade-title-logo {
+  display: block !important;
+  width: 100% !important;
+  max-width: 500px !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  filter: drop-shadow(0 8px 14px rgba(164, 99, 142, .18)) !important;
+}
+
+/* Give the title breathing room, then keep all three choices comfortably below it. */
+.upgrade-cards {
+  left: 8.2% !important;
+  right: 8.2% !important;
+  top: 26.2% !important;
+  bottom: 8.8% !important;
+  gap: 2.8% !important;
+  z-index: 5 !important;
+}
+
+/* Ranking-style framed cards. */
+.augment-card,
+.augment-card.slot-1,
+.augment-card.slot-2,
+.augment-card.slot-3,
+.augment-card.bronze,
+.augment-card.silver,
+.augment-card.gold {
+  overflow: visible !important;
+  border: 2px solid rgba(183, 207, 239, .92) !important;
+  border-radius: 22px !important;
+  box-shadow:
+    0 0 0 4px rgba(255,255,255,.70),
+    0 13px 28px rgba(91, 121, 167, .14),
+    inset 0 0 0 1px rgba(255,255,255,.86) !important;
+}
+.augment-card.slot-2 {
+  border-color: rgba(238, 188, 216, .95) !important;
+}
+.augment-card.slot-3 {
+  border-color: rgba(190, 211, 240, .95) !important;
+}
+
+.ability-card-corner {
+  position: absolute;
+  display: block;
+  width: clamp(42px, 5.2vw, 62px);
+  height: auto;
+  z-index: 7;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 4px 6px rgba(112, 134, 174, .11));
+}
+.ability-card-corner-tl {
+  top: -9px;
+  left: -9px;
+  transform: scaleX(-1);
+}
+.ability-card-corner-tr {
+  top: -9px;
+  right: -9px;
+}
+.ability-card-corner-bl {
+  bottom: -9px;
+  left: -9px;
+  transform: scale(-1, -1);
+}
+.ability-card-corner-br {
+  bottom: -9px;
+  right: -9px;
+  transform: scaleY(-1);
+}
+
+/* Keep card content above the decorative corner artwork. */
+.augment-hotkey,
+.augment-select-mark,
+.augment-icon-wrap,
+.augment-name,
+.augment-level,
+.augment-desc,
+.augment-pick {
+  position: relative;
+  z-index: 8;
+}
+
+@media (max-width: 760px) {
+  .upgrade-heading {
+    top: -0.2% !important;
+    width: 58% !important;
+  }
+  .upgrade-title-logo {
+    max-width: none !important;
+  }
+  .upgrade-cards {
+    left: 8.0% !important;
+    right: 8.0% !important;
+    top: 24.0% !important;
+    bottom: 8.0% !important;
+    gap: 2.0% !important;
+  }
+  .ability-card-corner {
+    width: clamp(34px, 7vw, 48px);
   }
 }
