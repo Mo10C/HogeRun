@@ -834,6 +834,8 @@
   const ULTRA_CHIPS_VALUE = 100;
   // ティーカップ磁石がこの回数に達した時だけ、ポテチも吸い寄せて取れる
   const ULTRA_CHIPS_MAGNET_LEVEL = 4;
+  // ティーセンサー最大レベル時の紅茶カップ出現数の倍率
+  const TEA_SENSOR_MAX_COUNT_MULTIPLIER = 2;
   // ほげシールドの無敵時間
   const SHIELD_BASE_SEC = 10;
   const SHIELD_STEP_SEC = 5;
@@ -965,7 +967,7 @@
       name: "復活の羽",
       uiDesc: "致命的な衝突を1回だけ無効化し\n短時間無敵になる。",
       desc: "致命的な衝突を1回だけ無効化し、短時間無敵になる。",
-      max: 3,
+      max: Infinity, // 取得回数の上限なし
       apply: () => { game.upgrades.revive += 1; }
     },
     {
@@ -973,8 +975,8 @@
       icon: "金",
       iconImage: "./assets/upgrades/tea-sensor.png?v=63",
       name: "ティーセンサー",
-      uiDesc: "紅茶カップの出現間隔が短くなり\n次の強化を狙いやすくなる。",
-      desc: "紅茶カップの出現間隔が短くなり、次の強化を狙いやすくなる。",
+      uiDesc: "紅茶カップの出現間隔が短くなる。\n最大Lv3で出現数が2倍！",
+      desc: "紅茶カップの出現間隔が短くなる。最大Lv3で紅茶カップの出現数が2倍になる。",
       max: 3,
       apply: () => { game.upgrades.coinSpawnFactor *= 0.88; }
     },
@@ -986,7 +988,7 @@
       uiDesc: "次の強化までに必要な\n紅茶カップ数を100にする。",
       desc: "次の強化までに必要な紅茶カップ数を100にする。",
       max: 4,
-      apply: () => { game.nextUpgradeDiscountCharges += 1; }
+      apply: () => { applyRefillTicket(); }
     }
   ];
 
@@ -997,9 +999,24 @@
   function advanceNextUpgradeThreshold() {
     const cost = getNextUpgradeCost();
     if (game.nextUpgradeDiscountCharges > 0) game.nextUpgradeDiscountCharges -= 1;
+    game.upgradeBaseAt = game.nextUpgradeAt; // 今回の強化が発生した杯数
+    game.pendingUpgradeCost = cost;          // 次の強化までに必要な杯数
     game.nextUpgradeAt += cost;
     game.nextUpgradeStep += 1;
     return cost;
+  }
+
+  // おかわりチケット：すぐに「次の強化までの必要数」を100杯にする。
+  // 強化画面が開いた時点で次の必要数は計算済みなので、ここで上書きしないと効果が1回遅れてしまう。
+  // すでに100杯になっている場合（チケット連続取得など）は、さらにその次の強化に持ち越す。
+  function applyRefillTicket() {
+    if (typeof game.upgradeBaseAt === "number" && game.pendingUpgradeCost > 100) {
+      game.nextUpgradeAt = game.upgradeBaseAt + 100;
+      game.pendingUpgradeCost = 100;
+    } else {
+      game.nextUpgradeDiscountCharges += 1;
+    }
+    updateHud();
   }
 
   function resetUpgrades() {
@@ -1026,6 +1043,8 @@
     game.nextUpgradeAt = 100;
     game.nextUpgradeStep = 2;
     game.nextUpgradeDiscountCharges = 0;
+    game.upgradeBaseAt = null;
+    game.pendingUpgradeCost = 100;
     game.worldSpeed = 330;
     game.enemyTimer = 0.85;
     game.coinTimer = 0.35;
@@ -1614,7 +1633,10 @@
       game.coinObjects.push({ x: 1000, y, w: 24, h: 24, collected: false, spin: Math.random() * 10, rainbow: true });
       return;
     }
-    const count = Math.floor(randomBetween(3, 7));
+    let count = Math.floor(randomBetween(3, 7));
+    // ティーセンサーが最大レベルなら、1回に出る紅茶カップの数を2倍にする
+    const sensor = UPGRADE_DEFS.find((item) => item.id === "coin_sense");
+    if (sensor && (game.upgradeLevels.coin_sense || 0) >= sensor.max) count *= TEA_SENSOR_MAX_COUNT_MULTIPLIER;
     const baseX = 1000;
     const difficulty = getStageDifficulty();
     let pattern = choose(["line", "arc", "high"]);
