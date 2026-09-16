@@ -120,7 +120,8 @@
     playerGameover: loadImage("./assets/player/gameover.png?v=63"),
     playerHero: loadImage("./assets/ui/title-key-art.png?v=63"),
     enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=63"),
-    teaCup: loadImage("./assets/items/tea-cup.png?v=63")
+    teaCup: loadImage("./assets/items/tea-cup.png?v=63"),
+    shieldAura: loadImage("./assets/effects/shield-aura.png?v=69")
   };
 
   let gameplayAssetsPromise = null;
@@ -227,7 +228,7 @@
     broccoli: { drawH: 96, bob: 4, amp: 2.0 },
     eggplant: { drawH: 90, bob: 3, amp: 2.1 },
     zombie: { drawH: 112, bob: 3, amp: 1.6 },
-    ghost: { drawH: 102, bob: 11, amp: 2.4, lift: 28, alpha: 0.92 }
+    ghost: { drawH: 102, bob: 11, amp: 2.4, lift: 18, alpha: 0.92 }
   };
 
 
@@ -437,6 +438,8 @@
     distance: 0,
     coins: 0,
     nextUpgradeAt: 100,
+    nextUpgradeStep: 2,
+    nextUpgradeDiscountCharges: 0,
     worldSpeed: 330,
     enemyTimer: 0.9,
     coinTimer: 0.4,
@@ -458,6 +461,7 @@
       crouching: false,
       airJumpsUsed: 0,
       invincible: 0,
+      shieldTimer: 0,
       landingTimer: 0,
       lane: 0,
       slideState: "none",
@@ -471,7 +475,7 @@
 
   const GROUND_Y = 430;
   const UPPER_GROUND_Y = 304;
-  const LANE_UNLOCK_DISTANCE = 50000;
+  const LANE_UNLOCK_DISTANCE = 20000;
   const GRAVITY = 1950;
   const BASE_JUMP = 720;
 
@@ -511,10 +515,16 @@
   }
 
   function getStageDifficulty(distance = game.distance) {
-    if (distance >= 70000) return { jumpChance: 0.34, fastChance: 0.24, upperCoinChance: 0.50 };
-    if (distance >= 50000) return { jumpChance: 0.22, fastChance: 0.16, upperCoinChance: 0.38 };
-    if (distance >= 30000) return { jumpChance: 0.10, fastChance: 0.08, upperCoinChance: 0.00 };
-    if (distance >= 10000) return { jumpChance: 0.09, fastChance: 0.00, upperCoinChance: 0.00 };
+    // Difficulty curve v68
+    // 0-5000m: basic section
+    // 5001m+: 20% jumping vegetables
+    // 15000m+: 20% jumping + 20% fast vegetables
+    // 20000m+: 30% jumping + 30% fast vegetables, upper lane unlocked
+    // 30000m+: 40% jumping + 40% fast vegetables
+    if (distance >= 30000) return { jumpChance: 0.40, fastChance: 0.40, upperCoinChance: 0.50 };
+    if (distance >= 20000) return { jumpChance: 0.30, fastChance: 0.30, upperCoinChance: 0.38 };
+    if (distance >= 15000) return { jumpChance: 0.20, fastChance: 0.20, upperCoinChance: 0.00 };
+    if (distance >= 5001) return { jumpChance: 0.20, fastChance: 0.00, upperCoinChance: 0.00 };
     return { jumpChance: 0.00, fastChance: 0.00, upperCoinChance: 0.00 };
   }
 
@@ -544,10 +554,15 @@
       icon: "盾",
       iconImage: "./assets/upgrades/shield.png?v=63",
       name: "ほげシールド",
-      uiDesc: "敵との衝突を1回無効化。\n取るたびに1枚追加。",
-      desc: "敵との衝突を1回無効化。取るたびに1枚追加。",
+      uiDesc: "獲得した瞬間から10秒間無敵。\n残り2秒でシールドが点滅する。",
+      desc: "獲得した瞬間から10秒間無敵。残り2秒でシールドが点滅する。",
       max: 6,
-      apply: () => { game.upgrades.shield += 1; }
+      apply: () => {
+        game.upgrades.shield += 1;
+        game.player.shieldTimer = Math.max(game.player.shieldTimer || 0, 10);
+        game.player.invincible = Math.max(game.player.invincible || 0, 10);
+        game.flash = Math.max(game.flash || 0, 0.16);
+      }
     },
     {
       id: "magnet",
@@ -598,8 +613,30 @@
       desc: "紅茶カップの出現間隔が短くなり、次の強化を狙いやすくなる。",
       max: 3,
       apply: () => { game.upgrades.coinSpawnFactor *= 0.88; }
+    },
+    {
+      id: "threshold_reset",
+      icon: "100",
+      iconImage: "./assets/items/tea-cup.png?v=63",
+      name: "おかわりチケット",
+      uiDesc: "次の強化までに必要な\n紅茶カップ数を100にする。",
+      desc: "次の強化までに必要な紅茶カップ数を100にする。",
+      max: 4,
+      apply: () => { game.nextUpgradeDiscountCharges += 1; }
     }
   ];
+
+  function getNextUpgradeCost() {
+    return game.nextUpgradeDiscountCharges > 0 ? 100 : game.nextUpgradeStep * 100;
+  }
+
+  function advanceNextUpgradeThreshold() {
+    const cost = getNextUpgradeCost();
+    if (game.nextUpgradeDiscountCharges > 0) game.nextUpgradeDiscountCharges -= 1;
+    game.nextUpgradeAt += cost;
+    game.nextUpgradeStep += 1;
+    return cost;
+  }
 
   function resetUpgrades() {
     game.upgrades = {
@@ -622,6 +659,8 @@
     game.distance = 0;
     game.coins = 0;
     game.nextUpgradeAt = 100;
+    game.nextUpgradeStep = 2;
+    game.nextUpgradeDiscountCharges = 0;
     game.worldSpeed = 330;
     game.enemyTimer = 0.85;
     game.coinTimer = 0.35;
@@ -640,6 +679,7 @@
     game.player.crouching = false;
     game.player.airJumpsUsed = 0;
     game.player.invincible = 0;
+    game.player.shieldTimer = 0;
     game.player.landingTimer = 0;
     game.player.lane = 0;
     game.player.slideState = "none";
@@ -853,7 +893,7 @@
       ? "ホラゲキライ"
       : "ヤサイキライ、、、、";
 
-    showStartOverlay("GAME OVER", dislikeMessage, "もう一回", {
+    showStartOverlay(isNewRecord ? "NEW RECORD" : "GAME OVER", "", "もう一回", {
       variant: "gameover",
       eyebrow: "",
       note: "",
@@ -878,8 +918,6 @@
       }
     }
 
-    // 保存状態に関係なく、リザルトのメッセージは敵タイプに合わせた一言を維持する。
-    if (els.startDescription) els.startDescription.textContent = dislikeMessage;
     finishingRun = false;
   }
 
@@ -1024,7 +1062,9 @@
   function updatePlayer(dt) {
     const p = game.player;
     if (!isUpperLaneUnlocked() && p.lane !== 0) p.lane = 0;
+    if (p.shieldTimer > 0) p.shieldTimer = Math.max(0, p.shieldTimer - dt);
     if (p.invincible > 0) p.invincible = Math.max(0, p.invincible - dt);
+    if (p.shieldTimer > 0) p.invincible = Math.max(p.invincible, p.shieldTimer);
     if (p.landingTimer > 0) p.landingTimer = Math.max(0, p.landingTimer - dt);
 
     const laneGroundY = getLaneGroundY(p.lane);
@@ -1170,7 +1210,7 @@
       enemy = { kind: "zombie", x: getEnemySpawnX(1), y: baseY, baseY, lane: useUpperLane ? 1 : 0, w: 44, h: 72, dead: false, speedMul: 1 };
     } else {
       // 通常ジャンプ1回では越えられず、ジャンプ強化系を取っていれば突破しやすい高さ。
-      enemy = { kind: "ghost", x: getEnemySpawnX(1), y: 300, baseY: 300, lane: 0, w: 68, h: 58, dead: false, speedMul: 1 };
+      enemy = { kind: "ghost", x: getEnemySpawnX(1), y: 342, baseY: 342, lane: 0, w: 68, h: 58, dead: false, speedMul: 1 };
     }
 
     game.enemies.push(enemy);
@@ -1213,16 +1253,6 @@
   function handleEnemyCollision(enemy) {
     if (game.player.invincible > 0) return;
 
-    if (game.upgrades.shield > 0) {
-      game.upgrades.shield -= 1;
-      enemy.dead = true;
-      game.player.invincible = 0.6;
-      game.flash = 0.18;
-      puff(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, 12, "#ffd84d");
-      renderBuild();
-      return;
-    }
-
     if (game.upgrades.revive > 0) {
       game.upgrades.revive -= 1;
       enemy.dead = true;
@@ -1245,7 +1275,7 @@
     updateHud();
 
     if (game.coins >= game.nextUpgradeAt && game.phase === "playing") {
-      game.nextUpgradeAt += 100;
+      advanceNextUpgradeThreshold();
       openUpgradeSelection();
     }
   }
@@ -1511,7 +1541,7 @@
 
       // 大量に紅茶カップを拾った場合は、次の100杯到達分も続けて選ばせる。
       if (game.coins >= game.nextUpgradeAt) {
-        game.nextUpgradeAt += 100;
+        advanceNextUpgradeThreshold();
         setTimeout(openUpgradeSelection, 120);
       }
     }, selectedCard ? 620 : 0);
@@ -1984,10 +2014,49 @@
     ctx.restore();
   }
 
+
+
+  function shouldBlinkPlayerBody() {
+    const p = game.player;
+    return p.invincible > 0 && p.shieldTimer <= 0 && Math.floor(p.invincible * 12) % 2 === 0;
+  }
+
+  function shouldShowShieldAura() {
+    const p = game.player;
+    if (p.shieldTimer <= 0) return false;
+    if (p.shieldTimer > 2) return true;
+    return Math.floor(p.shieldTimer * 8) % 2 === 0;
+  }
+
+  function drawShieldAura() {
+    const p = game.player;
+    if (!shouldShowShieldAura()) return;
+
+    const centerX = Math.round(p.x + p.w / 2);
+    const centerY = Math.round(p.y + p.h / 2);
+    const size = p.crouching ? 122 : 148;
+    const img = ART.shieldAura;
+
+    if (img?.complete && img.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.96;
+      ctx.drawImage(img, centerX - size / 2, centerY - size / 2 - 4, size, size);
+      ctx.restore();
+      return;
+    }
+
+    ctx.save();
+    ctx.strokeStyle = "rgba(255, 206, 244, 0.95)";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.ellipse(centerX, centerY - 2, p.crouching ? 42 : 50, p.crouching ? 48 : 60, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   function drawFallbackPlayer() {
     const p = game.player;
-    const blink = p.invincible > 0 && Math.floor(p.invincible * 12) % 2 === 0;
-    if (blink) return;
+    if (shouldBlinkPlayerBody()) return;
 
     const x = Math.round(p.x);
     const y = Math.round(p.y);
@@ -2031,11 +2100,7 @@
       ctx.fillRect(x + 27, y + 58, 14, 4);
     }
 
-    if (game.upgrades.shield > 0) {
-      ctx.strokeStyle = "#ffe66d";
-      ctx.lineWidth = 4;
-      ctx.strokeRect(x - 8, y - 8, p.w + 16, p.h + 16);
-    }
+    drawShieldAura();
   }
 
   function drawPlayerFrame(img, centerX, feetY, drawH, options = {}) {
@@ -2056,8 +2121,7 @@
 
   function drawPlayer() {
     const p = game.player;
-    const blink = p.invincible > 0 && Math.floor(p.invincible * 12) % 2 === 0;
-    if (blink) return;
+    if (shouldBlinkPlayerBody()) return;
 
     const feetY = p.y + p.h;
     const centerX = p.x + p.w / 2 + 4;
@@ -2121,13 +2185,7 @@
       return;
     }
 
-    if (game.upgrades.shield > 0) {
-      ctx.strokeStyle = "rgba(255, 230, 109, 0.95)";
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.ellipse(p.x + 18, p.y + p.h / 2 - 2, 46, 56, 0, 0, Math.PI * 2);
-      ctx.stroke();
-    }
+    drawShieldAura();
   }
 
   function drawEnemy(enemy) {
