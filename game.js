@@ -228,7 +228,7 @@
     broccoli: { drawH: 96, bob: 4, amp: 2.0 },
     eggplant: { drawH: 90, bob: 3, amp: 2.1 },
     zombie: { drawH: 112, bob: 3, amp: 1.6 },
-    ghost: { drawH: 102, bob: 11, amp: 2.4, lift: 18, alpha: 0.92 }
+    ghost: { drawH: 102, bob: 8, amp: 2.4, lift: 20, alpha: 0.92 }
   };
 
 
@@ -617,7 +617,7 @@
     {
       id: "threshold_reset",
       icon: "100",
-      iconImage: "./assets/items/tea-cup.png?v=63",
+      iconImage: "./assets/upgrades/refill-ticket.png?v=72",
       name: "おかわりチケット",
       uiDesc: "次の強化までに必要な\n紅茶カップ数を100にする。",
       desc: "次の強化までに必要な紅茶カップ数を100にする。",
@@ -806,7 +806,7 @@
     requestAnimationFrame(syncRankingHeight);
     syncUsernameUi();
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "名前を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=63" });
+    showStartOverlay("ほげといっしょに紅茶の国を駆け抜けよう！", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。100杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "", characterSrc: "./assets/ui/title-key-art.png?v=63" });
     refreshLeaderboard();
   }
 
@@ -824,10 +824,10 @@
     resetGame();
     syncUsernameUi();
     showStartOverlay(
-      "うさぎのティーパーティー大冒険",
-      "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。",
+      "ほげといっしょに紅茶の国を駆け抜けよう！",
+      "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。100杯ごとにメルヘンな強化を1つ選べます。",
       "スタート",
-      { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=63" }
+      { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "", characterSrc: "./assets/ui/title-key-art.png?v=63" }
     );
   }
 
@@ -938,6 +938,7 @@
     els.startButton.textContent = buttonLabel;
     els.overlayEyebrow.textContent = eyebrow;
     els.overlayNote.textContent = note;
+    if (els.overlayNote) els.overlayNote.classList.toggle("hidden", !note);
     els.overlayCharacter.src = characterSrc;
     if (els.startPressHint) {
       els.startPressHint.textContent = variant === "gameover"
@@ -1153,16 +1154,14 @@
 
   function enemyHitbox(enemy) {
     if (enemy.kind === "ghost") {
-      // 浮遊ゴーストは「立ち」では当たり、下スライディングなら下をくぐれる判定にする。
-      // 下端を少し高めに止めることで、通常姿勢では接触しやすく、
-      // crouch/slide 時だけ安全に回避できるようにする。
-      const top = Math.max(GHOST_HITBOX_TOP + 18, enemy.y - 6);
-      const bottom = Math.min(GROUND_Y - 38, enemy.y + 92);
+      // ゴーストは「しゃがみ/スライディング専用」の障害物。
+      // 縦判定を上まで伸ばし、ジャンプや高い位置への移動では回避できないようにする。
+      // しゃがみ/スライディング時だけ、更新ループ側で衝突判定そのものを除外する。
       return {
         x: enemy.x + 10,
-        y: top,
+        y: 0,
         w: Math.max(42, enemy.w - 20),
-        h: Math.max(52, bottom - top)
+        h: GROUND_Y - 34
       };
     }
 
@@ -1184,7 +1183,7 @@
       }[veggie];
       const useUpperLane = isUpperLaneUnlocked() && Math.random() < 0.18;
       const baseY = (useUpperLane ? UPPER_GROUND_Y : GROUND_Y) - dims[1];
-      const speedMul = Math.random() < difficulty.fastChance ? randomBetween(1.16, 1.28) : 1;
+      const speedMul = Math.random() < difficulty.fastChance ? randomBetween(2.8, 3.2) : 1;
       enemy = {
         kind: veggie,
         x: getEnemySpawnX(speedMul),
@@ -1198,11 +1197,16 @@
         jumpy: Math.random() < difficulty.jumpChance,
         jumpAmp: 0,
         jumpSpeed: 0,
-        jumpPhase: Math.random() * Math.PI * 1.5
+        jumpPhase: 0,
+        jumpActive: false
       };
       if (enemy.jumpy) {
-        enemy.jumpAmp = randomBetween(24, 42);
-        enemy.jumpSpeed = randomBetween(2.1, 2.9);
+        // メインキャラの通常ジャンプ（約133px）に近い高さ。
+        // 画面に入った瞬間から、着地→ジャンプをテンポよく繰り返す。
+        enemy.jumpAmp = randomBetween(125, 145);
+        enemy.jumpSpeed = randomBetween(1.08, 1.28); // 1秒あたりのジャンプ周期
+        enemy.jumpPhase = 0;
+        enemy.jumpActive = false;
       }
     } else if (roll < 0.79) {
       const useUpperLane = isUpperLaneUnlocked() && Math.random() < 0.10;
@@ -1210,7 +1214,7 @@
       enemy = { kind: "zombie", x: getEnemySpawnX(1), y: baseY, baseY, lane: useUpperLane ? 1 : 0, w: 44, h: 72, dead: false, speedMul: 1 };
     } else {
       // 通常ジャンプ1回では越えられず、ジャンプ強化系を取っていれば突破しやすい高さ。
-      enemy = { kind: "ghost", x: getEnemySpawnX(1), y: 342, baseY: 342, lane: 0, w: 68, h: 58, dead: false, speedMul: 1 };
+      enemy = { kind: "ghost", x: getEnemySpawnX(1), y: 326, baseY: 326, lane: 0, w: 68, h: 58, dead: false, speedMul: 1 };
     }
 
     game.enemies.push(enemy);
@@ -1312,8 +1316,20 @@
     for (const enemy of game.enemies) {
       enemy.x -= speed * dt * (enemy.speedMul || 1);
       if (enemy.jumpy) {
-        enemy.jumpPhase = (enemy.jumpPhase || 0) + dt * (enemy.jumpSpeed || 2.4);
-        enemy.y = (enemy.baseY ?? enemy.y) - Math.max(0, Math.sin(enemy.jumpPhase)) * (enemy.jumpAmp || 0);
+        // 画面に登場したタイミングからジャンプ開始。
+        if (!enemy.jumpActive && enemy.x <= els.canvas.width + enemy.w) {
+          enemy.jumpActive = true;
+          enemy.jumpPhase = 0;
+        }
+
+        if (enemy.jumpActive) {
+          enemy.jumpPhase = ((enemy.jumpPhase || 0) + dt * (enemy.jumpSpeed || 1.18)) % 1;
+          const t = enemy.jumpPhase;
+          const hop = 4 * t * (1 - t); // 0→頂点→0 の放物線風ジャンプ
+          enemy.y = (enemy.baseY ?? enemy.y) - hop * (enemy.jumpAmp || 132);
+        } else if (typeof enemy.baseY === 'number') {
+          enemy.y = enemy.baseY;
+        }
       } else if (typeof enemy.baseY === 'number') {
         enemy.y = enemy.baseY;
       }
