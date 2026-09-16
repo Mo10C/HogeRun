@@ -1287,7 +1287,16 @@
       } else if (typeof enemy.baseY === 'number') {
         enemy.y = enemy.baseY;
       }
-      if (!enemy.dead && intersects(pBox, enemyHitbox(enemy))) handleEnemyCollision(enemy);
+      // 浮遊ゴーストは下スライディング/しゃがみ中なら必ず下をくぐれる。
+      // 見た目と当たり判定のズレで接触扱いにならないよう、ghost だけ明示的に除外する。
+      const duckingUnderGhost = enemy.kind === "ghost" &&
+        game.player.onGround &&
+        game.player.lane === 0 &&
+        (game.player.crouching || game.player.slideState === "enter" || game.player.slideState === "hold" || game.player.slideState === "exit");
+
+      if (!enemy.dead && !duckingUnderGhost && intersects(pBox, enemyHitbox(enemy))) {
+        handleEnemyCollision(enemy);
+      }
     }
     game.enemies = game.enemies.filter((enemy) => !enemy.dead && enemy.x + enemy.w > -60);
 
