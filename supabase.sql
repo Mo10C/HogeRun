@@ -128,7 +128,8 @@ begin
   -- ブラウザゲームなので完全なチート防止ではありません。
   -- ただし、明らかに不可能な瞬間スコアだけサーバー時間で弾きます。
   v_max_score := floor(v_elapsed * 100 + 1500);
-  v_max_coins := floor(v_elapsed * 15 + 40);
+  -- レインボー紅茶（+50）・ウルトラレインボーポテチ（+100）追加に合わせて上限を引き上げ
+  v_max_coins := floor(v_elapsed * 80 + 300);
 
   if p_score > v_max_score then
     raise exception 'Score rejected';
