@@ -5110,3 +5110,75 @@ body.app-loading {
   .bgm-volume { font-size: 9px; padding: 1px 6px; gap: 4px; }
   .bgm-volume input[type="range"] { width: 64px; }
 }
+
+
+/* === v77 NEW RECORD リザルト：新記録キャラを大きく・タイトルを虹色キラキラ === */
+.overlay-gameover.result-mode.is-new-record .result-scene,
+.overlay-gameover.result-mode.is-new-record .overlay-character,
+.overlay-gameover.result-mode.is-new-record .result-encounter,
+.overlay-gameover.result-mode.is-new-record .result-player-speech {
+  display: none !important;
+}
+.overlay-gameover.result-mode.is-new-record .result-newrecord {
+  width: auto !important;
+  max-width: min(520px, 70%) !important;
+  max-height: clamp(150px, 30vh, 250px) !important;
+  margin: 2px auto 8px !important;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 22px rgba(243, 160, 200, .35)) !important;
+  animation: newRecordPop .6s cubic-bezier(.2, 1.4, .4, 1) both, newRecordFloat 2.4s ease-in-out .6s infinite;
+}
+.overlay-gameover.result-mode.is-new-record #start-title {
+  position: relative;
+  display: inline-block;
+  font-size: clamp(30px, 5.2vh, 46px) !important;
+  background: linear-gradient(90deg, #ff5f8f, #ffa04d, #ffd93b, #5fd67a, #45b8ff, #9a6bff, #ff5f8f);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none !important;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, .95)) drop-shadow(0 3px 10px rgba(255, 150, 200, .45));
+  animation: newRecordRainbow 2.2s linear infinite, newRecordGlow 1.2s ease-in-out infinite alternate;
+}
+.overlay-gameover.result-mode.is-new-record #start-title::before,
+.overlay-gameover.result-mode.is-new-record #start-title::after {
+  content: "✦";
+  position: absolute;
+  top: 50%;
+  font-size: .55em;
+  color: #ffd93b;
+  -webkit-text-fill-color: #ffd93b;
+  text-shadow: 0 0 8px #fff, 0 0 14px #ffb3d1;
+  animation: newRecordTwinkle 1.1s ease-in-out infinite;
+}
+.overlay-gameover.result-mode.is-new-record #start-title::before { left: -1.1em; transform: translateY(-80%); }
+.overlay-gameover.result-mode.is-new-record #start-title::after { right: -1.1em; transform: translateY(-20%); animation-delay: .55s; color: #8fd8ff; -webkit-text-fill-color: #8fd8ff; }
+
+@keyframes newRecordRainbow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+@keyframes newRecordGlow {
+  from { filter: drop-shadow(0 0 4px rgba(255,255,255,.9)) drop-shadow(0 3px 8px rgba(255,150,200,.35)); }
+  to { filter: drop-shadow(0 0 10px rgba(255,255,255,1)) drop-shadow(0 3px 16px rgba(160,140,255,.55)); }
+}
+@keyframes newRecordTwinkle {
+  0%, 100% { opacity: .25; scale: .7; }
+  50% { opacity: 1; scale: 1.25; }
+}
+@keyframes newRecordPop {
+  from { opacity: 0; transform: scale(.6); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes newRecordFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .overlay-gameover.result-mode.is-new-record #start-title,
+  .overlay-gameover.result-mode.is-new-record #start-title::before,
+  .overlay-gameover.result-mode.is-new-record #start-title::after,
+  .overlay-gameover.result-mode.is-new-record .result-newrecord { animation: none; }
+}
