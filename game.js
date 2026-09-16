@@ -102,24 +102,24 @@
   }
 
   const ART = {
-    logo: loadImage("./assets/ui/title-logo.png?v=60"),
-    background: loadImage("./assets/backgrounds/stage-bg.png?v=60"),
-    titleScene: loadImage("./assets/ui/title-key-art.png?v=60"),
-    playerIdle: loadImage("./assets/player/idle.png?v=60"),
-    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=60`)),
-    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=60`)),
-    playerJumpUp: loadImage("./assets/player/jump/up.png?v=60"),
-    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=60"),
-    playerJumpDown: loadImage("./assets/player/jump/down.png?v=60"),
+    logo: loadImage("./assets/ui/title-logo.png?v=63"),
+    background: loadImage("./assets/backgrounds/stage-bg.png?v=63"),
+    titleScene: loadImage("./assets/ui/title-key-art.png?v=63"),
+    playerIdle: loadImage("./assets/player/idle.png?v=63"),
+    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=63`)),
+    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=63`)),
+    playerJumpUp: loadImage("./assets/player/jump/up.png?v=63"),
+    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=63"),
+    playerJumpDown: loadImage("./assets/player/jump/down.png?v=63"),
     playerSlides: [
-      loadImage("./assets/player/slide/slide-1.png?v=60"),
-      loadImage("./assets/player/slide/slide-2.png?v=60"),
-      loadImage("./assets/player/slide/slide-3.png?v=60")
+      loadImage("./assets/player/slide/slide-1.png?v=63"),
+      loadImage("./assets/player/slide/slide-2.png?v=63"),
+      loadImage("./assets/player/slide/slide-3.png?v=63")
     ],
-    playerGameover: loadImage("./assets/player/gameover.png?v=60"),
-    playerHero: loadImage("./assets/ui/title-key-art.png?v=60"),
-    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=60"),
-    teaCup: loadImage("./assets/items/tea-cup.png?v=60")
+    playerGameover: loadImage("./assets/player/gameover.png?v=63"),
+    playerHero: loadImage("./assets/ui/title-key-art.png?v=63"),
+    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=63"),
+    teaCup: loadImage("./assets/items/tea-cup.png?v=63")
   };
 
   let gameplayAssetsPromise = null;
@@ -175,7 +175,7 @@
     }
     if (now - loadingRunnerLastFrame >= 42) {
       loadingRunnerFrame = (loadingRunnerFrame + 1) % 16;
-      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=60`; }
+      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=63`; }
       loadingRunnerLastFrame = now;
     }
     loadingRunnerRaf = requestAnimationFrame(animateLoadingRunner);
@@ -461,6 +461,13 @@
   const GRAVITY = 1950;
   const BASE_JUMP = 720;
 
+  // 高速域でも「見えてから反応できる時間」と敵同士の間隔を一定以上確保する。
+  const MAX_WORLD_SPEED = 720;
+  const MIN_ENEMY_REACTION_TIME = 1.55;
+  const MIN_ENEMY_SPAWN_DELAY = 0.95;
+  const MIN_ENEMY_GAP_PX = 380;
+  const GHOST_HITBOX_TOP = 270;
+
   function isUpperLaneUnlocked() {
     return game.distance >= LANE_UNLOCK_DISTANCE;
   }
@@ -501,7 +508,7 @@
     {
       id: "double_jump",
       icon: "⇧⇧",
-      iconImage: "./assets/upgrades/double-jump.png?v=60",
+      iconImage: "./assets/upgrades/double-jump.png?v=63",
       name: "二段ジャンプ",
       uiDesc: "空中ジャンプ回数 +1。\n最大3回まで重ね掛け可能。",
       desc: "空中ジャンプ回数 +1。最大3回まで重ね掛け可能。",
@@ -511,7 +518,7 @@
     {
       id: "jump_boots",
       icon: "靴",
-      iconImage: "./assets/upgrades/jump-boots.png?v=60",
+      iconImage: "./assets/upgrades/jump-boots.png?v=63",
       name: "バネ靴",
       uiDesc: "ジャンプ力 +12%。\n高い敵配置を越えやすくなる。",
       desc: "ジャンプ力 +12%。高い敵配置を越えやすくなる。",
@@ -521,7 +528,7 @@
     {
       id: "shield",
       icon: "盾",
-      iconImage: "./assets/upgrades/shield.png?v=60",
+      iconImage: "./assets/upgrades/shield.png?v=63",
       name: "ほげシールド",
       uiDesc: "敵との衝突を1回無効化。\n取るたびに1枚追加。",
       desc: "敵との衝突を1回無効化。取るたびに1枚追加。",
@@ -531,7 +538,7 @@
     {
       id: "magnet",
       icon: "磁",
-      iconImage: "./assets/upgrades/magnet.png?v=60",
+      iconImage: "./assets/upgrades/magnet.png?v=63",
       name: "ティーカップ磁石",
       uiDesc: "近くの紅茶カップを吸い寄せる\n範囲が広くなる。",
       desc: "近くの紅茶カップを吸い寄せる範囲が広くなる。",
@@ -541,17 +548,17 @@
     {
       id: "slow_clock",
       icon: "時",
-      iconImage: "./assets/upgrades/slow-clock.png?v=60",
+      iconImage: "./assets/upgrades/slow-clock.png?v=63",
       name: "のろのろ時計",
-      uiDesc: "敵と紅茶カップの流れる速度を\n7%低下。重ね掛け可能。",
-      desc: "敵と紅茶カップの流れる速度を7%低下。重ね掛け可能。",
+      uiDesc: "敵と紅茶カップの流れる速度を\n10%低下。重ね掛け可能。",
+      desc: "敵と紅茶カップの流れる速度を10%低下。重ね掛け可能。",
       max: 4,
-      apply: () => { game.upgrades.speedFactor *= 0.93; }
+      apply: () => { game.upgrades.speedFactor *= 0.90; }
     },
     {
       id: "tiny_charm",
       icon: "小",
-      iconImage: "./assets/upgrades/tiny-charm.png?v=60",
+      iconImage: "./assets/upgrades/tiny-charm.png?v=63",
       name: "ちびチャーム",
       uiDesc: "当たり判定を少し小さくして\nギリギリ回避しやすくする。",
       desc: "当たり判定を少し小さくして、ギリギリ回避しやすくする。",
@@ -561,7 +568,7 @@
     {
       id: "revive",
       icon: "羽",
-      iconImage: "./assets/upgrades/revive.png?v=60",
+      iconImage: "./assets/upgrades/revive.png?v=63",
       name: "復活の羽",
       uiDesc: "致命的な衝突を1回だけ無効化し\n短時間無敵になる。",
       desc: "致命的な衝突を1回だけ無効化し、短時間無敵になる。",
@@ -571,7 +578,7 @@
     {
       id: "coin_sense",
       icon: "金",
-      iconImage: "./assets/upgrades/tea-sensor.png?v=60",
+      iconImage: "./assets/upgrades/tea-sensor.png?v=63",
       name: "ティーセンサー",
       uiDesc: "紅茶カップの出現間隔が短くなり\n次の強化を狙いやすくなる。",
       desc: "紅茶カップの出現間隔が短くなり、次の強化を狙いやすくなる。",
@@ -745,7 +752,7 @@
     requestAnimationFrame(syncRankingHeight);
     syncUsernameUi();
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "名前を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=60" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "名前を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=63" });
     refreshLeaderboard();
   }
 
@@ -766,7 +773,7 @@
       "うさぎのティーパーティー大冒険",
       "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。",
       "スタート",
-      { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=60" }
+      { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=63" }
     );
   }
 
@@ -799,7 +806,7 @@
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
         if (error) {
-          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=60" });
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=63" });
           return;
         }
         currentRunId = data;
@@ -809,7 +816,7 @@
       game.phase = "playing";
       game.lastTime = performance.now();
     } catch (error) {
-      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=60" });
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=63" });
     } finally {
       els.startButton.disabled = false;
       els.startButton.textContent = originalLabel;
@@ -836,7 +843,7 @@
       variant: "gameover",
       eyebrow: "",
       note: "",
-      characterSrc: "./assets/player/gameover.png?v=60",
+      characterSrc: "./assets/player/gameover.png?v=63",
       resultScore: finalScore,
       resultCoins: game.coins,
       newRecord: isNewRecord,
@@ -867,7 +874,7 @@
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=60" : "./assets/ui/title-key-art.png?v=60",
+      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=63" : "./assets/ui/title-key-art.png?v=63",
       resultScore = null,
       resultCoins = null,
       newRecord = false,
@@ -1070,6 +1077,41 @@
     return array[Math.floor(Math.random() * array.length)];
   }
 
+  function getEnemySpawnX(speedMul = 1) {
+    const p = game.player;
+    const effectiveSpeed = Math.max(330, game.worldSpeed) * Math.max(1, speedMul);
+
+    // プレイヤー位置から最低1.55秒ぶんの反応距離を確保。
+    let spawnX = Math.max(1000, p.x + effectiveSpeed * MIN_ENEMY_REACTION_TIME + 220);
+
+    // 直前の敵との間隔を確保。後続が高速個体なら追いつく分も先に広げる。
+    const liveEnemies = game.enemies.filter((enemy) => !enemy.dead);
+    if (liveEnemies.length) {
+      const rightmost = liveEnemies.reduce((a, b) => (a.x > b.x ? a : b));
+      const baseGap = Math.max(MIN_ENEMY_GAP_PX, game.worldSpeed * 0.82);
+      const relativeMul = Math.max(0, speedMul - (rightmost.speedMul || 1));
+      const catchUpBuffer = game.worldSpeed * relativeMul * 1.8;
+      spawnX = Math.max(spawnX, rightmost.x + baseGap + catchUpBuffer);
+    }
+
+    return spawnX;
+  }
+
+  function enemyHitbox(enemy) {
+    if (enemy.kind === "ghost") {
+      // 見た目は浮いていても、立ったまま/しゃがんだまま素通りできない当たり判定。
+      // 通常ジャンプの頂点ではまだ触れ、バネ靴や追加空中ジャンプなら越えられる高さ。
+      return {
+        x: enemy.x + 7,
+        y: GHOST_HITBOX_TOP,
+        w: Math.max(44, enemy.w - 14),
+        h: GROUND_Y - GHOST_HITBOX_TOP
+      };
+    }
+
+    return enemy;
+  }
+
   function spawnEnemy() {
     const roll = Math.random();
     const difficulty = getStageDifficulty();
@@ -1085,16 +1127,17 @@
       }[veggie];
       const useUpperLane = isUpperLaneUnlocked() && Math.random() < 0.18;
       const baseY = (useUpperLane ? UPPER_GROUND_Y : GROUND_Y) - dims[1];
+      const speedMul = Math.random() < difficulty.fastChance ? randomBetween(1.16, 1.28) : 1;
       enemy = {
         kind: veggie,
-        x: 1000,
+        x: getEnemySpawnX(speedMul),
         y: baseY,
         baseY,
         lane: useUpperLane ? 1 : 0,
         w: dims[0],
         h: dims[1],
         dead: false,
-        speedMul: Math.random() < difficulty.fastChance ? randomBetween(1.18, 1.42) : 1,
+        speedMul,
         jumpy: Math.random() < difficulty.jumpChance,
         jumpAmp: 0,
         jumpSpeed: 0,
@@ -1107,10 +1150,10 @@
     } else if (roll < 0.79) {
       const useUpperLane = isUpperLaneUnlocked() && Math.random() < 0.10;
       const baseY = (useUpperLane ? UPPER_GROUND_Y : GROUND_Y) - 72;
-      enemy = { kind: "zombie", x: 1000, y: baseY, baseY, lane: useUpperLane ? 1 : 0, w: 44, h: 72, dead: false, speedMul: 1 };
+      enemy = { kind: "zombie", x: getEnemySpawnX(1), y: baseY, baseY, lane: useUpperLane ? 1 : 0, w: 44, h: 72, dead: false, speedMul: 1 };
     } else {
       // 通常ジャンプ1回では越えられず、ジャンプ強化系を取っていれば突破しやすい高さ。
-      enemy = { kind: "ghost", x: 1000, y: 300, baseY: 300, lane: 0, w: 68, h: 58, dead: false, speedMul: 1 };
+      enemy = { kind: "ghost", x: getEnemySpawnX(1), y: 300, baseY: 300, lane: 0, w: 68, h: 58, dead: false, speedMul: 1 };
     }
 
     game.enemies.push(enemy);
@@ -1192,7 +1235,7 @@
 
   function updateWorld(dt) {
     game.elapsed += dt;
-    game.worldSpeed = Math.min(720, 330 + game.elapsed * 7.2) * game.upgrades.speedFactor;
+    game.worldSpeed = Math.min(MAX_WORLD_SPEED, 330 + game.elapsed * 7.2) * game.upgrades.speedFactor;
     game.distance += (game.worldSpeed * dt) / 12;
 
     // 能力選択直後の安全時間。
@@ -1204,7 +1247,9 @@
       if (game.enemyTimer <= 0) {
         spawnEnemy();
         const difficulty = Math.min(0.35, game.elapsed / 180);
-        game.enemyTimer = randomBetween(0.92 - difficulty, 1.55 - difficulty * 0.65);
+        const rawDelay = randomBetween(0.92 - difficulty, 1.55 - difficulty * 0.65);
+        // 高速域でも敵が連続しすぎて物理的に回避不能にならないよう下限を固定。
+        game.enemyTimer = Math.max(MIN_ENEMY_SPAWN_DELAY, rawDelay);
       }
 
       game.coinTimer -= dt;
@@ -1225,7 +1270,7 @@
       } else if (typeof enemy.baseY === 'number') {
         enemy.y = enemy.baseY;
       }
-      if (!enemy.dead && intersects(pBox, enemy)) handleEnemyCollision(enemy);
+      if (!enemy.dead && intersects(pBox, enemyHitbox(enemy))) handleEnemyCollision(enemy);
     }
     game.enemies = game.enemies.filter((enemy) => !enemy.dead && enemy.x + enemy.w > -60);
 
@@ -1324,10 +1369,10 @@
       ? `<img class="augment-icon-image" src="${item.iconImage}" alt="">`
       : `<span class="icon">${escapeHtml(item.icon)}</span>`;
     return `
-      <img class="ability-card-corner ability-card-corner-tl" src="./assets/ui/ranking/corner-flourish.png?v=60" alt="" aria-hidden="true">
-      <img class="ability-card-corner ability-card-corner-tr" src="./assets/ui/ranking/corner-flourish.png?v=60" alt="" aria-hidden="true">
-      <img class="ability-card-corner ability-card-corner-bl" src="./assets/ui/ranking/corner-flourish.png?v=60" alt="" aria-hidden="true">
-      <img class="ability-card-corner ability-card-corner-br" src="./assets/ui/ranking/corner-flourish.png?v=60" alt="" aria-hidden="true">
+      <img class="ability-card-corner ability-card-corner-tl" src="./assets/ui/ranking/corner-flourish.png?v=63" alt="" aria-hidden="true">
+      <img class="ability-card-corner ability-card-corner-tr" src="./assets/ui/ranking/corner-flourish.png?v=63" alt="" aria-hidden="true">
+      <img class="ability-card-corner ability-card-corner-bl" src="./assets/ui/ranking/corner-flourish.png?v=63" alt="" aria-hidden="true">
+      <img class="ability-card-corner ability-card-corner-br" src="./assets/ui/ranking/corner-flourish.png?v=63" alt="" aria-hidden="true">
       <span class="augment-hit-glow" aria-hidden="true"></span>
       <span class="augment-hotkey">${escapeHtml(hotkeyLabel)}</span>
       <span class="augment-select-mark" aria-hidden="true">✓</span>
@@ -1457,7 +1502,7 @@
     els.buildPop?.classList.remove("hidden");
     els.buildList.innerHTML = entries.map(([id, level]) => {
       const item = UPGRADE_DEFS.find((def) => def.id === id);
-      const icon = item?.iconImage || './assets/ui/hud/build.png?v=60';
+      const icon = item?.iconImage || './assets/ui/hud/build.png?v=63';
       const name = escapeHtml(item?.name || id);
       let extra = `<span class="build-item-level">Lv.${level}</span>`;
       if (id === 'revive') {
@@ -1514,9 +1559,9 @@
 
     els.rankingStatus.textContent = rows.length ? "" : "まだ記録がありません。最初のランナーになろう。";
     const rankIcons = [
-      "./assets/ui/ranking/rank-1.png?v=60",
-      "./assets/ui/ranking/rank-2.png?v=60",
-      "./assets/ui/ranking/rank-3.png?v=60",
+      "./assets/ui/ranking/rank-1.png?v=63",
+      "./assets/ui/ranking/rank-2.png?v=63",
+      "./assets/ui/ranking/rank-3.png?v=63",
     ];
 
     els.rankingList.innerHTML = rows.map((row, index) => {
