@@ -5052,3 +5052,34 @@ body.app-loading {
   white-space: nowrap !important;
   box-shadow: 0 10px 18px rgba(121,142,179,.12) !important;
 }
+
+
+/* v74 サウンドON/OFF（HOME画面・キー設定見出し横） */
+.keybind-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.sound-toggle {
+  border: 1px solid #d4dff0;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #fff;
+  background: linear-gradient(180deg, #f59ab8, #e07aa0);
+  box-shadow: 0 2px 6px rgba(224, 122, 160, .25);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sound-toggle:hover { filter: brightness(1.05); }
+.sound-toggle.is-off {
+  color: #758ab0;
+  background: rgba(255,255,255,.85);
+  box-shadow: none;
+}
+@media (max-width: 720px) {
+  .sound-toggle { font-size: 9px; padding: 2px 8px; }
+}

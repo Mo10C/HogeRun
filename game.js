@@ -433,6 +433,216 @@
   let pendingUpgradeChoice = null;
   let pendingUpgradeCard = null;
 
+  // ===== サウンド（BGM / 効果音） =====
+  // assets/audio/ に音声ファイルを置くとそれを再生。無い場合は内蔵のシンセ音で鳴らす。
+  const AUDIO_FILES = {
+    bgm: "./assets/audio/bgm.mp3",
+    jump: "./assets/audio/jump.mp3",
+    slide: "./assets/audio/slide.mp3",
+    tea: "./assets/audio/tea.mp3"
+  };
+  const AUDIO_VOLUME = { bgm: 0.35, jump: 0.7, slide: 0.6, tea: 0.55 };
+  const SOUND_STORAGE_KEY = "hoge-run-sound";
+
+  const sound = {
+    enabled: true,
+    ctx: null,
+    master: null,
+    buffers: {},
+    loading: null,
+    bgmSource: null,
+    bgmTimer: null,
+    bgmStep: 0,
+    bgmNextTime: 0,
+    lastPlayed: {}
+  };
+
+  try {
+    sound.enabled = localStorage.getItem(SOUND_STORAGE_KEY) !== "off";
+  } catch (_) { /* storage unavailable */ }
+
+  function ensureAudioContext() {
+    if (!sound.ctx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      sound.ctx = new Ctx();
+      sound.master = sound.ctx.createGain();
+      sound.master.gain.value = 1;
+      sound.master.connect(sound.ctx.destination);
+      loadAudioFiles();
+    }
+    if (sound.ctx.state === "suspended" && !document.hidden) sound.ctx.resume().catch(() => {});
+    return sound.ctx;
+  }
+
+  function loadAudioFiles() {
+    if (sound.loading) return sound.loading;
+    sound.loading = Promise.all(Object.entries(AUDIO_FILES).map(async ([key, url]) => {
+      try {
+        const res = await fetch(url, { cache: "force-cache" });
+        if (!res.ok) return;
+        const data = await res.arrayBuffer();
+        sound.buffers[key] = await new Promise((resolve, reject) => {
+          const p = sound.ctx.decodeAudioData(data, resolve, reject);
+          if (p && typeof p.then === "function") p.then(resolve, reject);
+        });
+        // ファイル版BGMが後から読み込めた場合、シンセBGMから切り替える。
+        if (key === "bgm" && sound.bgmTimer) {
+          stopBgm();
+          startBgm();
+        }
+      } catch (_) { /* ファイル無し → シンセ音を使用 */ }
+    }));
+    return sound.loading;
+  }
+
+  function playBuffer(key, { rate = 1 } = {}) {
+    const buffer = sound.buffers[key];
+    if (!buffer) return false;
+    const src = sound.ctx.createBufferSource();
+    const gain = sound.ctx.createGain();
+    src.buffer = buffer;
+    src.playbackRate.value = rate;
+    gain.gain.value = AUDIO_VOLUME[key] ?? 0.6;
+    src.connect(gain).connect(sound.master);
+    src.start();
+    return true;
+  }
+
+  function synthTone({ type = "sine", from, to = from, dur = 0.12, vol = 0.2, at = 0 }) {
+    const ctx = sound.ctx;
+    const t = ctx.currentTime + at;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(from, t);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(1, to), t + dur);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(gain).connect(sound.master);
+    osc.start(t);
+    osc.stop(t + dur + 0.02);
+  }
+
+  function synthNoise({ dur = 0.2, vol = 0.18, freq = 1800 }) {
+    const ctx = sound.ctx;
+    const t = ctx.currentTime;
+    const len = Math.floor(ctx.sampleRate * dur);
+    const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+    const ch = buffer.getChannelData(0);
+    for (let i = 0; i < len; i += 1) ch[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = ctx.createBufferSource();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+    src.buffer = buffer;
+    filter.type = "bandpass";
+    filter.frequency.setValueAtTime(freq, t);
+    filter.frequency.exponentialRampToValueAtTime(freq * 0.4, t + dur);
+    gain.gain.value = vol;
+    src.connect(filter).connect(gain).connect(sound.master);
+    src.start(t);
+  }
+
+  function playSfx(name, options = {}) {
+    if (!sound.enabled || !ensureAudioContext()) return;
+    const now = performance.now();
+    // 同じ音が1フレーム内に大量に重ならないよう間引く（磁石で紅茶を一気に取った時など）。
+    const minGap = name === "tea" ? 45 : 30;
+    if (now - (sound.lastPlayed[name] || 0) < minGap) return;
+    sound.lastPlayed[name] = now;
+
+    const rate = options.high ? 1.18 : 1;
+    if (playBuffer(name, { rate })) return;
+
+    if (name === "jump") {
+      synthTone({ type: "square", from: options.high ? 520 : 380, to: options.high ? 1100 : 820, dur: 0.14, vol: 0.09 });
+    } else if (name === "slide") {
+      synthNoise({ dur: 0.22, vol: 0.22, freq: 2200 });
+    } else if (name === "tea") {
+      synthTone({ type: "triangle", from: 1320, dur: 0.07, vol: 0.14 });
+      synthTone({ type: "triangle", from: 1760, dur: 0.12, vol: 0.12, at: 0.06 });
+    }
+  }
+
+  // 内蔵BGM：ゆるいメルヘン風ループ（ファイルが無い時用）
+  const SYNTH_BGM = {
+    bpm: 132,
+    melody: [72, 76, 79, 76, 74, 77, 81, 77, 72, 76, 79, 84, 83, 79, 76, 74],
+    bass: [48, 48, 53, 53, 55, 55, 48, 48]
+  };
+  const midiToHz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+
+  function scheduleSynthBgm() {
+    const ctx = sound.ctx;
+    const stepDur = 60 / SYNTH_BGM.bpm / 2;
+    while (sound.bgmNextTime < ctx.currentTime + 0.25) {
+      const at = sound.bgmNextTime - ctx.currentTime;
+      const step = sound.bgmStep;
+      const note = SYNTH_BGM.melody[step % SYNTH_BGM.melody.length];
+      synthTone({ type: "triangle", from: midiToHz(note), dur: stepDur * 0.9, vol: 0.05, at: Math.max(0, at) });
+      if (step % 2 === 0) {
+        const bass = SYNTH_BGM.bass[(step / 2) % SYNTH_BGM.bass.length];
+        synthTone({ type: "sine", from: midiToHz(bass), dur: stepDur * 1.8, vol: 0.08, at: Math.max(0, at) });
+      }
+      sound.bgmStep += 1;
+      sound.bgmNextTime += stepDur;
+    }
+  }
+
+  function startBgm() {
+    if (!sound.enabled || !ensureAudioContext()) return;
+    if (sound.bgmSource || sound.bgmTimer) return;
+    const buffer = sound.buffers.bgm;
+    if (buffer) {
+      const src = sound.ctx.createBufferSource();
+      const gain = sound.ctx.createGain();
+      src.buffer = buffer;
+      src.loop = true;
+      gain.gain.value = AUDIO_VOLUME.bgm;
+      src.connect(gain).connect(sound.master);
+      src.start();
+      sound.bgmSource = src;
+      // 目印として timer にも値を入れておく（二重再生防止）
+      sound.bgmTimer = -1;
+      return;
+    }
+    sound.bgmStep = 0;
+    sound.bgmNextTime = sound.ctx.currentTime + 0.05;
+    scheduleSynthBgm();
+    sound.bgmTimer = window.setInterval(scheduleSynthBgm, 100);
+  }
+
+  function stopBgm() {
+    if (sound.bgmSource) {
+      try { sound.bgmSource.stop(); } catch (_) { /* already stopped */ }
+      sound.bgmSource = null;
+    }
+    if (sound.bgmTimer && sound.bgmTimer !== -1) window.clearInterval(sound.bgmTimer);
+    sound.bgmTimer = null;
+  }
+
+  function renderSoundToggle() {
+    const button = document.getElementById("sound-toggle");
+    if (!button) return;
+    button.textContent = sound.enabled ? "♪ サウンド ON" : "♪ サウンド OFF";
+    button.classList.toggle("is-off", !sound.enabled);
+    button.setAttribute("aria-pressed", sound.enabled ? "true" : "false");
+  }
+
+  function setSoundEnabled(enabled) {
+    sound.enabled = enabled;
+    try { localStorage.setItem(SOUND_STORAGE_KEY, enabled ? "on" : "off"); } catch (_) { /* ignore */ }
+    if (enabled) {
+      ensureAudioContext();
+      if (game.phase === "playing" || game.phase === "upgrade") startBgm();
+      playSfx("tea");
+    } else {
+      stopBgm();
+    }
+    renderSoundToggle();
+  }
+
   const game = {
     phase: "idle", // idle | playing | upgrade | gameover
     lastTime: performance.now(),
@@ -822,6 +1032,7 @@
 
   function goHome() {
     clearKeyboardState();
+    stopBgm();
     game.phase = "idle";
     currentRunId = null;
     finishingRun = false;
@@ -837,6 +1048,7 @@
 
   async function startRun() {
     if (game.phase === "playing" || game.phase === "upgrade") return;
+    if (sound.enabled) ensureAudioContext();
     const originalLabel = els.startButton.textContent;
     els.startButton.disabled = true;
     els.startButton.textContent = "読み込み中…";
@@ -873,6 +1085,7 @@
       els.startOverlay.classList.add("hidden");
       game.phase = "playing";
       game.lastTime = performance.now();
+      startBgm();
     } catch (error) {
       showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=63" });
     } finally {
@@ -885,6 +1098,7 @@
     if (finishingRun || game.phase === "gameover") return;
     finishingRun = true;
     game.phase = "gameover";
+    stopBgm();
 
     const finalScore = Math.max(0, Math.floor(game.distance));
     const previousBest = currentBest;
@@ -982,6 +1196,7 @@
 
   function startSlideEnter() {
     const p = game.player;
+    if (game.phase === "playing") playSfx("slide");
     p.slideState = "enter";
     p.slideTimer = 0.09;
     p.slideDustTimer = 0.03;
@@ -1020,6 +1235,7 @@
     if (p.onGround && isUpperLaneUnlocked() && p.lane === 0) {
       game.duckHeld = false;
       movePlayerToLane(1);
+      playSfx("jump");
       return;
     }
 
@@ -1040,10 +1256,12 @@
       p.landingTimer = 0;
       p.airJumpsUsed = 0;
       puff(p.x + 20, feetY - 4, 5, "#f6dfb5");
+      playSfx("jump");
     } else if (p.airJumpsUsed < game.upgrades.extraAirJumps) {
       p.vy = -power * 0.93;
       p.airJumpsUsed += 1;
       p.landingTimer = 0;
+      playSfx("jump", { high: true });
       puff(p.x + 20, p.y + p.h, 7, "#b7f0ff");
     }
   }
@@ -1053,6 +1271,7 @@
     const p = game.player;
     if (held && game.phase === "playing" && isUpperLaneUnlocked() && p.onGround && p.lane === 1) {
       movePlayerToLane(0);
+      playSfx("slide");
       return;
     }
     if (game.phase !== "playing") return;
@@ -1278,6 +1497,7 @@
     if (coin.collected) return;
     coin.collected = true;
     game.coins += 1;
+    playSfx("tea");
     game.distance += 4;
     puff(coin.x + 10, coin.y + 10, 5, "#ffe66d");
     updateHud();
@@ -2460,6 +2680,11 @@
       });
     });
     els.resetKeybinds.addEventListener("click", resetKeybindsToDefault);
+    document.getElementById("sound-toggle")?.addEventListener("click", (event) => {
+      setSoundEnabled(!sound.enabled);
+      event.currentTarget.blur();
+    });
+    renderSoundToggle();
 
     window.addEventListener("keydown", (event) => {
       if (listeningBind) {
@@ -2619,6 +2844,10 @@
       setDuck(false);
     });
     document.addEventListener("visibilitychange", () => {
+      if (sound.ctx) {
+        if (document.hidden) sound.ctx.suspend().catch(() => {});
+        else if (sound.enabled) sound.ctx.resume().catch(() => {});
+      }
       if (document.hidden) {
         clearKeyboardState();
         resetSwipeState();
