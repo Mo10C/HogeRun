@@ -5083,3 +5083,30 @@ body.app-loading {
 @media (max-width: 720px) {
   .sound-toggle { font-size: 9px; padding: 2px 8px; }
 }
+
+/* v75 BGM音量スライダー（HOME画面） */
+.bgm-volume {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid #d4dff0;
+  border-radius: 999px;
+  background: rgba(255,255,255,.85);
+  font-size: 11px;
+  font-weight: 800;
+  color: #5c6f97;
+  white-space: nowrap;
+}
+.bgm-volume input[type="range"] {
+  width: 96px;
+  margin: 0;
+  accent-color: #e07aa0;
+  cursor: pointer;
+}
+.bgm-volume input[type="range"]:disabled { cursor: not-allowed; opacity: .45; }
+.bgm-volume-value { min-width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 720px) {
+  .bgm-volume { font-size: 9px; padding: 1px 6px; gap: 4px; }
+  .bgm-volume input[type="range"] { width: 64px; }
+}

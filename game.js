@@ -443,11 +443,14 @@
   };
   const AUDIO_VOLUME = { bgm: 0.35, jump: 0.7, slide: 0.6, tea: 0.55 };
   const SOUND_STORAGE_KEY = "hoge-run-sound";
+  const BGM_VOLUME_STORAGE_KEY = "hoge-run-bgm-volume";
 
   const sound = {
     enabled: true,
+    bgmVolume: 0.6, // HOME画面のスライダー（0〜1）
     ctx: null,
     master: null,
+    bgmGain: null,
     buffers: {},
     loading: null,
     bgmSource: null,
@@ -459,6 +462,10 @@
 
   try {
     sound.enabled = localStorage.getItem(SOUND_STORAGE_KEY) !== "off";
+    const savedBgmVolume = Number(localStorage.getItem(BGM_VOLUME_STORAGE_KEY));
+    if (localStorage.getItem(BGM_VOLUME_STORAGE_KEY) !== null && Number.isFinite(savedBgmVolume)) {
+      sound.bgmVolume = Math.min(1, Math.max(0, savedBgmVolume));
+    }
   } catch (_) { /* storage unavailable */ }
 
   function ensureAudioContext() {
@@ -469,6 +476,9 @@
       sound.master = sound.ctx.createGain();
       sound.master.gain.value = 1;
       sound.master.connect(sound.ctx.destination);
+      sound.bgmGain = sound.ctx.createGain();
+      sound.bgmGain.gain.value = sound.bgmVolume;
+      sound.bgmGain.connect(sound.master);
       loadAudioFiles();
     }
     if (sound.ctx.state === "suspended" && !document.hidden) sound.ctx.resume().catch(() => {});
@@ -509,7 +519,7 @@
     return true;
   }
 
-  function synthTone({ type = "sine", from, to = from, dur = 0.12, vol = 0.2, at = 0 }) {
+  function synthTone({ type = "sine", from, to = from, dur = 0.12, vol = 0.2, at = 0, dest = null }) {
     const ctx = sound.ctx;
     const t = ctx.currentTime + at;
     const osc = ctx.createOscillator();
@@ -520,7 +530,7 @@
     gain.gain.setValueAtTime(0.0001, t);
     gain.gain.exponentialRampToValueAtTime(vol, t + 0.01);
     gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    osc.connect(gain).connect(sound.master);
+    osc.connect(gain).connect(dest || sound.master);
     osc.start(t);
     osc.stop(t + dur + 0.02);
   }
@@ -580,10 +590,10 @@
       const at = sound.bgmNextTime - ctx.currentTime;
       const step = sound.bgmStep;
       const note = SYNTH_BGM.melody[step % SYNTH_BGM.melody.length];
-      synthTone({ type: "triangle", from: midiToHz(note), dur: stepDur * 0.9, vol: 0.05, at: Math.max(0, at) });
+      synthTone({ type: "triangle", from: midiToHz(note), dur: stepDur * 0.9, vol: 0.08, at: Math.max(0, at), dest: sound.bgmGain });
       if (step % 2 === 0) {
         const bass = SYNTH_BGM.bass[(step / 2) % SYNTH_BGM.bass.length];
-        synthTone({ type: "sine", from: midiToHz(bass), dur: stepDur * 1.8, vol: 0.08, at: Math.max(0, at) });
+        synthTone({ type: "sine", from: midiToHz(bass), dur: stepDur * 1.8, vol: 0.13, at: Math.max(0, at), dest: sound.bgmGain });
       }
       sound.bgmStep += 1;
       sound.bgmNextTime += stepDur;
@@ -600,7 +610,7 @@
       src.buffer = buffer;
       src.loop = true;
       gain.gain.value = AUDIO_VOLUME.bgm;
-      src.connect(gain).connect(sound.master);
+      src.connect(gain).connect(sound.bgmGain);
       src.start();
       sound.bgmSource = src;
       // 目印として timer にも値を入れておく（二重再生防止）
@@ -630,6 +640,39 @@
     button.setAttribute("aria-pressed", sound.enabled ? "true" : "false");
   }
 
+  function renderBgmVolume() {
+    const slider = document.getElementById("bgm-volume");
+    const label = document.getElementById("bgm-volume-value");
+    const percent = Math.round(sound.bgmVolume * 100);
+    if (slider) {
+      slider.value = String(percent);
+      slider.disabled = !sound.enabled;
+    }
+    if (label) label.textContent = `${percent}%`;
+  }
+
+  function setBgmVolume(value) {
+    sound.bgmVolume = Math.min(1, Math.max(0, value));
+    try { localStorage.setItem(BGM_VOLUME_STORAGE_KEY, String(sound.bgmVolume)); } catch (_) { /* ignore */ }
+    if (sound.bgmGain && sound.ctx) {
+      sound.bgmGain.gain.setTargetAtTime(sound.bgmVolume, sound.ctx.currentTime, 0.03);
+    }
+    renderBgmVolume();
+  }
+
+  // HOME画面で音量を触った時に少しだけBGMを試聴する
+  let bgmPreviewTimer = null;
+  function previewBgm() {
+    if (!sound.enabled || game.phase === "playing" || game.phase === "upgrade") return;
+    if (!ensureAudioContext()) return;
+    startBgm();
+    if (bgmPreviewTimer) clearTimeout(bgmPreviewTimer);
+    bgmPreviewTimer = window.setTimeout(() => {
+      bgmPreviewTimer = null;
+      if (game.phase !== "playing" && game.phase !== "upgrade") stopBgm();
+    }, 1500);
+  }
+
   function setSoundEnabled(enabled) {
     sound.enabled = enabled;
     try { localStorage.setItem(SOUND_STORAGE_KEY, enabled ? "on" : "off"); } catch (_) { /* ignore */ }
@@ -641,6 +684,7 @@
       stopBgm();
     }
     renderSoundToggle();
+    renderBgmVolume();
   }
 
   const game = {
@@ -691,6 +735,8 @@
   const LANE_UNLOCK_DISTANCE = 20000;
   const GRAVITY = 1950;
   const BASE_JUMP = 720;
+  // ゴースト本体の見た目の高さ（足元から頭上まで）。2段ジャンプ時はこの高さを越えればかわせる。
+  const GHOST_BODY_HEIGHT = 122;
 
   // 高速域でも「見えてから反応できる時間」と敵同士の間隔を一定以上確保する。
   const MAX_WORLD_SPEED = 720;
@@ -1377,15 +1423,19 @@
 
   function enemyHitbox(enemy) {
     if (enemy.kind === "ghost") {
-      // ゴーストは「しゃがみ/スライディング専用」の障害物。
-      // 縦判定を上まで伸ばし、ジャンプや高い位置への移動では回避できないようにする。
-      // しゃがみ/スライディング時だけ、更新ループ側で衝突判定そのものを除外する。
-      return {
-        x: enemy.x + 10,
-        y: 0,
-        w: Math.max(42, enemy.w - 20),
-        h: GROUND_Y - 34
-      };
+      // ゴーストの判定ルール
+      // ・そのまま / 1段ジャンプ（バネ靴込み・上段レーン含む）→ かわせない（画面上端まで縦に伸びた判定）
+      // ・スライディング / しゃがみ → かわせる（更新ループ側で判定を除外）
+      // ・2段ジャンプ以上 → ゴースト本体の高さだけの判定になり、上を越えればかわせる
+      const p = game.player;
+      const x = enemy.x + 10;
+      const w = Math.max(42, enemy.w - 20);
+      if (!p.onGround && p.airJumpsUsed >= 1) {
+        const bodyBottom = enemy.y + enemy.h;
+        const bodyTop = bodyBottom - GHOST_BODY_HEIGHT;
+        return { x, y: bodyTop, w, h: GHOST_BODY_HEIGHT };
+      }
+      return { x, y: 0, w, h: GROUND_Y - 34 };
     }
 
     return enemy;
@@ -1436,7 +1486,7 @@
       const baseY = (useUpperLane ? UPPER_GROUND_Y : GROUND_Y) - 72;
       enemy = { kind: "zombie", x: getEnemySpawnX(1), y: baseY, baseY, lane: useUpperLane ? 1 : 0, w: 44, h: 72, dead: false, speedMul: 1 };
     } else {
-      // 通常ジャンプ1回では越えられず、ジャンプ強化系を取っていれば突破しやすい高さ。
+      // そのまま・1段ジャンプではかわせず、スライディングか2段ジャンプ以上で回避（判定は enemyHitbox）。
       enemy = { kind: "ghost", x: getEnemySpawnX(1), y: 326, baseY: 326, lane: 0, w: 68, h: 58, dead: false, speedMul: 1 };
     }
 
@@ -2684,7 +2734,14 @@
       setSoundEnabled(!sound.enabled);
       event.currentTarget.blur();
     });
+    const bgmSlider = document.getElementById("bgm-volume");
+    bgmSlider?.addEventListener("input", (event) => {
+      setBgmVolume(Number(event.currentTarget.value) / 100);
+      previewBgm();
+    });
+    bgmSlider?.addEventListener("change", (event) => event.currentTarget.blur());
     renderSoundToggle();
+    renderBgmVolume();
 
     window.addEventListener("keydown", (event) => {
       if (listeningBind) {
