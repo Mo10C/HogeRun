@@ -42,7 +42,7 @@ body.app-loading .footer {
   color: #526483;
   background:
     linear-gradient(180deg, rgba(235,246,255,.74), rgba(255,239,247,.80)),
-    url('./assets/ui/title-key-art.png?v=36') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=45') center / cover no-repeat;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -256,7 +256,7 @@ body.app-ready .footer {
   padding: clamp(26px, 6vw, 52px);
   background:
     linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.44)),
-    url('./assets/ui/title-key-art.png?v=36') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=45') center / cover no-repeat;
 }
 
 .login-panel h2 { margin: 0 0 12px; font-size: clamp(30px, 4vw, 54px); }
@@ -344,7 +344,7 @@ body.app-ready .footer {
 .overlay-start {
   background:
     linear-gradient(180deg, rgba(232,242,255,.18), rgba(255,238,247,.30)),
-    url('./assets/ui/title-key-art.png?v=36') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=45') center / cover no-repeat;
 }
 
 .overlay-inner {
@@ -446,7 +446,7 @@ body.app-ready .footer {
   isolation: isolate;
   background:
     linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.22)),
-    url('./assets/backgrounds/ability-select-bg.png?v=36') center / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=45') center / cover no-repeat;
   border: 3px solid rgba(255,255,255,.96);
   border-radius: 30px;
   box-shadow: 0 18px 0 rgba(106, 131, 176, .13), 0 28px 60px rgba(98, 120, 158, .30);
@@ -679,7 +679,7 @@ body.app-ready .footer {
   position: relative;
   width: min(1020px, calc(100vw - 20px));
   aspect-ratio: 1448 / 1086;
-  background: url('./assets/backgrounds/ability-select-bg.png?v=36') center / contain no-repeat;
+  background: url('./assets/backgrounds/ability-select-bg.png?v=45') center / contain no-repeat;
 }
 
 .upgrade-cards {
@@ -1123,7 +1123,7 @@ body.app-ready .footer {
   overflow: hidden;
   background:
     linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.12)),
-    url('./assets/backgrounds/ability-select-bg.png?v=36') center / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=45') center / cover no-repeat;
   border: 3px solid rgba(255,255,255,.92);
   box-shadow: 0 18px 48px rgba(96,123,173,.24);
 }
@@ -1857,7 +1857,7 @@ body {
   background:
     radial-gradient(circle at 50% 18%, rgba(255,255,255,.18), rgba(255,255,255,0) 30%),
     linear-gradient(180deg, rgba(232,242,255,.20), rgba(255,238,247,.34)),
-    url('./assets/ui/title-key-art.png?v=36') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=45') center / cover no-repeat;
 }
 .overlay-start .overlay-inner {
   width: min(640px, 96%);
@@ -2337,7 +2337,7 @@ body {
   isolation: isolate;
   background:
     linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,247,251,.28)),
-    url('./assets/backgrounds/ability-select-bg.png?v=36') center 48% / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=45') center 48% / cover no-repeat;
 }
 
 .upgrade-box::before {
@@ -3987,4 +3987,101 @@ body.upgrade-active .build-pop {
     margin: 0 !important;
   }
   .ranking-logo-row { margin-top: -15px !important; }
+}
+
+/* === v42 ranking panel simplification === */
+.ranking-panel {
+  box-sizing: border-box;
+  padding: 12px 14px 14px !important;
+  overflow: hidden !important;
+  display: flex;
+  flex-direction: column;
+}
+.ranking-panel::before {
+  inset: 8px !important;
+  border-radius: 24px !important;
+}
+.ranking-panel::after {
+  display: none !important;
+}
+.ranking-header-badge,
+.ranking-corner,
+.ranking-caption,
+.ranking-header,
+.ranking-deco,
+.ranking-rabbit,
+.ranking-rabbit-image {
+  display: none !important;
+}
+.ranking-logo-row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin: -4px 0 2px !important;
+  min-height: 92px;
+}
+.ranking-logo-image {
+  width: min(250px, calc(100% - 48px)) !important;
+  max-width: 250px !important;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 8px 14px rgba(129,150,194,.18));
+}
+.ranking-logo-row .icon-button {
+  position: absolute;
+  top: 14px;
+  right: 2px;
+}
+.ranking-divider-wrap {
+  margin: 0 0 8px !important;
+}
+.ranking-divider {
+  width: min(180px, 82%) !important;
+}
+.ranking-status {
+  margin: 2px 0 8px !important;
+  text-align: center;
+}
+.ranking-list {
+  flex: 1 1 auto;
+  align-content: start;
+  gap: 8px !important;
+}
+.ranking-item {
+  grid-template-columns: 48px minmax(0, 1fr) auto !important;
+  gap: 8px !important;
+  padding: 8px 10px !important;
+  min-height: 64px;
+}
+.rank-medal {
+  width: 40px !important;
+  height: 40px !important;
+}
+.rank-number-badge {
+  width: 30px !important;
+  height: 30px !important;
+  font-size: 14px !important;
+}
+.rank-meta {
+  min-width: 0;
+}
+.rank-name {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1.2;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-height: none !important;
+}
+.rank-score {
+  white-space: nowrap;
+  align-self: center;
+}
+@media (max-width: 1100px) {
+  .ranking-panel {
+    overflow: visible !important;
+    height: auto !important;
+  }
 }
