@@ -438,6 +438,7 @@
     lastTime: performance.now(),
     elapsed: 0,
     distance: 0,
+    scrollDistance: 0,
     coins: 0,
     nextUpgradeAt: 100,
     nextUpgradeStep: 2,
@@ -659,6 +660,7 @@
     game.phase = "idle";
     game.elapsed = 0;
     game.distance = 0;
+    game.scrollDistance = 0;
     game.coins = 0;
     game.nextUpgradeAt = 100;
     game.nextUpgradeStep = 2;
@@ -1290,6 +1292,8 @@
     game.elapsed += dt;
     game.worldSpeed = Math.min(MAX_WORLD_SPEED, 330 + game.elapsed * 7.2) * game.upgrades.speedFactor;
     game.distance += (game.worldSpeed * dt) / 12;
+    // スクロール演出専用の距離。紅茶カップ取得時の距離ボーナス(+4)を含めず、背景・地面が一定速度で流れるようにする。
+    game.scrollDistance += (game.worldSpeed * dt) / 12;
 
     // 能力選択直後の安全時間。
     // 1秒間は新しい敵・紅茶カップを出現させず、選択直後の事故死を防ぐ。
@@ -1721,7 +1725,7 @@
       sy = (img.naturalHeight - sh) / 2;
     }
 
-    const scrollPx = (game.distance * 1.35) % w;
+    const scrollPx = (game.scrollDistance * 1.35) % w;
     const firstX = -scrollPx;
 
     // 3枚並べることで常に画面を埋める。画像は反転せず、文字も正向きのまま。
@@ -1764,7 +1768,7 @@
     ctx.fillStyle = "rgba(255,255,255,0.65)";
     ctx.fillRect(0, GROUND_Y - 4, w, 6);
 
-    const tileOffset = -((game.distance * 3.2) % 72);
+    const tileOffset = -((game.scrollDistance * 3.2) % 72);
     for (let x = tileOffset - 72; x < w + 72; x += 72) {
       ctx.fillStyle = "rgba(255, 250, 245, 0.64)";
       ctx.fillRect(x + 8, GROUND_Y + 16, 26, 12);
@@ -1776,7 +1780,7 @@
       ctx.fillRect(x + 8, GROUND_Y + 29, 56, 3);
     }
 
-    const ribbonOffset = -((game.distance * 0.8) % 160);
+    const ribbonOffset = -((game.scrollDistance * 0.8) % 160);
     for (let x = ribbonOffset - 160; x < w + 160; x += 160) {
       ctx.fillStyle = "rgba(255, 226, 238, 0.30)";
       ctx.beginPath();
@@ -1797,7 +1801,7 @@
       ctx.fillStyle = "rgba(255, 247, 250, 0.34)";
       ctx.fillRect(0, UPPER_GROUND_Y - 26, w, 18);
 
-      const upperTileOffset = -((game.distance * 2.8) % 96);
+      const upperTileOffset = -((game.scrollDistance * 2.8) % 96);
       for (let x = upperTileOffset - 96; x < w + 96; x += 96) {
         ctx.fillStyle = "rgba(244, 248, 255, 0.78)";
         ctx.fillRect(x + 10, UPPER_GROUND_Y + 10, 30, 10);
