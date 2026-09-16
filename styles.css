@@ -42,7 +42,7 @@ body.app-loading .footer {
   color: #526483;
   background:
     linear-gradient(180deg, rgba(235,246,255,.74), rgba(255,239,247,.80)),
-    url('./assets/ui/title-key-art.png?v=45') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=50') center / cover no-repeat;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -256,7 +256,7 @@ body.app-ready .footer {
   padding: clamp(26px, 6vw, 52px);
   background:
     linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.44)),
-    url('./assets/ui/title-key-art.png?v=45') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=50') center / cover no-repeat;
 }
 
 .login-panel h2 { margin: 0 0 12px; font-size: clamp(30px, 4vw, 54px); }
@@ -344,7 +344,7 @@ body.app-ready .footer {
 .overlay-start {
   background:
     linear-gradient(180deg, rgba(232,242,255,.18), rgba(255,238,247,.30)),
-    url('./assets/ui/title-key-art.png?v=45') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=50') center / cover no-repeat;
 }
 
 .overlay-inner {
@@ -399,6 +399,45 @@ body.app-ready .footer {
   filter: drop-shadow(0 8px 14px rgba(98, 126, 168, .20));
 }
 
+.result-scene {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+}
+.result-encounter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.result-enemy-canvas {
+  width: 116px;
+  height: 100px;
+  display: block;
+  filter: drop-shadow(0 10px 16px rgba(100, 117, 154, 0.12));
+}
+.result-enemy-speech {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 2px solid rgba(199, 214, 240, 0.95);
+  background: rgba(255, 255, 255, 0.96);
+  color: #6176a4;
+  font-size: 13px;
+  font-weight: 1000;
+  letter-spacing: .08em;
+  white-space: nowrap;
+  box-shadow: 0 10px 18px rgba(121, 142, 179, 0.12);
+}
+.result-newrecord {
+  display: block;
+  width: min(220px, 48vw);
+  height: auto;
+  margin: 2px auto 8px;
+  filter: drop-shadow(0 10px 18px rgba(243, 190, 212, 0.28));
+}
+
 /* スタート画面は背景そのものがメインビジュアルなので重複画像は非表示 */
 .overlay-start .overlay-character {
   display: none;
@@ -446,7 +485,7 @@ body.app-ready .footer {
   isolation: isolate;
   background:
     linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.22)),
-    url('./assets/backgrounds/ability-select-bg.png?v=45') center / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=50') center / cover no-repeat;
   border: 3px solid rgba(255,255,255,.96);
   border-radius: 30px;
   box-shadow: 0 18px 0 rgba(106, 131, 176, .13), 0 28px 60px rgba(98, 120, 158, .30);
@@ -679,7 +718,7 @@ body.app-ready .footer {
   position: relative;
   width: min(1020px, calc(100vw - 20px));
   aspect-ratio: 1448 / 1086;
-  background: url('./assets/backgrounds/ability-select-bg.png?v=45') center / contain no-repeat;
+  background: url('./assets/backgrounds/ability-select-bg.png?v=50') center / contain no-repeat;
 }
 
 .upgrade-cards {
@@ -1123,7 +1162,7 @@ body.app-ready .footer {
   overflow: hidden;
   background:
     linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.12)),
-    url('./assets/backgrounds/ability-select-bg.png?v=45') center / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=50') center / cover no-repeat;
   border: 3px solid rgba(255,255,255,.92);
   box-shadow: 0 18px 48px rgba(96,123,173,.24);
 }
@@ -1857,7 +1896,7 @@ body {
   background:
     radial-gradient(circle at 50% 18%, rgba(255,255,255,.18), rgba(255,255,255,0) 30%),
     linear-gradient(180deg, rgba(232,242,255,.20), rgba(255,238,247,.34)),
-    url('./assets/ui/title-key-art.png?v=45') center / cover no-repeat;
+    url('./assets/ui/title-key-art.png?v=50') center / cover no-repeat;
 }
 .overlay-start .overlay-inner {
   width: min(640px, 96%);
@@ -2337,7 +2376,7 @@ body {
   isolation: isolate;
   background:
     linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,247,251,.28)),
-    url('./assets/backgrounds/ability-select-bg.png?v=45') center 48% / cover no-repeat;
+    url('./assets/backgrounds/ability-select-bg.png?v=50') center 48% / cover no-repeat;
 }
 
 .upgrade-box::before {
@@ -2910,6 +2949,33 @@ body {
   font-size: 14px;
 }
 .overlay-gameover .start-press-hint { display: block !important; }
+
+
+.overlay-start .result-encounter,
+.overlay-start .result-newrecord { display: none !important; }
+
+.overlay-gameover .result-scene {
+  gap: clamp(10px, 2vw, 20px);
+  margin: 0 auto 2px;
+}
+.overlay-gameover .result-encounter.hidden { display: none !important; }
+.overlay-gameover .result-encounter {
+  display: flex !important;
+  align-self: center;
+  transform: translateY(4px);
+}
+.overlay-gameover .result-enemy-canvas {
+  width: clamp(96px, 12vw, 128px);
+  height: auto;
+}
+.overlay-gameover .result-enemy-speech {
+  font-size: clamp(11px, 1.8vh, 14px);
+  padding: 7px 11px;
+}
+.overlay-gameover .result-newrecord {
+  width: clamp(160px, 24vw, 230px);
+  margin: 0 auto 4px;
+}
 
 /* Ability keyboard hints */
 .augment-hotkey {
@@ -4083,5 +4149,169 @@ body.upgrade-active .build-pop {
   .ranking-panel {
     overflow: visible !important;
     height: auto !important;
+  }
+}
+
+
+/* === v46 ranking cleanup: remove small ornament, restore edge decoration === */
+.ranking-divider-wrap,
+.ranking-divider { display: none !important; }
+.ranking-panel { position: relative; overflow: hidden !important; padding-top: 10px !important; }
+.ranking-corner {
+  display: block !important;
+  position: absolute !important;
+  width: 88px !important;
+  height: auto !important;
+  opacity: .96 !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+  filter: drop-shadow(0 4px 8px rgba(116,136,180,.12));
+}
+.ranking-corner-tl { top: 0 !important; left: 0 !important; transform: scaleX(-1) !important; }
+.ranking-corner-tr { top: 0 !important; right: 0 !important; transform: none !important; }
+.ranking-corner-bl { bottom: 0 !important; left: 0 !important; transform: scale(-1,-1) !important; }
+.ranking-corner-br { bottom: 0 !important; right: 0 !important; transform: scaleY(-1) !important; }
+.ranking-logo-row, .ranking-status, .ranking-list { position: relative; z-index: 2; }
+.ranking-logo-row { margin-bottom: 0 !important; }
+.ranking-status { margin-top: 0 !important; }
+
+
+/* === v47 ability select: instant pick, logo header, tighter layout === */
+.upgrade-heading {
+  top: 2.6% !important;
+  width: min(72%, 760px) !important;
+  padding: 9px 18px 10px !important;
+}
+.upgrade-title-logo {
+  display: block;
+  width: min(100%, 720px);
+  height: auto;
+  margin: 2px auto 0;
+  filter: drop-shadow(0 6px 10px rgba(173, 106, 145, .18));
+}
+.upgrade-heading h2,
+.upgrade-subtitle,
+.upgrade-confirm {
+  display: none !important;
+}
+.upgrade-cards {
+  top: 19.5% !important;
+  bottom: 6.0% !important;
+}
+.augment-card,
+.augment-card.slot-1,
+.augment-card.slot-2,
+.augment-card.slot-3,
+.augment-card.bronze,
+.augment-card.silver,
+.augment-card.gold {
+  padding-bottom: 10px !important;
+}
+.augment-desc {
+  padding-bottom: 4px !important;
+}
+@media (max-width: 760px) {
+  .upgrade-heading {
+    top: 2.2% !important;
+    width: 76% !important;
+    padding: 5px 10px 7px !important;
+  }
+  .upgrade-title-logo {
+    width: 100%;
+  }
+  .upgrade-cards {
+    top: 17.4% !important;
+    bottom: 4.5% !important;
+  }
+}
+
+
+/* === v48 ability select cleanup === */
+.upgrade-heading {
+  top: 2.2% !important;
+  width: min(72%, 760px) !important;
+  padding: 10px 18px 12px !important;
+  min-height: unset !important;
+}
+.upgrade-title-logo {
+  display: block !important;
+  width: min(100%, 720px) !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  filter: drop-shadow(0 6px 10px rgba(173,106,145,.18));
+}
+#upgrade-confirm,
+.upgrade-confirm,
+.upgrade-heading h2,
+.upgrade-subtitle {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+.upgrade-cards {
+  top: 18.8% !important;
+  bottom: 3.6% !important;
+  align-items: stretch !important;
+}
+.augment-card {
+  min-height: 100% !important;
+  height: 100% !important;
+  padding-bottom: 14px !important;
+}
+.augment-card .augment-inner {
+  height: 100% !important;
+}
+@media (max-width: 760px) {
+  .upgrade-heading {
+    top: 1.8% !important;
+    width: 76% !important;
+    padding: 6px 10px 8px !important;
+  }
+  .upgrade-cards {
+    top: 16.8% !important;
+    bottom: 3.4% !important;
+  }
+}
+
+
+/* === v51 gameover hero sizing / centering === */
+.overlay-gameover .result-scene {
+  position: relative !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-end !important;
+  width: 100% !important;
+  min-height: clamp(150px, 24vh, 220px);
+  margin: 6px auto 8px !important;
+  gap: 0 !important;
+}
+.overlay-gameover .overlay-character {
+  width: clamp(230px, 34vw, 360px) !important;
+  max-height: none !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 14px 22px rgba(98, 126, 168, .20)) !important;
+}
+.overlay-gameover .result-encounter.hidden {
+  display: none !important;
+}
+.overlay-gameover .result-encounter {
+  position: absolute !important;
+  left: calc(50% + clamp(105px, 16vw, 170px));
+  bottom: 6px;
+  transform: none !important;
+  align-self: auto !important;
+  z-index: 2;
+}
+.overlay-gameover .result-enemy-canvas {
+  width: clamp(88px, 10vw, 120px) !important;
+}
+@media (max-width: 900px) {
+  .overlay-gameover .result-scene { min-height: 132px; }
+  .overlay-gameover .overlay-character { width: clamp(180px, 40vw, 280px) !important; }
+  .overlay-gameover .result-encounter {
+    left: calc(50% + clamp(72px, 18vw, 122px));
+    bottom: 2px;
   }
 }

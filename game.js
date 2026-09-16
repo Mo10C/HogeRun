@@ -37,6 +37,11 @@
     startPressHint: $("start-press-hint"),
     overlayEyebrow: $("overlay-eyebrow"),
     overlayCharacter: $("overlay-character"),
+    resultScene: $("result-scene"),
+    resultEncounter: $("result-encounter"),
+    resultEnemyCanvas: $("result-enemy-canvas"),
+    resultEnemySpeech: $("result-enemy-speech"),
+    resultNewrecord: $("result-newrecord"),
     overlayNote: $("overlay-note"),
     resultScorePanel: $("result-score-panel"),
     resultScoreValue: $("result-score-value"),
@@ -97,24 +102,24 @@
   }
 
   const ART = {
-    logo: loadImage("./assets/ui/title-logo.png?v=45"),
-    background: loadImage("./assets/backgrounds/stage-bg.png?v=45"),
-    titleScene: loadImage("./assets/ui/title-key-art.png?v=45"),
-    playerIdle: loadImage("./assets/player/idle.png?v=45"),
-    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=45`)),
-    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=45`)),
-    playerJumpUp: loadImage("./assets/player/jump/up.png?v=45"),
-    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=45"),
-    playerJumpDown: loadImage("./assets/player/jump/down.png?v=45"),
+    logo: loadImage("./assets/ui/title-logo.png?v=50"),
+    background: loadImage("./assets/backgrounds/stage-bg.png?v=50"),
+    titleScene: loadImage("./assets/ui/title-key-art.png?v=50"),
+    playerIdle: loadImage("./assets/player/idle.png?v=50"),
+    playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=50`)),
+    playerLandings: Array.from({ length: 3 }, (_, i) => loadImage(`./assets/player/landing/land-${i + 1}.png?v=50`)),
+    playerJumpUp: loadImage("./assets/player/jump/up.png?v=50"),
+    playerJumpApex: loadImage("./assets/player/jump/apex.png?v=50"),
+    playerJumpDown: loadImage("./assets/player/jump/down.png?v=50"),
     playerSlides: [
-      loadImage("./assets/player/slide/slide-1.png?v=45"),
-      loadImage("./assets/player/slide/slide-2.png?v=45"),
-      loadImage("./assets/player/slide/slide-3.png?v=45")
+      loadImage("./assets/player/slide/slide-1.png?v=50"),
+      loadImage("./assets/player/slide/slide-2.png?v=50"),
+      loadImage("./assets/player/slide/slide-3.png?v=50")
     ],
-    playerGameover: loadImage("./assets/player/gameover.png?v=45"),
-    playerHero: loadImage("./assets/ui/title-key-art.png?v=45"),
-    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=45"),
-    teaCup: loadImage("./assets/items/tea-cup.png?v=45")
+    playerGameover: loadImage("./assets/player/gameover.png?v=50"),
+    playerHero: loadImage("./assets/ui/title-key-art.png?v=50"),
+    enemySheet: loadImage("./assets/enemies/enemy-sheet.png?v=50"),
+    teaCup: loadImage("./assets/items/tea-cup.png?v=50")
   };
 
   let gameplayAssetsPromise = null;
@@ -170,7 +175,7 @@
     }
     if (now - loadingRunnerLastFrame >= 42) {
       loadingRunnerFrame = (loadingRunnerFrame + 1) % 16;
-      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=45`; }
+      if ((els.loadingRunner?.dataset.loadingKind || "") !== "teacup") { els.loadingRunner.src = `./assets/player/run/run-${String(loadingRunnerFrame + 1).padStart(2, "0")}.png?v=50`; }
       loadingRunnerLastFrame = now;
     }
     loadingRunnerRaf = requestAnimationFrame(animateLoadingRunner);
@@ -224,6 +229,57 @@
     ghost: { drawH: 102, bob: 11, amp: 2.4, lift: 28, alpha: 0.92 }
   };
 
+
+  function enemySpeechForKind(kind) {
+    return kind === "ghost" ? "ﾎﾗｹﾞﾔﾚ" : "ﾔｻｲｸｴ";
+  }
+
+  function drawResultEnemy(kind) {
+    const canvas = els.resultEnemyCanvas;
+    if (!canvas) return;
+    const c = canvas.getContext("2d");
+    if (!c) return;
+    c.clearRect(0, 0, canvas.width, canvas.height);
+    if (!kind) return;
+
+    const cfg = ENEMY_DRAW[kind];
+    const cell = ENEMY_SHEET_MAP[kind];
+    const sheet = ART.enemySheet;
+    if (!cfg || !cell || !sheet?.complete || !sheet.naturalWidth) return;
+
+    const [col, row] = cell;
+    const cellW = sheet.width / 3;
+    const cellH = sheet.height / 2;
+    const sx = Math.round(col * cellW);
+    const sy = Math.round(row * cellH);
+    const feetY = canvas.height - 18;
+    const drawH = Math.round((cfg.drawH || 94) * 1.05);
+    const drawW = Math.round(cellW * (drawH / cellH));
+    const drawX = Math.round(canvas.width / 2 - drawW / 2);
+    const drawY = Math.round(feetY - drawH - (cfg.lift || 0) * 0.7 + (kind === "ghost" ? 6 : 0));
+
+    c.save();
+    c.fillStyle = kind === "ghost" ? "rgba(89, 114, 164, 0.16)" : "rgba(103, 75, 96, 0.18)";
+    c.beginPath();
+    c.ellipse(canvas.width / 2, feetY + (kind === "ghost" ? 4 : 1), kind === "ghost" ? 25 : 30, kind === "ghost" ? 8 : 10, 0, 0, Math.PI * 2);
+    c.fill();
+    c.globalAlpha = cfg.alpha || 1;
+    c.drawImage(sheet, sx, sy, cellW, cellH, drawX, drawY, drawW, drawH);
+    c.restore();
+  }
+
+  function setResultEncounter(kind) {
+    if (!els.resultEncounter) return;
+    if (!kind) {
+      els.resultEncounter.classList.add("hidden");
+      if (els.resultEnemySpeech) els.resultEnemySpeech.textContent = "";
+      drawResultEnemy(null);
+      return;
+    }
+    els.resultEncounter.classList.remove("hidden");
+    if (els.resultEnemySpeech) els.resultEnemySpeech.textContent = enemySpeechForKind(kind);
+    drawResultEnemy(kind);
+  }
 
   const DEFAULT_KEYBINDS = {
     jump: ["Space", "KeyW", "ArrowUp"],
@@ -389,7 +445,10 @@
       airJumpsUsed: 0,
       invincible: 0,
       landingTimer: 0,
-      lane: 0
+      lane: 0,
+      slideState: "none",
+      slideTimer: 0,
+      slideDustTimer: 0
     },
     upgrades: null,
     upgradeLevels: {},
@@ -414,6 +473,9 @@
     const p = game.player;
     const nextLane = isUpperLaneUnlocked() && targetLane === 1 ? 1 : 0;
     p.lane = nextLane;
+    p.slideState = "none";
+    p.slideTimer = 0;
+    p.slideDustTimer = 0;
     p.crouching = false;
     p.h = p.standH;
     p.vy = 0;
@@ -439,7 +501,7 @@
     {
       id: "double_jump",
       icon: "⇧⇧",
-      iconImage: "./assets/upgrades/double-jump.png?v=45",
+      iconImage: "./assets/upgrades/double-jump.png?v=50",
       name: "二段ジャンプ",
       uiDesc: "空中ジャンプ回数 +1。\n最大3回まで重ね掛け可能。",
       desc: "空中ジャンプ回数 +1。最大3回まで重ね掛け可能。",
@@ -449,7 +511,7 @@
     {
       id: "jump_boots",
       icon: "靴",
-      iconImage: "./assets/upgrades/jump-boots.png?v=45",
+      iconImage: "./assets/upgrades/jump-boots.png?v=50",
       name: "バネ靴",
       uiDesc: "ジャンプ力 +12%。\n高い敵配置を越えやすくなる。",
       desc: "ジャンプ力 +12%。高い敵配置を越えやすくなる。",
@@ -459,7 +521,7 @@
     {
       id: "shield",
       icon: "盾",
-      iconImage: "./assets/upgrades/shield.png?v=45",
+      iconImage: "./assets/upgrades/shield.png?v=50",
       name: "ほげシールド",
       uiDesc: "敵との衝突を1回無効化。\n取るたびに1枚追加。",
       desc: "敵との衝突を1回無効化。取るたびに1枚追加。",
@@ -469,7 +531,7 @@
     {
       id: "magnet",
       icon: "磁",
-      iconImage: "./assets/upgrades/magnet.png?v=45",
+      iconImage: "./assets/upgrades/magnet.png?v=50",
       name: "ティーカップ磁石",
       uiDesc: "近くの紅茶カップを吸い寄せる\n範囲が広くなる。",
       desc: "近くの紅茶カップを吸い寄せる範囲が広くなる。",
@@ -479,7 +541,7 @@
     {
       id: "slow_clock",
       icon: "時",
-      iconImage: "./assets/upgrades/slow-clock.png?v=45",
+      iconImage: "./assets/upgrades/slow-clock.png?v=50",
       name: "のろのろ時計",
       uiDesc: "敵と紅茶カップの流れる速度を\n7%低下。重ね掛け可能。",
       desc: "敵と紅茶カップの流れる速度を7%低下。重ね掛け可能。",
@@ -489,7 +551,7 @@
     {
       id: "tiny_charm",
       icon: "小",
-      iconImage: "./assets/upgrades/tiny-charm.png?v=45",
+      iconImage: "./assets/upgrades/tiny-charm.png?v=50",
       name: "ちびチャーム",
       uiDesc: "当たり判定を少し小さくして\nギリギリ回避しやすくする。",
       desc: "当たり判定を少し小さくして、ギリギリ回避しやすくする。",
@@ -499,7 +561,7 @@
     {
       id: "revive",
       icon: "羽",
-      iconImage: "./assets/upgrades/revive.png?v=45",
+      iconImage: "./assets/upgrades/revive.png?v=50",
       name: "復活の羽",
       uiDesc: "致命的な衝突を1回だけ無効化し\n短時間無敵になる。",
       desc: "致命的な衝突を1回だけ無効化し、短時間無敵になる。",
@@ -509,7 +571,7 @@
     {
       id: "coin_sense",
       icon: "金",
-      iconImage: "./assets/upgrades/tea-sensor.png?v=45",
+      iconImage: "./assets/upgrades/tea-sensor.png?v=50",
       name: "ティーセンサー",
       uiDesc: "紅茶カップの出現間隔が短くなり\n次の強化を狙いやすくなる。",
       desc: "紅茶カップの出現間隔が短くなり、次の強化を狙いやすくなる。",
@@ -559,6 +621,9 @@
     game.player.invincible = 0;
     game.player.landingTimer = 0;
     game.player.lane = 0;
+    game.player.slideState = "none";
+    game.player.slideTimer = 0;
+    game.player.slideDustTimer = 0;
     resetUpgrades();
     document.body.classList.remove("upgrade-active");
     updateHud();
@@ -680,7 +745,7 @@
     requestAnimationFrame(syncRankingHeight);
     syncUsernameUi();
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "名前を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=45" });
+    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "名前を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=50" });
     refreshLeaderboard();
   }
 
@@ -701,7 +766,7 @@
       "うさぎのティーパーティー大冒険",
       "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。",
       "スタート",
-      { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=45" }
+      { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=50" }
     );
   }
 
@@ -734,7 +799,7 @@
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
         if (error) {
-          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=45" });
+          showStartOverlay("開始できませんでした", `Supabase: ${error.message}`, "もう一度", { variant: "gameover", eyebrow: "SYSTEM MESSAGE", note: "もう一度押して再挑戦できます。", characterSrc: "./assets/player/gameover.png?v=50" });
           return;
         }
         currentRunId = data;
@@ -744,19 +809,21 @@
       game.phase = "playing";
       game.lastTime = performance.now();
     } catch (error) {
-      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=45" });
+      showStartOverlay("読み込みに失敗しました", error instanceof Error ? error.message : String(error), "もう一度", { variant: "gameover", eyebrow: "LOAD ERROR", note: "通信状況を確認して再度お試しください。", characterSrc: "./assets/player/gameover.png?v=50" });
     } finally {
       els.startButton.disabled = false;
       els.startButton.textContent = originalLabel;
     }
   }
 
-  async function finishRun(reason = "敵にぶつかった！") {
+  async function finishRun(reason = "敵にぶつかった！", context = {}) {
     if (finishingRun || game.phase === "gameover") return;
     finishingRun = true;
     game.phase = "gameover";
 
     const finalScore = Math.max(0, Math.floor(game.distance));
+    const previousBest = currentBest;
+    const isNewRecord = finalScore > previousBest;
     currentBest = Math.max(currentBest, finalScore);
     els.bestLabel.textContent = `${currentBest}m`;
 
@@ -766,9 +833,11 @@ ${saveMessage}`, "もう一回", {
       variant: "gameover",
       eyebrow: "OOPS! TEA TIME OVER",
       note: "紅茶をこぼしちゃった… もう一回走ろう！",
-      characterSrc: "./assets/player/gameover.png?v=45",
+      characterSrc: "./assets/player/gameover.png?v=50",
       resultScore: finalScore,
-      resultCoins: game.coins
+      resultCoins: game.coins,
+      newRecord: isNewRecord,
+      enemyKind: context.enemyKind || null
     });
 
     if (ONLINE_CONFIGURED && supabaseClient && currentRunId) {
@@ -794,9 +863,11 @@ ${saveMessage}`, "もう一回", {
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
-      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=45" : "./assets/ui/title-key-art.png?v=45",
+      characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=50" : "./assets/ui/title-key-art.png?v=50",
       resultScore = null,
-      resultCoins = null
+      resultCoins = null,
+      newRecord = false,
+      enemyKind = null
     } = options;
 
     els.startTitle.textContent = title;
@@ -816,6 +887,8 @@ ${saveMessage}`, "もう一回", {
     if (els.resultScorePanel) els.resultScorePanel.classList.toggle("hidden", !isResult);
     if (isResult && els.resultScoreValue) els.resultScoreValue.textContent = `${Number(resultScore).toLocaleString()}m`;
     if (isResult && els.resultTeaValue) els.resultTeaValue.textContent = `${Number(resultCoins || 0).toLocaleString()} TEA`;
+    if (els.resultNewrecord) els.resultNewrecord.classList.toggle("hidden", !(isResult && newRecord));
+    setResultEncounter(isResult ? enemyKind : null);
     els.startOverlay.classList.remove("overlay-start", "overlay-gameover");
     els.startOverlay.classList.add(variant === "gameover" ? "overlay-gameover" : "overlay-start");
     els.startOverlay.classList.remove("hidden");
@@ -826,6 +899,48 @@ ${saveMessage}`, "もう一回", {
     els.coinLabel.textContent = String(game.coins);
     els.upgradeLabel.textContent = `${Math.max(0, game.nextUpgradeAt - game.coins)}`;
     els.bestLabel.textContent = `${currentBest}m`;
+  }
+
+  function setPlayerCrouch(active) {
+    const p = game.player;
+    if (active === p.crouching && p.h === (active ? p.crouchH : p.standH)) return;
+    const feetY = p.y + p.h;
+    p.crouching = active;
+    p.h = active ? p.crouchH : p.standH;
+    p.y = getLaneGroundY(p.lane) - p.h;
+    if (!p.onGround) p.y = feetY - p.h;
+  }
+
+  function startSlideEnter() {
+    const p = game.player;
+    p.slideState = "enter";
+    p.slideTimer = 0.09;
+    p.slideDustTimer = 0.03;
+    setPlayerCrouch(true);
+  }
+
+  function startSlideHold() {
+    const p = game.player;
+    p.slideState = "hold";
+    p.slideTimer = 0;
+    p.slideDustTimer = 0.02;
+    setPlayerCrouch(true);
+  }
+
+  function startSlideExit() {
+    const p = game.player;
+    if (p.slideState === "exit" || p.slideState === "none") return;
+    p.slideState = "exit";
+    p.slideTimer = 0.1;
+    setPlayerCrouch(true);
+  }
+
+  function finishSlide() {
+    const p = game.player;
+    p.slideState = "none";
+    p.slideTimer = 0;
+    p.slideDustTimer = 0;
+    setPlayerCrouch(false);
   }
 
   function jump() {
@@ -844,6 +959,9 @@ ${saveMessage}`, "もう一回", {
       // Without this, switching from crouchH to standH puts the collider below ground
       // and the next physics tick immediately snaps the player back to the floor.
       const feetY = p.y + p.h;
+      p.slideState = "none";
+      p.slideTimer = 0;
+      p.slideDustTimer = 0;
       p.crouching = false;
       p.h = p.standH;
       p.y = feetY - p.h;
@@ -866,6 +984,14 @@ ${saveMessage}`, "もう一回", {
     const p = game.player;
     if (held && game.phase === "playing" && isUpperLaneUnlocked() && p.onGround && p.lane === 1) {
       movePlayerToLane(0);
+      return;
+    }
+    if (game.phase !== "playing") return;
+    if (!p.onGround || p.lane !== 0) return;
+    if (held) {
+      if (p.slideState === "none" || p.slideState === "exit") startSlideEnter();
+    } else if (p.slideState === "enter" || p.slideState === "hold") {
+      startSlideExit();
     }
   }
 
@@ -877,11 +1003,37 @@ ${saveMessage}`, "もう一回", {
 
     const laneGroundY = getLaneGroundY(p.lane);
     const wasOnGround = p.onGround;
-    const shouldCrouch = game.duckHeld && p.onGround && p.lane === 0;
-    if (shouldCrouch !== p.crouching) {
-      p.crouching = shouldCrouch;
-      p.h = shouldCrouch ? p.crouchH : p.standH;
-      p.y = laneGroundY - p.h;
+    const canSlideOnGround = p.onGround && p.lane === 0;
+
+    if (!canSlideOnGround) {
+      if (p.slideState !== "none") finishSlide();
+    } else {
+      if (game.duckHeld) {
+        if (p.slideState === "none" || p.slideState === "exit") {
+          startSlideEnter();
+        }
+      } else if (p.slideState === "enter" || p.slideState === "hold") {
+        startSlideExit();
+      }
+
+      if (p.slideState === "enter") {
+        p.slideTimer -= dt;
+        if (p.slideTimer <= 0) {
+          if (game.duckHeld) startSlideHold();
+          else startSlideExit();
+        }
+      } else if (p.slideState === "hold") {
+        setPlayerCrouch(true);
+        p.slideDustTimer -= dt;
+        if (p.slideDustTimer <= 0) {
+          puff(p.x - 8, laneGroundY - 16, 2, "rgba(255,255,255,0.92)");
+          puff(p.x + 8, laneGroundY - 10, 1, "rgba(218,232,255,0.9)");
+          p.slideDustTimer = 0.05;
+        }
+      } else if (p.slideState === "exit") {
+        p.slideTimer -= dt;
+        if (p.slideTimer <= 0) finishSlide();
+      }
     }
 
     if (!p.onGround && game.duckHeld) p.vy += 900 * dt;
@@ -895,6 +1047,11 @@ ${saveMessage}`, "もう一回", {
       p.onGround = true;
       p.airJumpsUsed = 0;
       if (!wasOnGround) p.landingTimer = 0.18;
+      if (game.duckHeld && p.lane === 0) {
+        if (p.slideState === "none") startSlideEnter();
+      } else if (!game.duckHeld && p.slideState === "none") {
+        setPlayerCrouch(false);
+      }
     } else {
       p.onGround = false;
     }
@@ -1011,7 +1168,7 @@ ${saveMessage}`, "もう一回", {
       return;
     }
 
-    finishRun(enemy.kind === "ghost" ? "お化けに捕まった！" : enemy.kind === "zombie" ? "ゾンビにぶつかった！" : "野菜に激突した！");
+    finishRun(enemy.kind === "ghost" ? "お化けに捕まった！" : enemy.kind === "zombie" ? "ゾンビにぶつかった！" : "野菜に激突した！", { enemyKind: enemy.kind });
   }
 
   function collectCoin(coin) {
@@ -1174,23 +1331,8 @@ ${saveMessage}`, "もう一回", {
   }
 
   function selectUpgradeCard(item, button) {
-    if (button.disabled) return;
-    pendingUpgradeChoice = item;
-    pendingUpgradeCard = button;
-    els.upgradeCards.classList.add('has-selection');
-    els.upgradeCards.querySelectorAll('.augment-card').forEach((card) => {
-      const isSelected = card === button;
-      card.classList.toggle('selected', isSelected);
-      card.classList.toggle('unselected', !isSelected);
-      card.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
-      const pickLabel = card.querySelector('.augment-pick');
-      if (pickLabel) pickLabel.textContent = isSelected ? '選択中' : 'この力を選ぶ';
-    });
-    if (els.upgradeConfirm) {
-      els.upgradeConfirm.disabled = false;
-      els.upgradeConfirm.classList.add('ready');
-      els.upgradeConfirm.textContent = 'この力をえらぶ';
-    }
+    if (!item || !button) return;
+    chooseUpgrade(item, button);
   }
 
   function getUpgradeHotkeyLabel(index) {
@@ -1223,7 +1365,6 @@ ${saveMessage}`, "もう一回", {
     const cards = Array.from(els.upgradeCards?.querySelectorAll('.augment-card') || []);
     const card = cards[index];
     if (!card || card.disabled || !card._upgradeItem) return false;
-    selectUpgradeCard(card._upgradeItem, card);
     chooseUpgrade(card._upgradeItem, card);
     return true;
   }
@@ -1234,12 +1375,6 @@ ${saveMessage}`, "もう一回", {
     pendingUpgradeCard = null;
     els.upgradeCards.classList.remove('has-selection', 'confirming');
     els.upgradeCards.innerHTML = "";
-    if (els.upgradeConfirm) {
-      els.upgradeConfirm.disabled = true;
-      els.upgradeConfirm.classList.remove('ready', 'confirmed');
-      els.upgradeConfirm.textContent = 'この力をえらぶ';
-    }
-
     randomUpgradeChoices().forEach((item, index) => {
       const meta = getUpgradePresentation(item);
       const button = document.createElement("button");
@@ -1249,8 +1384,7 @@ ${saveMessage}`, "もう一回", {
       button.style.setProperty('--card-delay', `${index * 70}ms`);
       button._upgradeItem = item;
       button.innerHTML = renderUpgradeCardMarkup(item, meta, getUpgradeHotkeyLabel(index));
-      button.addEventListener("click", () => selectUpgradeCard(item, button));
-      button.addEventListener("dblclick", () => chooseUpgrade(item, button));
+      button.addEventListener("click", () => chooseUpgrade(item, button));
       els.upgradeCards.appendChild(button);
     });
 
@@ -1261,6 +1395,7 @@ ${saveMessage}`, "もう一回", {
   function chooseUpgrade(item, selectedCard = null) {
     const level = game.upgradeLevels[item.id] || 0;
     if (level >= item.max) return;
+    if (els.upgradeCards?.classList.contains('confirming')) return;
     pendingUpgradeChoice = null;
     item.apply();
     game.upgradeLevels[item.id] = level + 1;
@@ -1276,12 +1411,6 @@ ${saveMessage}`, "もう一回", {
         if (card !== selectedCard) card.classList.add("unselected", "not-selected");
         card.disabled = true;
       });
-      if (els.upgradeConfirm) {
-        els.upgradeConfirm.disabled = true;
-        els.upgradeConfirm.classList.remove('ready');
-        els.upgradeConfirm.classList.add('confirmed');
-        els.upgradeConfirm.textContent = '決定！';
-      }
     }
 
     renderBuild();
@@ -1319,7 +1448,7 @@ ${saveMessage}`, "もう一回", {
     els.buildPop?.classList.remove("hidden");
     els.buildList.innerHTML = entries.map(([id, level]) => {
       const item = UPGRADE_DEFS.find((def) => def.id === id);
-      const icon = item?.iconImage || './assets/ui/hud/build.png?v=45';
+      const icon = item?.iconImage || './assets/ui/hud/build.png?v=50';
       const name = escapeHtml(item?.name || id);
       let extra = `<span class="build-item-level">Lv.${level}</span>`;
       if (id === 'revive') {
@@ -1376,9 +1505,9 @@ ${saveMessage}`, "もう一回", {
 
     els.rankingStatus.textContent = rows.length ? `TOP ${rows.length}` : "まだ記録がありません。最初のランナーになろう。";
     const rankIcons = [
-      "./assets/ui/ranking/rank-1.png?v=45",
-      "./assets/ui/ranking/rank-2.png?v=45",
-      "./assets/ui/ranking/rank-3.png?v=45",
+      "./assets/ui/ranking/rank-1.png?v=50",
+      "./assets/ui/ranking/rank-2.png?v=50",
+      "./assets/ui/ranking/rank-3.png?v=50",
     ];
 
     els.rankingList.innerHTML = rows.map((row, index) => {
@@ -1856,16 +1985,28 @@ ${saveMessage}`, "もう一回", {
 
     if (game.phase === "gameover") {
       drawn = drawPlayerFrame(ART.playerGameover, centerX + 2, feetY + 3, 86, { xOffset: -6 });
-    } else if (p.crouching) {
+    } else if (p.crouching || p.slideState !== "none") {
       const frames = ART.playerSlides;
-      const index = Math.floor(game.elapsed * 12) % frames.length;
-      drawn = drawPlayerFrame(frames[index], centerX + 5, feetY + 4, 82, { xOffset: 7 });
+      const slideIndex = p.slideState === "enter" ? 0 : p.slideState === "exit" ? 2 : 1;
+      drawn = drawPlayerFrame(frames[slideIndex] || frames[1] || frames[0], centerX + 5, feetY + 4, 82, { xOffset: 7 });
 
-      ctx.globalAlpha = 0.72;
-      ctx.fillStyle = "rgba(255,255,255,0.92)";
-      ctx.fillRect(Math.round(p.x - 50), Math.round(GROUND_Y - 32), 34, 4);
-      ctx.fillRect(Math.round(p.x - 64), Math.round(GROUND_Y - 20), 44, 3);
-      ctx.globalAlpha = 1;
+      if (p.slideState === "hold") {
+        const dustBaseY = getLaneGroundY(p.lane) - 8;
+        ctx.save();
+        ctx.globalAlpha = 0.55;
+        ctx.fillStyle = "rgba(255,255,255,0.95)";
+        ctx.beginPath();
+        ctx.ellipse(Math.round(p.x - 18), Math.round(dustBaseY), 24, 10, -0.15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(Math.round(p.x - 38), Math.round(dustBaseY - 8), 16, 7, -0.22, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 0.32;
+        ctx.beginPath();
+        ctx.ellipse(Math.round(p.x - 54), Math.round(dustBaseY - 14), 10, 5, -0.18, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
     } else if (!p.onGround) {
       let img;
       let rotate = 0;
