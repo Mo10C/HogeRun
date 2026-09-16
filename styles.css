@@ -4429,3 +4429,97 @@ body.app-loading {
     gap: 2.2% !important;
   }
 }
+
+/* === v58 ability select final: remove pink header bg, show decorative frame, reduce overlap === */
+.upgrade-box {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,247,251,.22)),
+    url('./assets/backgrounds/ability-select-bg.png?v=58') center 48% / cover no-repeat !important;
+}
+.upgrade-frame-deco {
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: fill !important;
+  z-index: 4 !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  filter: drop-shadow(0 8px 16px rgba(111, 137, 183, .15)) !important;
+}
+.upgrade-heading {
+  top: 5.2% !important;
+  width: min(56%, 560px) !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  text-align: center !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  z-index: 6 !important;
+}
+.upgrade-kicker {
+  margin: 0 0 8px !important;
+  color: rgba(255,255,255,.98) !important;
+  text-shadow: 0 2px 10px rgba(118, 89, 130, .35), 0 1px 0 rgba(255,255,255,.25) !important;
+}
+.upgrade-heading h2,
+.upgrade-subtitle,
+.upgrade-confirm,
+#upgrade-confirm {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+.upgrade-title-logo {
+  display: block !important;
+  width: 100% !important;
+  max-width: 560px !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  filter: drop-shadow(0 10px 18px rgba(173, 106, 145, .18)) !important;
+}
+.upgrade-cards {
+  z-index: 5 !important;
+  left: 8.8% !important;
+  right: 8.8% !important;
+  top: 24.8% !important;
+  bottom: 10.5% !important;
+  gap: 2.5% !important;
+}
+.augment-card,
+.augment-card.slot-1,
+.augment-card.slot-2,
+.augment-card.slot-3,
+.augment-card.bronze,
+.augment-card.silver,
+.augment-card.gold {
+  min-height: 100% !important;
+  height: 100% !important;
+  padding-bottom: 10px !important;
+  box-shadow:
+    0 12px 28px rgba(103, 126, 168, .12),
+    inset 0 0 0 1px rgba(255,255,255,.76) !important;
+}
+.augment-card .augment-inner { height: 100% !important; }
+@media (max-width: 760px) {
+  .upgrade-heading {
+    top: 4.2% !important;
+    width: 72% !important;
+  }
+  .upgrade-kicker {
+    margin-bottom: 6px !important;
+  }
+  .upgrade-title-logo {
+    max-width: none !important;
+  }
+  .upgrade-cards {
+    left: 8.2% !important;
+    right: 8.2% !important;
+    top: 21.4% !important;
+    bottom: 8.9% !important;
+    gap: 2.0% !important;
+  }
+}
