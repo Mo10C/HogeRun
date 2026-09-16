@@ -825,16 +825,16 @@
   const GHOST_BODY_HEIGHT = 122;
   // レインボー紅茶：RAINBOW_TEA_MIN_DISTANCE 以降、紅茶の出現1回ごとに RAINBOW_TEA_CHANCE の確率で出現。
   const RAINBOW_TEA_MIN_DISTANCE = 5000;
-  const RAINBOW_TEA_CHANCE = 0.10;
+  const RAINBOW_TEA_CHANCE = 0.05;
   const RAINBOW_TEA_VALUE = 50;
   // ウルトラレインボーポテチ：ULTRA_CHIPS_MIN_DISTANCE 以降、紅茶の出現1回ごとに ULTRA_CHIPS_CHANCE の確率で
   // 2段ジャンプでしか届かない高さに流れる。2段ジャンプ中（空中ジャンプ1回以上）でないと取れない。
   const ULTRA_CHIPS_MIN_DISTANCE = 10000;
-  const ULTRA_CHIPS_CHANCE = 0.20;
-  const ULTRA_CHIPS_VALUE = 100;
+  const ULTRA_CHIPS_CHANCE = 0.01;
+  const ULTRA_CHIPS_VALUE = 200;
   const ULTRA_CHIPS_Y = 130;       // 当たり判定の上端Y座標（小さいほど高い）
   const ULTRA_CHIPS_HITBOX = 64;   // 当たり判定サイズ(px)
-  const ULTRA_CHIPS_DRAW_H = 114;  // 表示の高さ(px)。紅茶カップ(38px)の3倍
+  const ULTRA_CHIPS_DRAW_H = 80;  // 表示の高さ(px)。紅茶カップ(38px)の3倍
 
   // 高速域でも「見えてから反応できる時間」と敵同士の間隔を一定以上確保する。
   const MAX_WORLD_SPEED = 720;
