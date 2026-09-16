@@ -512,7 +512,7 @@
       id: "jump_boots",
       icon: "靴",
       iconImage: "./assets/upgrades/jump-boots.png?v=56",
-      name: "バネ靴",
+      name: "ほげの靴",
       uiDesc: "ジャンプ力 +12%。\n高い敵配置を越えやすくなる。",
       desc: "ジャンプ力 +12%。高い敵配置を越えやすくなる。",
       max: 4,
@@ -562,7 +562,7 @@
       id: "revive",
       icon: "羽",
       iconImage: "./assets/upgrades/revive.png?v=56",
-      name: "復活の羽",
+      name: "復活のほげ",
       uiDesc: "致命的な衝突を1回だけ無効化し\n短時間無敵になる。",
       desc: "致命的な衝突を1回だけ無効化し、短時間無敵になる。",
       max: 3,
@@ -745,7 +745,7 @@
     requestAnimationFrame(syncRankingHeight);
     syncUsernameUi();
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "名前を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=56" });
+    showStartOverlay("ほげと一緒に紅茶の国を駆け抜けよう！", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。100杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "名前を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=56" });
     refreshLeaderboard();
   }
 
@@ -763,10 +763,10 @@
     resetGame();
     syncUsernameUi();
     showStartOverlay(
-      "うさぎのティーパーティー大冒険",
-      "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。",
+      "ほげと一緒に紅茶の国を駆け抜けよう！",
+      "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。100杯ごとにほげを強化できます",
       "スタート",
-      { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=56" }
+      { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "キーバインドを確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=56" }
     );
   }
 
@@ -831,7 +831,6 @@
     showStartOverlay("GAME OVER", `${reason}
 ${saveMessage}`, "もう一回", {
       variant: "gameover",
-      eyebrow: "OOPS! TEA TIME OVER",
       note: "紅茶をこぼしちゃった… もう一回走ろう！",
       characterSrc: "./assets/player/gameover.png?v=56",
       resultScore: finalScore,
@@ -861,7 +860,6 @@ ${saveMessage}`, "もう一回", {
   function showStartOverlay(title, description, buttonLabel, options = {}) {
     const {
       variant = "start",
-      eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
       note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
       characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=56" : "./assets/ui/title-key-art.png?v=56",
       resultScore = null,
