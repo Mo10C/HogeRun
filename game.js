@@ -1503,7 +1503,7 @@ ${saveMessage}`, "もう一回", {
     currentBest = me?.best_score || 0;
     updateHud();
 
-    els.rankingStatus.textContent = rows.length ? `TOP ${rows.length}` : "まだ記録がありません。最初のランナーになろう。";
+    els.rankingStatus.textContent = rows.length ? "" : "まだ記録がありません。最初のランナーになろう。";
     const rankIcons = [
       "./assets/ui/ranking/rank-1.png?v=50",
       "./assets/ui/ranking/rank-2.png?v=50",

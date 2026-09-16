@@ -41,8 +41,8 @@ body.app-loading .footer {
   overflow: hidden;
   color: #526483;
   background:
-    linear-gradient(180deg, rgba(235,246,255,.74), rgba(255,239,247,.80)),
-    url('./assets/ui/title-key-art.png?v=50') center / cover no-repeat;
+    radial-gradient(circle at 50% 28%, rgba(255,255,255,.88) 0%, rgba(255,255,255,.46) 26%, rgba(255,255,255,0) 58%),
+    linear-gradient(135deg, #eef8ff 0%, #f8fbff 42%, #fff1f7 100%);
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -4314,4 +4314,71 @@ body.upgrade-active .build-pop {
     left: calc(50% + clamp(72px, 18vw, 122px));
     bottom: 2px;
   }
+}
+
+
+/* === v52 gameover top clipping fix === */
+.overlay-gameover .result-scene {
+  min-height: clamp(190px, 28vh, 260px) !important;
+  padding-top: clamp(22px, 4vh, 42px) !important;
+  margin: 2px auto 10px !important;
+  overflow: visible !important;
+}
+.overlay-gameover .overlay-character {
+  width: clamp(220px, 33vw, 340px) !important;
+  transform: translateY(8px) !important;
+}
+.overlay-gameover .result-encounter {
+  left: calc(50% + clamp(95px, 15vw, 160px));
+  bottom: -2px !important;
+}
+.overlay-gameover .result-enemy-canvas {
+  width: clamp(84px, 9vw, 110px) !important;
+}
+@media (max-width: 900px) {
+  .overlay-gameover .result-scene {
+    min-height: 158px !important;
+    padding-top: 18px !important;
+  }
+  .overlay-gameover .overlay-character {
+    width: clamp(170px, 38vw, 260px) !important;
+    transform: translateY(6px) !important;
+  }
+  .overlay-gameover .result-encounter {
+    left: calc(50% + clamp(68px, 16vw, 112px));
+    bottom: -4px !important;
+  }
+}
+
+
+/* === v53 ranking: remove TOP5 label and lift list away from bottom corners === */
+.ranking-status:empty {
+  display: none !important;
+}
+.ranking-panel {
+  padding-bottom: 18px !important;
+}
+.ranking-logo-row {
+  margin-bottom: 4px !important;
+}
+.ranking-list {
+  padding-bottom: 18px !important;
+  gap: 7px !important;
+}
+.ranking-item:last-child {
+  margin-bottom: 2px;
+}
+@media (min-width: 1101px) {
+  .ranking-panel {
+    padding-bottom: 22px !important;
+  }
+  .ranking-list {
+    padding-bottom: 24px !important;
+  }
+}
+
+
+/* === v54 loading background simplified to gradients only === */
+body.app-loading {
+  background-image: none;
 }
