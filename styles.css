@@ -5182,3 +5182,7 @@ body.app-loading {
   .overlay-gameover.result-mode.is-new-record #start-title::after,
   .overlay-gameover.result-mode.is-new-record .result-newrecord { animation: none; }
 }
+
+/* v80 高い位置のウルトラレインボーポテチ通過中は上部HUDを薄くする */
+.in-game-ui { transition: opacity .25s ease; }
+.in-game-ui.hud-dim { opacity: .28; }

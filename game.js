@@ -819,18 +819,21 @@
   const GROUND_Y = 430;
   const UPPER_GROUND_Y = 304;
   const LANE_UNLOCK_DISTANCE = 20000;
+  // 2段目解放後は LANE_CYCLE_DISTANCE ごとに「2段ステージ」と「1段ステージ」を交互に切り替える
+  // 20000〜25000m: 2段 / 25000〜30000m: 1段 / 30000〜35000m: 2段 …
+  const LANE_CYCLE_DISTANCE = 5000;
   const GRAVITY = 1950;
   const BASE_JUMP = 720;
   // ゴースト本体の見た目の高さ（足元から頭上まで）。2段ジャンプ時はこの高さを越えればかわせる。
   const GHOST_BODY_HEIGHT = 122;
   // レインボー紅茶：RAINBOW_TEA_MIN_DISTANCE 以降、紅茶の出現1回ごとに RAINBOW_TEA_CHANCE の確率で出現。
   const RAINBOW_TEA_MIN_DISTANCE = 5000;
-  const RAINBOW_TEA_CHANCE = 0.10;
+  const RAINBOW_TEA_CHANCE = 0.05;
   const RAINBOW_TEA_VALUE = 50;
   // ウルトラレインボーポテチ：ULTRA_CHIPS_MIN_DISTANCE 以降、紅茶の出現1回ごとに ULTRA_CHIPS_CHANCE の確率で
   // 2段ジャンプでしか届かない高さに流れる。2段ジャンプ中（空中ジャンプ1回以上）でないと取れない。
   const ULTRA_CHIPS_MIN_DISTANCE = 10000;
-  const ULTRA_CHIPS_CHANCE = 0.20;
+  const ULTRA_CHIPS_CHANCE = 0.01;
   const ULTRA_CHIPS_VALUE = 100;
   // ティーカップ磁石がこの回数に達した時だけ、ポテチも吸い寄せて取れる
   const ULTRA_CHIPS_MAGNET_LEVEL = 4;
@@ -839,7 +842,10 @@
   // ほげシールドの無敵時間
   const SHIELD_BASE_SEC = 10;
   const SHIELD_STEP_SEC = 5;
-  const ULTRA_CHIPS_Y = 130;       // 当たり判定の上端Y座標（小さいほど高い）
+  const ULTRA_CHIPS_Y = 130;        // 2段目解放前：1段目から2段ジャンプで届く高さ
+  const ULTRA_CHIPS_Y_UPPER = 36;   // 2段目解放後：2段目から2段ジャンプでのみ届く高さ（上部HUDは通過中だけ薄くする）
+  // 2段目解放後、敵が2段目に出る確率（残りは1段目）
+  const UPPER_LANE_ENEMY_CHANCE = 0.5;       // 当たり判定の上端Y座標（小さいほど高い）
   const ULTRA_CHIPS_HITBOX = 64;   // 当たり判定サイズ(px)
   const ULTRA_CHIPS_DRAW_H = 114;  // 表示の高さ(px)。紅茶カップ(38px)の3倍
 
@@ -850,8 +856,35 @@
   const MIN_ENEMY_GAP_PX = 380;
   const GHOST_HITBOX_TOP = 270;
 
-  function isUpperLaneUnlocked() {
-    return game.distance >= LANE_UNLOCK_DISTANCE;
+  function isUpperLaneUnlocked(distance = game.distance) {
+    if (distance < LANE_UNLOCK_DISTANCE) return false;
+    const cycle = Math.floor((distance - LANE_UNLOCK_DISTANCE) / LANE_CYCLE_DISTANCE);
+    return cycle % 2 === 0;
+  }
+
+  // ステージ（1段/2段）が切り替わった瞬間の処理
+  function updateLaneStage() {
+    const twoLane = isUpperLaneUnlocked();
+    if (game.twoLaneStage === twoLane) return;
+    const first = game.twoLaneStage === undefined || game.twoLaneStage === null;
+    game.twoLaneStage = twoLane;
+    if (first && !twoLane) return;
+
+    if (!twoLane) {
+      // 1段に戻る時：2段目の敵・紅茶カップ・高所ポテチを片付ける（プレイヤーは自然に1段目へ落下）
+      for (const enemy of game.enemies) {
+        if (enemy.lane === 1) puff(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, 6, "#ffffff");
+      }
+      game.enemies = game.enemies.filter((enemy) => enemy.lane !== 1);
+      game.coinObjects = game.coinObjects.filter((coin) => !coin.upperLane && !(coin.ultra && coin.y < ULTRA_CHIPS_Y));
+    }
+    game.popTexts.push({
+      x: els.canvas.width / 2,
+      y: 190,
+      text: twoLane ? "2段ステージ！" : "1段ステージ！",
+      life: 1.6,
+      big: true
+    });
   }
 
   function getLaneGroundY(lane = game.player.lane) {
@@ -1053,6 +1086,9 @@
     game.coinObjects = [];
     game.particles = [];
     game.popTexts = [];
+    game.hudDimmed = false;
+    game.twoLaneStage = null;
+    document.querySelector(".in-game-ui")?.classList.remove("hud-dim");
     game.flash = 0;
     game.duckHeld = false;
     pressedKeys.clear();
@@ -1581,7 +1617,7 @@
         broccoli: [52, 58],
         eggplant: [40, 58]
       }[veggie];
-      const useUpperLane = isUpperLaneUnlocked() && Math.random() < 0.18;
+      const useUpperLane = isUpperLaneUnlocked() && Math.random() < UPPER_LANE_ENEMY_CHANCE;
       const baseY = (useUpperLane ? UPPER_GROUND_Y : GROUND_Y) - dims[1];
       const speedMul = Math.random() < difficulty.fastChance ? randomBetween(1.9, 2.1) : 1; // 高速野菜：約2倍速
       enemy = {
@@ -1609,7 +1645,7 @@
         enemy.jumpActive = false;
       }
     } else if (roll < 0.79) {
-      const useUpperLane = isUpperLaneUnlocked() && Math.random() < 0.10;
+      const useUpperLane = isUpperLaneUnlocked() && Math.random() < UPPER_LANE_ENEMY_CHANCE;
       const baseY = (useUpperLane ? UPPER_GROUND_Y : GROUND_Y) - 72;
       enemy = { kind: "zombie", x: getEnemySpawnX(1), y: baseY, baseY, lane: useUpperLane ? 1 : 0, w: 44, h: 72, dead: false, speedMul: 1 };
     } else {
@@ -1623,7 +1659,7 @@
   function spawnCoins() {
     if (game.distance >= ULTRA_CHIPS_MIN_DISTANCE && Math.random() < ULTRA_CHIPS_CHANCE) {
       game.coinObjects.push({
-        x: 1200, y: ULTRA_CHIPS_Y, w: ULTRA_CHIPS_HITBOX, h: ULTRA_CHIPS_HITBOX,
+        x: 1200, y: isUpperLaneUnlocked() ? ULTRA_CHIPS_Y_UPPER : ULTRA_CHIPS_Y, w: ULTRA_CHIPS_HITBOX, h: ULTRA_CHIPS_HITBOX,
         collected: false, spin: Math.random() * 10, ultra: true
       });
     }
@@ -1650,7 +1686,7 @@
       if (pattern === "high") y = GROUND_Y - 145;
       if (pattern === "upper_line") y = UPPER_GROUND_Y - 72;
       if (pattern === "upper_arc") y = (UPPER_GROUND_Y - 76) - Math.sin((i / Math.max(1, count - 1)) * Math.PI) * 54;
-      game.coinObjects.push({ x: baseX + i * 34, y, w: 20, h: 20, collected: false, spin: Math.random() * 10 });
+      game.coinObjects.push({ x: baseX + i * 34, y, w: 20, h: 20, collected: false, spin: Math.random() * 10, upperLane: pattern.startsWith("upper") });
     }
   }
 
@@ -1721,6 +1757,7 @@
     // スクロール演出専用の距離。紅茶カップ取得時の距離ボーナス(+4)を含めず、背景・地面が一定速度で流れるようにする。
     game.scrollDistance += (game.worldSpeed * dt) / 12;
     updateBgmStage();
+    updateLaneStage();
 
     // 能力選択直後の安全時間。
     // 1秒間は新しい敵・紅茶カップを出現させず、選択直後の事故死を防ぐ。
@@ -1796,11 +1833,20 @@
         coin.x += dx * pull;
         coin.y += dy * pull;
       }
-      // ポテチは「2段ジャンプ中」または「ティーカップ磁石Lv4」で取れる
-      const canTakeUltra = !coin.ultra || magnetMaxed || (!game.player.onGround && game.player.airJumpsUsed >= 1);
+      // ポテチは「2段ジャンプ中（2段目解放後は2段目から）」または「ティーカップ磁石Lv4」で取れる
+      const doubleJumping = !game.player.onGround && game.player.airJumpsUsed >= 1;
+      const laneOk = !isUpperLaneUnlocked() || game.player.lane === 1;
+      const canTakeUltra = !coin.ultra || magnetMaxed || (doubleJumping && laneOk);
       if (!coin.collected && canTakeUltra && intersects(pBox, coin)) collectCoin(coin);
     }
     game.coinObjects = game.coinObjects.filter((coin) => !coin.collected && coin.x + coin.w > (coin.ultra ? -120 : -40));
+
+    // 高い位置のポテチが画面内にある間は、上部HUDを薄くしてポテチを見えるようにする
+    const chipsBehindHud = game.coinObjects.some((coin) => coin.ultra && coin.y < 110 && coin.x < els.canvas.width + 40);
+    if (chipsBehindHud !== game.hudDimmed) {
+      game.hudDimmed = chipsBehindHud;
+      document.querySelector(".in-game-ui")?.classList.toggle("hud-dim", chipsBehindHud);
+    }
 
     updateParticles(dt);
     if (game.flash > 0) game.flash = Math.max(0, game.flash - dt);
