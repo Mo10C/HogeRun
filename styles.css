@@ -4317,36 +4317,37 @@ body.upgrade-active .build-pop {
 }
 
 
-/* === v52 gameover top clipping fix === */
+/* === v52/v55 gameover placement tune === */
 .overlay-gameover .result-scene {
-  min-height: clamp(190px, 28vh, 260px) !important;
-  padding-top: clamp(22px, 4vh, 42px) !important;
-  margin: 2px auto 10px !important;
+  min-height: clamp(200px, 30vh, 272px) !important;
+  padding-top: clamp(34px, 6vh, 58px) !important;
+  margin: 6px auto 6px !important;
   overflow: visible !important;
 }
 .overlay-gameover .overlay-character {
   width: clamp(220px, 33vw, 340px) !important;
-  transform: translateY(8px) !important;
+  transform: translateY(26px) !important;
 }
 .overlay-gameover .result-encounter {
-  left: calc(50% + clamp(95px, 15vw, 160px));
-  bottom: -2px !important;
+  left: calc(50% + clamp(98px, 15vw, 164px));
+  bottom: -10px !important;
 }
 .overlay-gameover .result-enemy-canvas {
-  width: clamp(84px, 9vw, 110px) !important;
+  width: clamp(88px, 9.6vw, 114px) !important;
+  height: auto !important;
 }
 @media (max-width: 900px) {
   .overlay-gameover .result-scene {
-    min-height: 158px !important;
-    padding-top: 18px !important;
+    min-height: 172px !important;
+    padding-top: 24px !important;
   }
   .overlay-gameover .overlay-character {
     width: clamp(170px, 38vw, 260px) !important;
-    transform: translateY(6px) !important;
+    transform: translateY(16px) !important;
   }
   .overlay-gameover .result-encounter {
-    left: calc(50% + clamp(68px, 16vw, 112px));
-    bottom: -4px !important;
+    left: calc(50% + clamp(70px, 16vw, 116px));
+    bottom: -8px !important;
   }
 }
 
