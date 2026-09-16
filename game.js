@@ -41,6 +41,7 @@
     resultEncounter: $("result-encounter"),
     resultEnemyCanvas: $("result-enemy-canvas"),
     resultEnemySpeech: $("result-enemy-speech"),
+    resultPlayerSpeech: $("result-player-speech"),
     resultNewrecord: $("result-newrecord"),
     overlayNote: $("overlay-note"),
     resultScorePanel: $("result-score-panel"),
@@ -270,14 +271,27 @@
 
   function setResultEncounter(kind) {
     if (!els.resultEncounter) return;
+    const playerSpeech = kind === "ghost" || kind === "zombie"
+      ? "ホラゲキライ"
+      : kind
+        ? "ヤサイキライ、、、、"
+        : "";
     if (!kind) {
       els.resultEncounter.classList.add("hidden");
       if (els.resultEnemySpeech) els.resultEnemySpeech.textContent = "";
+      if (els.resultPlayerSpeech) {
+        els.resultPlayerSpeech.textContent = "";
+        els.resultPlayerSpeech.classList.add("hidden");
+      }
       drawResultEnemy(null);
       return;
     }
     els.resultEncounter.classList.remove("hidden");
     if (els.resultEnemySpeech) els.resultEnemySpeech.textContent = enemySpeechForKind(kind);
+    if (els.resultPlayerSpeech) {
+      els.resultPlayerSpeech.textContent = playerSpeech;
+      els.resultPlayerSpeech.classList.remove("hidden");
+    }
     drawResultEnemy(kind);
   }
 
@@ -1099,13 +1113,16 @@
 
   function enemyHitbox(enemy) {
     if (enemy.kind === "ghost") {
-      // 見た目は浮いていても、立ったまま/しゃがんだまま素通りできない当たり判定。
-      // 通常ジャンプの頂点ではまだ触れ、バネ靴や追加空中ジャンプなら越えられる高さ。
+      // 浮遊ゴーストは「立ち」では当たり、下スライディングなら下をくぐれる判定にする。
+      // 下端を少し高めに止めることで、通常姿勢では接触しやすく、
+      // crouch/slide 時だけ安全に回避できるようにする。
+      const top = Math.max(GHOST_HITBOX_TOP + 18, enemy.y - 6);
+      const bottom = Math.min(GROUND_Y - 38, enemy.y + 92);
       return {
-        x: enemy.x + 7,
-        y: GHOST_HITBOX_TOP,
-        w: Math.max(44, enemy.w - 14),
-        h: GROUND_Y - GHOST_HITBOX_TOP
+        x: enemy.x + 10,
+        y: top,
+        w: Math.max(42, enemy.w - 20),
+        h: Math.max(52, bottom - top)
       };
     }
 

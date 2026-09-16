@@ -4918,3 +4918,120 @@ body.app-loading {
   background: transparent !important;
   border-radius: 0 !important;
 }
+
+
+/* === v65 result screen polish: top red GAME OVER, speech bubble on main character, more spacing === */
+.overlay-gameover.result-mode .result-scene { order: 1; }
+.overlay-gameover.result-mode #start-title {
+  order: 0;
+  margin: 0 0 10px !important;
+  color: #ef5b82 !important;
+  font-size: clamp(30px, 4.8vh, 42px) !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  letter-spacing: .14em !important;
+  text-shadow:
+    0 0 0 rgba(255,255,255,0),
+    0 2px 0 rgba(255,255,255,.92),
+    0 0 10px rgba(255, 112, 151, .34),
+    0 0 22px rgba(255, 112, 151, .22),
+    0 8px 16px rgba(165, 74, 108, .14) !important;
+}
+.overlay-gameover.result-mode .result-score-panel {
+  order: 2;
+  margin: 12px auto 10px !important;
+  gap: clamp(26px, 5vw, 58px) !important;
+}
+.overlay-gameover.result-mode #start-description {
+  order: 3;
+  margin: 8px auto 14px !important;
+}
+.overlay-gameover.result-mode .result-action-row {
+  order: 4;
+  margin-top: 8px !important;
+  gap: 14px !important;
+}
+.overlay-gameover.result-mode .start-press-hint {
+  order: 5;
+  margin-top: 10px !important;
+  padding-bottom: 8px !important;
+}
+.overlay-gameover.result-mode .home-button,
+.overlay-gameover.result-mode .start-button-game {
+  min-width: 120px !important;
+}
+.overlay-gameover.result-mode .overlay-character {
+  transform: translateY(0) !important;
+}
+.overlay-gameover.result-mode .result-scene {
+  margin: 0 auto 8px !important;
+}
+.overlay-gameover.result-mode .result-player-speech {
+  position: absolute;
+  left: calc(50% + clamp(24px, 5vw, 56px));
+  top: clamp(54px, 8vh, 76px);
+  z-index: 8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: clamp(118px, 14vw, 158px);
+  max-width: clamp(140px, 20vw, 190px);
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(184, 204, 239, .92);
+  background: rgba(255,255,255,.96);
+  color: #687eb0;
+  font-size: clamp(16px, 2.1vh, 21px);
+  font-weight: 1000;
+  line-height: 1.1;
+  letter-spacing: .04em;
+  box-shadow: 0 8px 18px rgba(102, 128, 174, .16);
+  white-space: nowrap;
+}
+.overlay-gameover.result-mode .result-player-speech::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  bottom: -10px;
+  width: 18px;
+  height: 18px;
+  background: rgba(255,255,255,.96);
+  border-left: 2px solid rgba(184, 204, 239, .92);
+  border-bottom: 2px solid rgba(184, 204, 239, .92);
+  transform: rotate(-26deg);
+  border-bottom-left-radius: 6px;
+}
+.overlay-gameover.result-mode .result-player-speech.hidden {
+  display: none !important;
+}
+.overlay-gameover.result-mode .result-encounter {
+  left: calc(50% + clamp(150px, 20vw, 214px)) !important;
+  bottom: 12px !important;
+}
+.overlay-gameover.result-mode .result-enemy-speech {
+  display: none !important;
+}
+@media (max-width: 760px), (max-height: 620px) {
+  .overlay-gameover.result-mode #start-title {
+    margin-bottom: 7px !important;
+    font-size: clamp(24px, 4.6vh, 34px) !important;
+  }
+  .overlay-gameover.result-mode .result-score-panel {
+    margin: 8px auto 8px !important;
+    gap: 20px !important;
+  }
+  .overlay-gameover.result-mode #start-description {
+    margin: 6px auto 10px !important;
+  }
+  .overlay-gameover.result-mode .result-player-speech {
+    left: calc(50% + clamp(12px, 5vw, 30px));
+    top: clamp(42px, 7vh, 58px);
+    min-width: 102px;
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  .overlay-gameover.result-mode .result-encounter {
+    left: calc(50% + clamp(98px, 18vw, 142px)) !important;
+    bottom: 6px !important;
+  }
+}
