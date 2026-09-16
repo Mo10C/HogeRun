@@ -745,7 +745,7 @@
     requestAnimationFrame(syncRankingHeight);
     syncUsernameUi();
     resetGame();
-    showStartOverlay("うさぎのティーパーティー大冒険", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "名前を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=56" });
+    showStartOverlay("ほげと一緒に紅茶の国を駆け抜けよう！", "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。100杯ごとにメルヘンな強化を1つ選べます。", "スタート", { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "名前を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=56" });
     refreshLeaderboard();
   }
 
@@ -763,8 +763,8 @@
     resetGame();
     syncUsernameUi();
     showStartOverlay(
-      "うさぎのティーパーティー大冒険",
-      "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。10杯ごとにメルヘンな強化を1つ選べます。",
+      "ほげと一緒に紅茶の国を駆け抜けよう！",
+      "ジャンプとスライディングで敵をかわし、紅茶の国でティーカップを集めよう。100杯ごとにメルヘンな強化を1つ選べます。",
       "スタート",
       { variant: "start", eyebrow: "WELCOME TO THE TEA KINGDOM", note: "画像を確認してからスタートしてください。", characterSrc: "./assets/ui/title-key-art.png?v=56" }
     );
@@ -862,7 +862,7 @@ ${saveMessage}`, "もう一回", {
     const {
       variant = "start",
       eyebrow = variant === "gameover" ? "GAME OVER" : "WELCOME TO THE TEA KINGDOM",
-      note = variant === "gameover" ? "紅茶をこぼしちゃった… もう一回走ろう！" : "ふしぎな紅茶の国を駆け抜けよう！",
+      note = variant === "gameover" ? "紅茶をこぼしちゃった… " : "紅茶の国を駆け抜けよう！",
       characterSrc = variant === "gameover" ? "./assets/player/gameover.png?v=56" : "./assets/ui/title-key-art.png?v=56",
       resultScore = null,
       resultCoins = null,
