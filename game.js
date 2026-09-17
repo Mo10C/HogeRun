@@ -105,6 +105,8 @@
   const ART = {
     logo: loadImage("./assets/ui/title-logo.png?v=63"),
     background: loadImage("./assets/backgrounds/stage-bg.png?v=63"),
+    // ダークモード用（置いてあれば自動で使用。無ければ通常背景）
+    backgroundDark: loadImage("./assets/backgrounds/stage-bg-dark.png?v=85"),
     titleScene: loadImage("./assets/ui/title-key-art.png?v=63"),
     playerIdle: loadImage("./assets/player/idle.png?v=63"),
     playerRuns: Array.from({ length: 16 }, (_, i) => loadImage(`./assets/player/run/run-${String(i + 1).padStart(2, "0")}.png?v=63`)),
@@ -125,6 +127,14 @@
     ultraChips: loadImage("./assets/items/ultra-rainbow-chips.png?v=76"),
     shieldAura: loadImage("./assets/effects/shield-aura.png?v=69")
   };
+
+  // ダークモード用画像が読み込めたら html にクラスを付ける（CSS側の切り替え・減光の解除に使用）
+  ART.backgroundDark.addEventListener("load", () => document.documentElement.classList.add("has-dark-stage"), { once: true });
+  {
+    const darkAbilityBg = new Image();
+    darkAbilityBg.addEventListener("load", () => document.documentElement.classList.add("has-dark-ability-bg"), { once: true });
+    darkAbilityBg.src = "./assets/backgrounds/ability-select-bg-dark.png?v=85";
+  }
 
   let gameplayAssetsPromise = null;
   function ensureGameplayAssets() {
@@ -716,6 +726,24 @@
     if (!sound.bgmTrack || !sound.ctx) return;
     releaseBgmTrack(sound.bgmTrack, false);
     sound.bgmTrack = null;
+  }
+
+  // ===== ダークモード（HOMEのボタンで手動切替・ブラウザに保存） =====
+  const THEME_STORAGE_KEY = "hoge-run-theme";
+  function renderThemeToggle() {
+    const button = document.getElementById("theme-toggle");
+    if (!button) return;
+    const dark = document.documentElement.classList.contains("theme-dark");
+    button.textContent = dark ? "☾ ダーク ON" : "☾ ダーク OFF";
+    button.classList.toggle("is-on", dark);
+    button.setAttribute("aria-pressed", dark ? "true" : "false");
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", dark ? "#12151f" : "#171923");
+  }
+  function setDarkTheme(dark) {
+    document.documentElement.classList.toggle("theme-dark", dark);
+    try { localStorage.setItem(THEME_STORAGE_KEY, dark ? "dark" : "light"); } catch (_) { /* ignore */ }
+    renderThemeToggle();
   }
 
   function renderSoundToggle() {
@@ -2289,7 +2317,8 @@
     const w = els.canvas.width;
     const h = els.canvas.height;
 
-    if (!drawScrollingStageBackground(ART.background, w, h)) {
+    const useDarkStage = document.documentElement.classList.contains("theme-dark") && ART.backgroundDark.complete && ART.backgroundDark.naturalWidth > 0;
+    if (!drawScrollingStageBackground(useDarkStage ? ART.backgroundDark : ART.background, w, h)) {
       const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
       skyGrad.addColorStop(0, "#cfe7ff");
       skyGrad.addColorStop(1, "#fff1f7");
@@ -3085,9 +3114,17 @@
     }
   }
 
+  let lastPlayingClass = null;
   function tick(now) {
     const dt = Math.min(0.034, Math.max(0, (now - game.lastTime) / 1000));
     game.lastTime = now;
+
+    // スマホ横画面の操作ボタン表示などに使う
+    const playingNow = game.phase === "playing";
+    if (playingNow !== lastPlayingClass) {
+      lastPlayingClass = playingNow;
+      document.body.classList.toggle("is-playing", playingNow);
+    }
 
     if (game.phase === "playing") {
       updatePlayer(dt);
@@ -3156,6 +3193,11 @@
     bgmSlider?.addEventListener("change", (event) => event.currentTarget.blur());
     renderSoundToggle();
     renderBgmVolume();
+    document.getElementById("theme-toggle")?.addEventListener("click", (event) => {
+      setDarkTheme(!document.documentElement.classList.contains("theme-dark"));
+      event.currentTarget.blur();
+    });
+    renderThemeToggle();
 
     window.addEventListener("keydown", (event) => {
       if (listeningBind) {

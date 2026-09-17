@@ -5186,3 +5186,512 @@ body.app-loading {
 /* v80 高い位置のウルトラレインボーポテチ通過中は上部HUDを薄くする */
 .in-game-ui { transition: opacity .25s ease; }
 .in-game-ui.hud-dim { opacity: .28; }
+
+/* =========================================================
+   v84 スマホ対応（縦・横）
+   ========================================================= */
+html, body { overscroll-behavior: none; }
+.control-button, .primary-button, .home-button, .sound-toggle, .theme-toggle, .augment-card { touch-action: manipulation; }
+
+@media (max-width: 760px) and (orientation: portrait), (max-height: 520px) and (orientation: landscape) {
+  /* HUD：1行のコンパクト表示 */
+  .in-game-ui {
+    position: absolute !important;
+    inset: 6px 6px auto 6px !important;
+    width: auto !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    padding: 0 !important;
+    pointer-events: none;
+    z-index: 4;
+  }
+  .in-game-ui-row { display: block !important; gap: 0 !important; }
+  .game-user-badge { display: none !important; }
+  .scoreboard-pop {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+    gap: 4px !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 3px 8px !important;
+    border-radius: 12px !important;
+    min-height: 0 !important;
+    height: auto !important;
+    background: rgba(255,255,255,.72) !important;
+    box-shadow: 0 2px 8px rgba(80,100,140,.12) !important;
+    backdrop-filter: blur(4px);
+  }
+  .scoreboard-pop .game-stat {
+    display: flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    min-width: 0 !important;
+    width: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  .scoreboard-pop .game-stat-head { display: flex !important; gap: 0 !important; margin: 0 !important; }
+  .scoreboard-pop .game-stat-head span { display: none !important; }
+  .scoreboard-pop .game-stat-icon { width: 20px !important; height: 20px !important; min-width: 20px !important; }
+  .scoreboard-pop .game-stat strong {
+    font-size: 13px !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+  }
+  .build-pop {
+    align-self: flex-start;
+    padding: 2px 6px !important;
+    border-radius: 10px !important;
+    max-width: 60% !important;
+    min-height: 0 !important;
+    transform: none !important;
+  }
+  .build-pop-title { display: none !important; }
+  .build-list-ingame { gap: 2px !important; min-height: 0 !important; }
+  .build-list-ingame img, .build-list-ingame .build-item-icon { width: 14px !important; height: 14px !important; }
+  .build-list-ingame * { font-size: 9px !important; line-height: 1.2 !important; }
+
+  /* HOME・リザルト：画面いっぱいのスクロール可能な画面にする */
+  #start-overlay:not(.hidden) {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    z-index: 1000 !important;
+    border-radius: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    background: linear-gradient(180deg, #eef7ff, #fff5fa) !important;
+  }
+  #start-overlay .overlay-inner {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    justify-content: center !important;
+    padding: calc(18px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)) !important;
+    border-radius: 0 !important;
+    transform: none !important;
+  }
+  /* タッチ操作ではキー設定は不要。サウンド・ダークモードのボタンだけ残す */
+  .start-keybind-box { width: 100% !important; margin: 10px auto !important; padding: 0 !important; }
+  .start-keybind-box .keybind-heading > div:first-child,
+  .start-keybind-box #keybind-status,
+  .start-keybind-box .keybind-grid,
+  .start-keybind-box .menu-key-note,
+  .start-keybind-box #reset-keybinds { display: none !important; }
+  .start-keybind-box .keybind-heading { justify-content: center !important; margin: 0 !important; }
+  .keybind-heading-actions { justify-content: center; }
+  .start-feature-grid, .start-action-badges { display: none !important; }
+  #start-press-hint { display: none !important; }
+  #start-title { font-size: clamp(18px, 5.2vw, 26px) !important; line-height: 1.35 !important; }
+  #start-description { font-size: 12px !important; line-height: 1.6 !important; }
+  .menu-name-form { width: 100% !important; max-width: 420px !important; padding: 10px !important; }
+  .menu-name-row { flex-wrap: nowrap !important; gap: 6px !important; }
+  .menu-name-row input { min-width: 0 !important; font-size: 16px !important; }
+  .result-action-row { gap: 10px !important; flex-wrap: wrap; justify-content: center; }
+  .start-button-game { min-width: 180px !important; min-height: 52px !important; font-size: 18px !important; }
+
+  /* 能力選択：画面いっぱい・縦に並べる */
+  #upgrade-overlay:not(.hidden) {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1000 !important;
+    border-radius: 0 !important;
+    overflow-y: auto !important;
+    display: block !important;
+  }
+  #upgrade-overlay .upgrade-box {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    aspect-ratio: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    padding: calc(12px + env(safe-area-inset-top)) 12px calc(16px + env(safe-area-inset-bottom)) !important;
+    transform: none !important;
+    overflow: visible !important;
+  }
+  #upgrade-overlay .upgrade-heading {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: min(320px, 80%) !important;
+    margin: 0 auto !important;
+  }
+  #upgrade-overlay .upgrade-title-logo { width: 100% !important; height: auto !important; }
+  #upgrade-overlay .upgrade-cards {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 520px !important;
+    height: auto !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin: 0 auto !important;
+  }
+  #upgrade-overlay .augment-card {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: 64px 1fr !important;
+    grid-template-rows: auto auto auto !important;
+    column-gap: 12px !important;
+    row-gap: 2px !important;
+    align-items: center !important;
+    text-align: left !important;
+    padding: 12px 14px !important;
+    transform: none !important;
+  }
+  #upgrade-overlay .augment-card .augment-icon-wrap {
+    grid-column: 1; grid-row: 1 / span 3;
+    width: 64px !important; height: 64px !important; margin: 0 !important;
+  }
+  #upgrade-overlay .augment-card .augment-icon-image { width: 64px !important; height: 64px !important; }
+  #upgrade-overlay .augment-card .augment-name { grid-column: 2; font-size: 16px !important; margin: 0 !important; }
+  #upgrade-overlay .augment-card .augment-level { grid-column: 2; font-size: 11px !important; margin: 0 !important; position: static !important; }
+  #upgrade-overlay .augment-card .augment-desc { grid-column: 2; font-size: 12px !important; line-height: 1.45 !important; margin: 0 !important; }
+  #upgrade-overlay .augment-card .augment-hotkey,
+  #upgrade-overlay .augment-card .augment-pick,
+  #upgrade-overlay .augment-card .ability-card-corner { display: none !important; }
+  #upgrade-overlay .augment-card .augment-select-mark { top: 8px !important; right: 8px !important; left: auto !important; }
+
+  /* 操作ボタン */
+  .mobile-controls { display: grid !important; }
+  .control-button { user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+}
+
+/* ---- 縦画面 ---- */
+@media (max-width: 760px) and (orientation: portrait) {
+  .app-shell { padding: calc(6px + env(safe-area-inset-top)) 8px 12px !important; }
+  .topbar { min-height: 0 !important; height: auto !important; padding: 2px 0 6px !important; margin: 0 !important; }
+  .title-logo-image { width: min(200px, 56vw) !important; height: auto !important; }
+  .game-layout { display: flex !important; flex-direction: column !important; gap: 10px !important; }
+  .game-column { display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; }
+  .game-frame {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9 !important;
+    min-height: 0 !important;
+    border-radius: 14px !important;
+  }
+  .mobile-gesture-help { display: block !important; font-size: 11px !important; padding: 4px 8px !important; }
+  .mobile-controls { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+  .control-button { min-height: 84px !important; font-size: 22px !important; border-radius: 20px !important; }
+  .ranking-panel { width: 100% !important; }
+}
+
+/* ---- 横画面（スマホ） ---- */
+@media (max-height: 520px) and (orientation: landscape) {
+  .app-shell { padding: 0 !important; max-width: none !important; }
+  .topbar, .footer, .mobile-gesture-help { display: none !important; }
+  .game-layout { display: block !important; }
+  .game-column { display: block !important; width: 100% !important; }
+  .game-frame {
+    width: min(100vw, calc(100vh * 16 / 9)) !important;
+    width: min(100vw, calc(100svh * 16 / 9)) !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9 !important;
+    margin: 0 auto !important;
+    border-radius: 0 !important;
+  }
+  .ranking-panel { width: min(640px, 94vw) !important; margin: 16px auto !important; }
+  /* ボタンは画面の左右下に半透明で重ねる */
+  .mobile-controls {
+    position: fixed !important;
+    inset: auto 0 calc(10px + env(safe-area-inset-bottom)) 0 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    padding: 0 calc(12px + env(safe-area-inset-left)) 0 calc(12px + env(safe-area-inset-right)) !important;
+    pointer-events: none;
+    z-index: 900;
+  }
+  .mobile-controls .control-button {
+    pointer-events: auto;
+    width: 92px !important;
+    height: 92px !important;
+    min-height: 0 !important;
+    border-radius: 50% !important;
+    font-size: 15px !important;
+    opacity: .6;
+  }
+  .mobile-controls .duck-button { order: 1; }
+  .mobile-controls .jump-button { order: 2; }
+  body:not(.is-playing) .mobile-controls { display: none !important; }
+  body.is-playing { overflow: hidden !important; }
+}
+
+/* v84 ダークモード切替ボタン（サウンドボタンと同じ形） */
+.theme-toggle {
+  border: 1px solid #d4dff0;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #5c6f97;
+  background: rgba(255,255,255,.85);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.theme-toggle.is-on { color: #fff; background: linear-gradient(180deg, #6f7fd8, #4f5fb8); border-color: #6f7fd8; }
+@media (max-width: 720px) { .theme-toggle { font-size: 9px; padding: 2px 8px; } }
+
+/* v84 スマホ対応：微調整 */
+@media (max-width: 760px) and (orientation: portrait), (max-height: 520px) and (orientation: landscape) {
+  .scoreboard-pop .game-stat strong::before,
+  .scoreboard-pop .game-stat strong::after,
+  .scoreboard-pop .game-stat::before,
+  .scoreboard-pop .game-stat::after { display: none !important; content: none !important; }
+  .scoreboard-pop .game-stat + .game-stat { margin-left: 0 !important; padding-left: 0 !important; border-left: 0 !important; }
+  .scoreboard-pop .game-stat strong { display: inline-block !important; font-size: 13px !important; }
+  .scoreboard-pop .game-stat-icon { flex: 0 0 20px !important; }
+
+  /* リザルト */
+  .overlay-gameover.result-mode #start-title { font-size: clamp(22px, 7vw, 34px) !important; letter-spacing: .06em !important; white-space: nowrap; }
+  .overlay-gameover.result-mode.is-new-record #start-title { font-size: clamp(22px, 7vw, 34px) !important; }
+  .overlay-gameover.result-mode.is-new-record #start-title::before { left: -.9em; }
+  .overlay-gameover.result-mode.is-new-record #start-title::after { right: -.9em; }
+  .overlay-gameover.result-mode .result-score-panel { flex-wrap: wrap !important; gap: 8px 18px !important; width: 100% !important; }
+  .overlay-gameover.result-mode .result-stat-icon { width: 40px !important; height: 40px !important; }
+  .overlay-gameover.result-mode .result-stat strong { font-size: clamp(30px, 10vw, 44px) !important; }
+  .overlay-gameover.result-mode .result-scene { min-height: 0 !important; max-height: none !important; }
+  .overlay-gameover.result-mode .overlay-character { width: min(260px, 70vw) !important; max-height: 130px !important; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  #start-description { display: none !important; }
+  /* 能力選択：横画面は3列 */
+  #upgrade-overlay .upgrade-box { justify-content: flex-start !important; gap: 6px !important; padding-top: 6px !important; }
+  #upgrade-overlay .upgrade-heading { width: min(260px, 36vw) !important; }
+  #upgrade-overlay .upgrade-cards { grid-template-columns: repeat(3, 1fr) !important; max-width: 820px !important; }
+  #upgrade-overlay .augment-card {
+    grid-template-columns: 1fr !important;
+    justify-items: center !important;
+    text-align: center !important;
+    padding: 10px 8px !important;
+  }
+  #upgrade-overlay .augment-card .augment-icon-wrap { grid-column: 1; grid-row: auto; width: 56px !important; height: 56px !important; }
+  #upgrade-overlay .augment-card .augment-icon-image { width: 56px !important; height: 56px !important; }
+  #upgrade-overlay .augment-card .augment-name,
+  #upgrade-overlay .augment-card .augment-level,
+  #upgrade-overlay .augment-card .augment-desc { grid-column: 1; }
+  #upgrade-overlay .augment-card .augment-desc { font-size: 11px !important; }
+}
+@media (max-width: 760px) and (orientation: portrait), (max-height: 520px) and (orientation: landscape) {
+  html, body { height: auto !important; overflow-y: auto !important; }
+  .app-shell { height: auto !important; min-height: 0 !important; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  body.is-playing { overflow: hidden !important; }
+}
+
+/* =========================================================
+   v84 ダークモード（html.theme-dark）
+   ========================================================= */
+html.theme-dark {
+  --bg: #12151f;
+  --panel: #1d2233;
+  --panel-2: #232a3f;
+  --line: #3a4466;
+  --text: #dfe6fb;
+  --muted: #a3afd2;
+  color-scheme: dark;
+}
+html.theme-dark,
+html.theme-dark body {
+  background-color: #12151f !important;
+  color: #dfe6fb;
+}
+html.theme-dark body {
+  background-image:
+    linear-gradient(rgba(120, 140, 200, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 140, 200, .07) 1px, transparent 1px) !important;
+  background-size: 24px 24px !important;
+}
+html.theme-dark .boot-splash {
+  color: #cdd6f4 !important;
+  background: radial-gradient(circle at 50% 28%, rgba(120,110,200,.25) 0%, rgba(0,0,0,0) 58%), linear-gradient(135deg, #141827 0%, #1a1f33 50%, #24192a 100%) !important;
+}
+html.theme-dark .panel,
+html.theme-dark .ranking-panel,
+html.theme-dark .login-panel {
+  background: linear-gradient(180deg, rgba(31,36,54,.96), rgba(25,29,45,.96)) !important;
+  border-color: #3a4466 !important;
+  box-shadow: 0 18px 44px rgba(0,0,0,.35) !important;
+  color: #dfe6fb;
+}
+html.theme-dark .panel h2, html.theme-dark .panel h3 { color: #dfe6fb !important; }
+html.theme-dark .game-frame { background: #1a1f30 !important; }
+html.theme-dark:not(.has-dark-stage) #game-canvas { filter: brightness(.86) saturate(.95); }
+
+/* HUD */
+html.theme-dark .scoreboard-pop,
+html.theme-dark .game-user-badge,
+html.theme-dark .build-pop {
+  background: rgba(22, 26, 40, .78) !important;
+  border-color: rgba(90, 104, 150, .6) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35) !important;
+}
+html.theme-dark .game-stat { background: transparent !important; border-color: rgba(90,104,150,.35) !important; }
+html.theme-dark #score-label { color: #9fb8ff !important; }
+html.theme-dark #coin-label { color: #f0b98a !important; }
+html.theme-dark #upgrade-label { color: #c3aefc !important; }
+html.theme-dark #best-label { color: #8fe0b9 !important; }
+html.theme-dark #current-username,
+html.theme-dark .build-list-ingame,
+html.theme-dark .build-list-ingame * { color: #dfe6fb !important; }
+
+/* HOME / リザルト（オーバーレイ） */
+html.theme-dark #start-overlay,
+html.theme-dark #start-overlay .overlay-inner {
+  background: linear-gradient(180deg, #161a28 0%, #1b1a2c 60%, #221a2b 100%) !important;
+}
+html.theme-dark #start-overlay .overlay-inner::before,
+html.theme-dark #start-overlay .overlay-inner::after { opacity: .18 !important; }
+html.theme-dark #start-overlay h2,
+html.theme-dark #start-overlay h3,
+html.theme-dark #start-overlay label,
+html.theme-dark #start-overlay strong { color: #e3e9ff !important; }
+html.theme-dark #start-overlay p,
+html.theme-dark #start-overlay .eyebrow,
+html.theme-dark .start-press-hint,
+html.theme-dark .menu-key-note { color: #a9b4d8 !important; }
+html.theme-dark #menu-name-status.is-error { color: #ff9dbd !important; }
+html.theme-dark .menu-name-form,
+html.theme-dark .start-keybind-box,
+html.theme-dark .start-feature-card,
+html.theme-dark .start-action-badge {
+  background: rgba(35, 41, 62, .9) !important;
+  border-color: #3a4466 !important;
+  box-shadow: none !important;
+}
+html.theme-dark input[type="text"] {
+  background: #141826 !important;
+  color: #e3e9ff !important;
+  border-color: #6b5f2e !important;
+}
+html.theme-dark input[type="text"]::placeholder { color: #7f89ad !important; }
+html.theme-dark .keybind-button,
+html.theme-dark .keybind-action,
+html.theme-dark .home-button,
+html.theme-dark .icon-button,
+html.theme-dark .bgm-volume,
+html.theme-dark .theme-toggle:not(.is-on),
+html.theme-dark .sound-toggle.is-off {
+  background: #262d45 !important;
+  color: #d4dcf7 !important;
+  border-color: #46507a !important;
+  box-shadow: none !important;
+}
+html.theme-dark .text-button { color: #aab6e0 !important; }
+html.theme-dark .bgm-volume * { color: #d4dcf7 !important; }
+html.theme-dark .overlay-gameover.result-mode .result-stat strong { color: #a9c0ff !important; text-shadow: none !important; }
+html.theme-dark .overlay-gameover.result-mode .result-stat-tea strong { color: #f0b98a !important; }
+html.theme-dark .overlay-gameover.result-mode .result-stat-label { color: #a3afd2 !important; }
+html.theme-dark .result-player-speech,
+html.theme-dark .result-enemy-speech {
+  background: #262d45 !important;
+  color: #e3e9ff !important;
+  border-color: #46507a !important;
+}
+html.theme-dark .overlay-gameover.result-mode.is-new-record #start-title {
+  filter: drop-shadow(0 0 6px rgba(0,0,0,.6)) drop-shadow(0 0 12px rgba(200,160,255,.45)) !important;
+}
+
+/* 能力選択 */
+html.theme-dark #upgrade-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 12, 24, .45);
+  pointer-events: none;
+  z-index: 0;
+}
+html.theme-dark #upgrade-overlay .upgrade-box { position: relative; z-index: 1; }
+html.theme-dark .augment-card,
+html.theme-dark .augment-card.bronze,
+html.theme-dark .augment-card.silver {
+  background: linear-gradient(180deg, rgba(36,42,64,.97), rgba(28,33,52,.97)) !important;
+  border-color: #4a5582 !important;
+}
+html.theme-dark .augment-card.gold {
+  background: linear-gradient(180deg, rgba(58,50,30,.97), rgba(40,35,24,.97)) !important;
+  border-color: #c9a640 !important;
+}
+html.theme-dark .augment-name { color: #e6ecff !important; }
+html.theme-dark .augment-desc { color: #b7c1e3 !important; }
+html.theme-dark .augment-level { color: #ff9dc4 !important; background: rgba(255,157,196,.12) !important; }
+html.theme-dark .augment-hotkey { background: #262d45 !important; color: #d4dcf7 !important; border-color: #46507a !important; }
+
+/* ランキング */
+html.theme-dark .ranking-item {
+  background: linear-gradient(180deg, rgba(38,45,69,.95), rgba(31,37,57,.95)) !important;
+  border-color: #3f4970 !important;
+  box-shadow: none !important;
+}
+html.theme-dark .ranking-item.me { border-color: #d98ab4 !important; }
+html.theme-dark .rank-name { color: #e6ecff !important; }
+html.theme-dark .rank-label { color: #9aa6cc !important; }
+html.theme-dark .rank-score { color: #a9c0ff !important; }
+html.theme-dark .rank-number-badge { background: #2d3553 !important; color: #d4dcf7 !important; }
+html.theme-dark .ranking-status { color: #a3afd2 !important; }
+html.theme-dark .ranking-corner { opacity: .55; }
+
+/* スマホ操作・その他 */
+html.theme-dark .mobile-gesture-help {
+  background: rgba(30,35,52,.85) !important;
+  color: #a9b4d8 !important;
+  border-color: #3a4466 !important;
+}
+html.theme-dark .footer { color: #7f89ad !important; }
+html.theme-dark .muted { color: #a3afd2; }
+@media (max-width: 760px) and (orientation: portrait), (max-height: 520px) and (orientation: landscape) {
+  html.theme-dark #start-overlay:not(.hidden) { background: linear-gradient(180deg, #161a28, #221a2b) !important; }
+  html.theme-dark .scoreboard-pop { background: rgba(22, 26, 40, .78) !important; }
+}
+/* v84 ダーク：強化リスト・リザルト数値の補正 */
+html.theme-dark .build-item {
+  background: rgba(30, 35, 54, .88) !important;
+  border-color: rgba(90, 104, 150, .55) !important;
+  box-shadow: none !important;
+}
+html.theme-dark .build-item-name { color: #e6ecff !important; }
+html.theme-dark .build-item-level { color: #ffb3d3 !important; background: rgba(255,157,196,.16) !important; }
+html.theme-dark #start-overlay .result-stat-score strong { color: #a9c0ff !important; }
+html.theme-dark #start-overlay .result-stat-tea strong { color: #f0b98a !important; }
+html.theme-dark #start-overlay .result-stat-label { color: #a3afd2 !important; }
+@media (max-width: 760px) and (orientation: portrait), (max-height: 520px) and (orientation: landscape) {
+  html.theme-dark .start-keybind-box { background: transparent !important; border: 0 !important; }
+}
+
+/* v85 ダークモード用背景（画像があるときだけ差し替え） */
+html.theme-dark.has-dark-ability-bg .upgrade-box {
+  background: url('./assets/backgrounds/ability-select-bg-dark.png?v=85') center 48% / cover no-repeat !important;
+}
+html.theme-dark.has-dark-ability-bg #upgrade-overlay::after { display: none !important; }
