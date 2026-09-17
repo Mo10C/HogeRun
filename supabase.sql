@@ -190,6 +190,23 @@ as $$
   limit greatest(1, least(coalesce(p_limit, 30), 100));
 $$;
 
+-- 自分の自己ベスト（ランキングTOP外でも取得できる）。NEW RECORD判定に使用。
+create or replace function public.get_my_best()
+returns integer
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select coalesce(max(score), 0)::integer
+  from public.game_runs
+  where user_id = auth.uid()
+    and status = 'finished';
+$$;
+
+revoke all on function public.get_my_best() from public;
+grant execute on function public.get_my_best() to authenticated;
+
 revoke all on function public.start_game() from public;
 revoke all on function public.finish_game(uuid, integer, integer) from public;
 revoke all on function public.get_leaderboard(integer) from public;

@@ -430,6 +430,7 @@
   let currentUserId = null;
   let currentUsername = "";
   let currentBest = 0;
+  let myBestLoaded = false;
   let currentRunId = null;
   let finishingRun = false;
   let pendingUpgradeChoice = null;
@@ -1155,8 +1156,7 @@
       auth: { persistSession: true, autoRefreshToken: true }
     });
 
-    const { data: sessionData } = await supabaseClient.auth.getSession();
-    const sessionUser = sessionData?.session?.user;
+    const sessionUser = await getExistingAuthUser();
     if (!sessionUser) return;
 
     currentUserId = sessionUser.id;
@@ -1171,6 +1171,43 @@
       localStorage.setItem("hoge-run-offline-name", profile.username);
       syncUsernameUi();
     }
+    await refreshMyBest();
+  }
+
+  // ブラウザに保存されたSupabaseのログイン情報が残っているか
+  function hasStoredAuthSession() {
+    try {
+      return Object.keys(localStorage).some((key) => key.startsWith("sb-") && key.endsWith("-auth-token") && localStorage.getItem(key));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // 既存アカウントを取得する。期限切れのログインは更新してから返す（失敗時は数回リトライ）。
+  async function getExistingAuthUser() {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const { data } = await withTimeout(supabaseClient.auth.getSession(), 10000, "ログイン確認");
+        if (data?.session?.user) return data.session.user;
+        if (!hasStoredAuthSession()) return null; // 保存情報が無い＝本当に未ログイン
+        const { data: refreshed, error: refreshError } = await withTimeout(supabaseClient.auth.refreshSession(), 10000, "ログイン更新");
+        if (refreshed?.session?.user) return refreshed.session.user;
+        // ログイン情報そのものが無効（サーバーで失効済み）の場合だけ破棄して、新規アカウント作成に進む
+        const status = Number(refreshError?.status || 0);
+        if (refreshError && refreshError.name !== "AuthRetryableFetchError" && status >= 400 && status < 500) {
+          try {
+            Object.keys(localStorage)
+              .filter((key) => key.startsWith("sb-") && key.endsWith("-auth-token"))
+              .forEach((key) => localStorage.removeItem(key));
+          } catch (_) { /* ignore */ }
+          return null;
+        }
+      } catch (error) {
+        console.warn("ログイン確認に失敗しました:", error);
+      }
+      await delay(800 * (attempt + 1));
+    }
+    return null;
   }
 
   async function loginWithUsername(username) {
@@ -1186,14 +1223,13 @@
       return;
     }
 
-    const { data: userData } = await withTimeout(
-      supabaseClient.auth.getUser(),
-      10000,
-      "ログイン確認"
-    );
-    let user = userData?.user;
+    let user = await getExistingAuthUser();
 
     if (!user) {
+      // ブラウザにログイン情報が残っている場合は、新しいアカウントを作らない（作ると自己ベスト・ランキングが別人扱いになる）
+      if (hasStoredAuthSession()) {
+        throw new Error("ログイン情報の更新に失敗しました。通信状況を確認して、少し待ってからもう一度お試しください。");
+      }
       const { data, error } = await withTimeout(
         supabaseClient.auth.signInAnonymously(),
         10000,
@@ -1213,11 +1249,13 @@
 
     if (profileError) throw new Error(`名前の保存に失敗しました: ${profileError.message}`);
 
+    if (currentUserId !== user.id) myBestLoaded = false;
     currentUserId = user.id;
     currentUsername = username;
     localStorage.setItem("hoge-run-offline-name", username);
     syncUsernameUi();
     setMenuNameStatus("名前を保存しました。スタートできます。", "success");
+    await refreshMyBest();
   }
 
   function enterGameScreen() {
@@ -1279,6 +1317,8 @@
         syncUsernameUi();
       }
       await ensureGameplayAssets();
+      // 自己ベスト未取得なら、NEW RECORD判定のために開始前に取得しておく
+      if (!myBestLoaded) await refreshMyBest();
 
       if (ONLINE_CONFIGURED && supabaseClient) {
         const { data, error } = await supabaseClient.rpc("start_game");
@@ -1339,6 +1379,7 @@
       if (error) {
         console.warn("ランキング保存に失敗しました:", error.message);
       } else {
+        await refreshMyBest();
         await refreshLeaderboard();
       }
     }
@@ -2098,6 +2139,23 @@
     if (height > 0) els.rankingPanel.style.height = `${height}px`;
   }
 
+  // サーバーから自分の自己ベストを取得（ランキングTOP5に入っていなくても取れる）
+  async function refreshMyBest() {
+    if (!ONLINE_CONFIGURED || !supabaseClient || !currentUserId || String(currentUserId).startsWith("offline-")) return;
+    try {
+      const { data, error } = await withTimeout(supabaseClient.rpc("get_my_best"), 8000, "自己ベスト取得");
+      if (error) {
+        console.warn("自己ベストの取得に失敗しました:", error.message);
+        return;
+      }
+      currentBest = Math.max(0, Number(data) || 0);
+      myBestLoaded = true;
+      updateHud();
+    } catch (error) {
+      console.warn("自己ベストの取得に失敗しました:", error);
+    }
+  }
+
   async function refreshLeaderboard() {
     if (!ONLINE_CONFIGURED || !supabaseClient) {
       els.rankingStatus.textContent = "オンラインランキングはSupabase設定後に有効になります。";
@@ -2113,8 +2171,9 @@
     }
 
     const rows = (data || []).slice(0, 5);
+    // 自己ベストは refreshMyBest() で管理する（TOP5外だと0になってしまうため、ここでは下げない）
     const me = rows.find((row) => row.user_id === currentUserId);
-    currentBest = me?.best_score || 0;
+    if (me?.best_score) currentBest = Math.max(currentBest, me.best_score);
     updateHud();
 
     els.rankingStatus.textContent = rows.length ? "" : "まだ記録がありません。最初のランナーになろう。";
