@@ -5695,3 +5695,40 @@ html.theme-dark.has-dark-ability-bg .upgrade-box {
   background: url('./assets/backgrounds/ability-select-bg-dark.png?v=85') center 48% / cover no-repeat !important;
 }
 html.theme-dark.has-dark-ability-bg #upgrade-overlay::after { display: none !important; }
+
+/* v86 イベント予告：走行エリアの下、床より下に固定する。 */
+.run-event-banner {
+  --event-accent: #ffe09a;
+  position: absolute;
+  z-index: 6;
+  inset: auto 3% 2.1%;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border: 1px solid var(--event-accent);
+  border-left: 5px solid var(--event-accent);
+  border-radius: 14px;
+  background: rgba(28, 29, 49, .92);
+  color: #fff9f3;
+  box-shadow: 0 4px 18px rgba(35, 22, 39, .18);
+  pointer-events: none;
+}
+.run-event-copy { display: grid; gap: 3px; min-width: 0; }
+#run-event-title { color: var(--event-accent); font-size: clamp(12px, 1.55vw, 21px); line-height: 1.2; }
+#run-event-hint { font-size: clamp(9px, 1vw, 13px); line-height: 1.4; }
+.run-event-badge { flex-shrink: 0; color: var(--event-accent); font-size: 11px; font-weight: 900; letter-spacing: .05em; }
+.run-event-banner.is-warning { border-style: dashed; border-left-style: solid; }
+.run-event-banner.hidden,
+body:not(.is-playing) .run-event-banner,
+body.upgrade-active .run-event-banner { display: none !important; }
+@media (max-width: 760px), (max-height: 520px) and (orientation: landscape) {
+  .run-event-banner { inset: auto 2% 1.4%; min-height: 0; padding: 4px 7px; gap: 5px; border-radius: 8px; border-left-width: 3px; }
+  .run-event-banner { display: block; }
+  .run-event-copy { gap: 1px; }
+  #run-event-title { font-size: 11px; padding-right: 56px; }
+  #run-event-hint { font-size: 8px; }
+  .run-event-badge { position: absolute; right: 7px; top: 5px; font-size: 8px; letter-spacing: 0; }
+}

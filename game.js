@@ -69,6 +69,12 @@
     loadingJumpKeys: $("loading-jump-keys"),
     loadingDuckKeys: $("loading-duck-keys")
   };
+  const eventUi = {
+    banner: $("run-event-banner"),
+    title: $("run-event-title"),
+    hint: $("run-event-hint"),
+    badge: $("run-event-badge")
+  };
 
   const ctx = els.canvas.getContext("2d");
   ctx.imageSmoothingEnabled = true;
@@ -815,6 +821,13 @@
     enemyTimer: 0.9,
     coinTimer: 0.4,
     postUpgradeGrace: 0,
+    runEvent: null,
+    eventCooldown: 18,
+    eventQueue: [],
+    eventSerial: 0,
+    routeSerial: 0,
+    secretTimer: 10,
+    eventNotice: null,
     enemies: [],
     coinObjects: [],
     popTexts: [],
@@ -886,6 +899,8 @@
   const GHOST_HITBOX_TOP = 270;
 
   function isUpperLaneUnlocked(distance = game.distance) {
+    // イベント中は床構成を固定。分かれ道は距離に関係なく上下を選べる。
+    if (game.runEvent) return game.runEvent.kind === "tea_fork";
     if (distance < LANE_UNLOCK_DISTANCE) return false;
     const cycle = Math.floor((distance - LANE_UNLOCK_DISTANCE) / LANE_CYCLE_DISTANCE);
     return cycle % 2 === 0;
@@ -907,6 +922,7 @@
       game.enemies = game.enemies.filter((enemy) => enemy.lane !== 1);
       game.coinObjects = game.coinObjects.filter((coin) => !coin.upperLane && !(coin.ultra && coin.y < ULTRA_CHIPS_Y));
     }
+    if (game.runEvent) return; // イベントの案内と床切り替え通知を重ねない。
     game.popTexts.push({
       x: els.canvas.width / 2,
       y: 190,
@@ -980,8 +996,8 @@
       icon: "盾",
       iconImage: "./assets/upgrades/shield.png?v=63",
       name: "ほげシールド",
-      uiDesc: "獲得した瞬間から無敵。取るたびに+5秒\n（10秒→15秒→20秒…）",
-      desc: "獲得した瞬間から無敵。取るたびに無敵時間が5秒ずつ延びる（10秒→15秒→20秒…）。",
+      uiDesc: "無敵中、ぶつかった敵が紅茶5杯に！\n無敵10秒から、取るたびに+5秒。",
+      desc: "獲得時から10秒間無敵。取るたびに+5秒。シールド中にぶつかった敵を壊し、紅茶5杯に変える。",
       max: 6,
       apply: () => {
         game.upgrades.shield += 1;
@@ -1037,10 +1053,13 @@
       icon: "金",
       iconImage: "./assets/upgrades/tea-sensor.png?v=63",
       name: "ティーセンサー",
-      uiDesc: "紅茶カップの出現間隔が短くなる。\n最大Lv3で出現数が2倍！",
-      desc: "紅茶カップの出現間隔が短くなる。最大Lv3で紅茶カップの出現数が2倍になる。",
+      uiDesc: "隠された紅茶の道が光って見える！\n紅茶が増え、最大Lv3で出現数2倍。",
+      desc: "隠しルートが光って見え、その紅茶を取れるようになる。通常の紅茶の出現間隔も短縮。最大Lv3で通常の出現数2倍。",
       max: 3,
-      apply: () => { game.upgrades.coinSpawnFactor *= 0.88; }
+      apply: () => {
+        game.upgrades.coinSpawnFactor *= 0.88;
+        game.secretTimer = Math.min(game.secretTimer, 1.2);
+      }
     },
     {
       id: "threshold_reset",
@@ -1111,6 +1130,14 @@
     game.enemyTimer = 0.85;
     game.coinTimer = 0.35;
     game.postUpgradeGrace = 0;
+    game.runEvent = null;
+    game.eventCooldown = 18;
+    game.eventQueue = ["tea_trail", "veggie_march", "ghost_passage", "tea_fork"];
+    game.eventSerial = 0;
+    game.routeSerial = 0;
+    game.secretTimer = 10;
+    game.eventNotice = null;
+    renderEventBanner();
     game.enemies = [];
     game.coinObjects = [];
     game.particles = [];
@@ -1775,6 +1802,23 @@
   }
 
   function handleEnemyCollision(enemy) {
+    if (enemy.dead) return;
+    if (game.player.shieldTimer > 0) {
+      enemy.dead = true;
+      const floor = getLaneGroundY(game.player.lane);
+      for (let i = 0; i < 5; i += 1) {
+        game.coinObjects.push({
+          x: game.player.x + game.player.w + 12 + i * 22,
+          y: floor - 52 - Math.sin(i / 4 * Math.PI) * 18,
+          w: 20, h: 20, spin: i, collected: false, shieldTea: true,
+          upperLane: game.player.lane === 1, eventId: enemy.eventId
+        });
+      }
+      puff(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, 18, "#b4fff0");
+      game.popTexts.push({ x: game.player.x + 100, y: floor - 108, text: "紅茶に変身！", life: 0.8 });
+      playSfx("tea", { high: true });
+      return;
+    }
     if (game.player.invincible > 0) return;
 
     if (game.upgrades.revive > 0) {
@@ -1792,11 +1836,14 @@
 
   function collectCoin(coin) {
     if (coin.collected) return;
+    if (coin.hiddenTea && !hasTeaSensor()) return;
     coin.collected = true;
-    const value = coin.ultra ? ULTRA_CHIPS_VALUE : coin.rainbow ? RAINBOW_TEA_VALUE : 1;
+    const value = coin.value || (coin.ultra ? ULTRA_CHIPS_VALUE : coin.rainbow ? RAINBOW_TEA_VALUE : 1);
     game.coins += value;
     playSfx("tea", { high: !!(coin.rainbow || coin.ultra) });
-    game.distance += 4;
+    // 追加ギミックの報酬は紅茶数に加算する。距離ボーナスまで増やして
+    // 既存ランキングの時間あたりスコア上限を超えないようにする。
+    if (!coin.eventReward && !coin.eventId && !coin.hiddenTea && !coin.shieldTea) game.distance += 4;
     if (coin.ultra) {
       ["#ff6b8b", "#ffb86b", "#ffe66d", "#7be08f", "#6bc8ff", "#b28bff", "#ffffff"].forEach((color) => {
         puff(coin.x + coin.w / 2, coin.y + coin.h / 2, 6, color);
@@ -1819,6 +1866,255 @@
     }
   }
 
+  // v86: 予告 → 決まった配置 → 最後の敵・報酬の通過 → 通常区間。
+  // 時間はプレイ中だけ進める。強化選択と選択後の安全時間中は停止する。
+  const RUN_EVENTS = {
+    tea_trail: {
+      title: "空中ティーロード", badge: "BONUS", color: "#ffe09a",
+      hint: "長い紅茶の列を追いかけて、最後のレインボー紅茶＋50へ！",
+      waves: 1, interval: 1, reward: 0
+    },
+    veggie_march: {
+      title: "野菜の大行進", badge: "JUMP", color: "#c8f0a0",
+      hint: "リズムよくジャンプ！ シールド中なら野菜が紅茶に変身。",
+      waves: 4, interval: 2.6, reward: 10
+    },
+    ghost_passage: {
+      title: "おばけの通り道", badge: "SLIDE", color: "#d3c3ff",
+      hint: "おばけが来たらスライディング。通り抜けて紅茶＋15！",
+      waves: 4, interval: 2.6, reward: 15
+    },
+    tea_fork: {
+      title: "紅茶の分かれ道", badge: "CHOOSE", color: "#ffbed8",
+      hint: "上段＝高報酬 ／ 下段＝敵なし　ジャンプで上・しゃがみで下",
+      waves: 3, interval: 3.6, reward: 0
+    }
+  };
+
+  function hasTeaSensor() {
+    return (game.upgradeLevels.coin_sense || 0) > 0;
+  }
+
+  function setEventNotice(title, hint, badge = "TEA", color = "#a5f8e0") {
+    game.eventNotice = { title, hint, badge, color, remaining: 3 };
+  }
+
+  function renderEventBanner() {
+    if (!eventUi.banner) return;
+    const event = game.runEvent;
+    const meta = event ? RUN_EVENTS[event.kind] : game.eventNotice;
+    eventUi.banner.classList.toggle("hidden", !meta);
+    if (!meta) return;
+    const warning = event?.stage === "warning";
+    const badge = warning ? `あと ${Math.ceil(event.warning)} 秒` : meta.badge;
+    const title = warning ? `まもなく ${meta.title}` : meta.title;
+    // 同じ文言を毎フレーム書き込まない（読み上げとレイアウト更新を抑える）。
+    if (eventUi.title.textContent !== title) eventUi.title.textContent = title;
+    if (eventUi.hint.textContent !== meta.hint) eventUi.hint.textContent = meta.hint;
+    if (eventUi.badge.textContent !== badge) eventUi.badge.textContent = badge;
+    eventUi.banner.style.setProperty("--event-accent", meta.color);
+    eventUi.banner.classList.toggle("is-warning", warning);
+  }
+
+  function nextRunEventKind() {
+    if (!game.eventQueue.length) {
+      game.eventQueue = Object.keys(RUN_EVENTS);
+      for (let i = game.eventQueue.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [game.eventQueue[i], game.eventQueue[j]] = [game.eventQueue[j], game.eventQueue[i]];
+      }
+    }
+    return game.eventQueue.shift();
+  }
+
+  function beginRunEvent(kind) {
+    if (!RUN_EVENTS[kind] || game.runEvent) return;
+    game.runEvent = {
+      id: ++game.eventSerial, kind, stage: "warning", warning: 3,
+      timer: 0, wave: 0, elapsed: 0
+    };
+    game.eventNotice = null;
+    // ランダム敵とイベント配置を混在させない。3秒の予告中に床も切り替える。
+    for (const enemy of game.enemies) puff(enemy.x, enemy.y, 4, "#ffffff");
+    game.enemies = [];
+    game.enemyTimer = 1.4;
+    updateLaneStage();
+    renderEventBanner();
+  }
+
+  function addTeaLine({ x, y, count, spacing, eventId, lane = 0, rare = false, hiddenTea = false, arc = 0 }) {
+    const routeId = ++game.routeSerial;
+    for (let i = 0; i < count; i += 1) {
+      game.coinObjects.push({
+        x: x + i * spacing,
+        y: y - Math.sin(i / Math.max(1, count - 1) * Math.PI) * arc,
+        w: 20, h: 20, collected: false, spin: i * 0.7,
+        eventId, routeId, hiddenTea, upperLane: lane === 1
+      });
+    }
+    if (rare) {
+      // 確定報酬はレインボー紅茶。ポテチ固有の取得条件に縛られない。
+      game.coinObjects.push({
+        x: x + count * spacing + 22, y: y - 2, w: 24, h: 24,
+        collected: false, spin: 0, rainbow: true, routeEnd: true,
+        eventId, routeId, hiddenTea, upperLane: lane === 1
+      });
+    }
+    return routeId;
+  }
+
+  function spawnHiddenTeaPath(eventId = null, lane = 0) {
+    const floor = lane === 1 ? UPPER_GROUND_Y : GROUND_Y;
+    addTeaLine({
+      x: 1050, y: floor - (lane === 1 ? 112 : 46), count: 12,
+      spacing: Math.max(38, game.worldSpeed * 0.12), arc: lane === 1 ? 28 : 20,
+      hiddenTea: true, rare: true, eventId, lane
+    });
+    if (hasTeaSensor() && !game.runEvent) {
+      setEventNotice("隠しティーロード発見！", "ミント色の光をたどろう。奥にはレインボー紅茶＋50！", "SENSOR");
+    }
+  }
+
+  function addEventEnemy(kind, x, lane, eventId) {
+    const dims = { carrot: [36, 58], tomato: [48, 44], broccoli: [52, 58], eggplant: [40, 58], ghost: [68, 58] }[kind];
+    const y = kind === "ghost" ? 326 : (lane === 1 ? UPPER_GROUND_Y : GROUND_Y) - dims[1];
+    game.enemies.push({
+      kind, x, y, baseY: y, lane, w: dims[0], h: dims[1],
+      speedMul: 1, dead: false, jumpy: false, eventId
+    });
+  }
+
+  function spawnEventWave(event) {
+    const x = Math.max(1040, game.player.x + game.worldSpeed * 1.8);
+    if (event.kind === "tea_trail") {
+      addTeaLine({ x, y: GROUND_Y - 130, count: 24,
+        spacing: Math.max(36, game.worldSpeed * 0.12), rare: true, eventId: event.id });
+      spawnHiddenTeaPath(event.id); // センサー所持時だけ下側の別ルートも光る。
+    } else if (event.kind === "veggie_march") {
+      const kind = ["carrot", "tomato", "broccoli", "eggplant"][event.wave];
+      addEventEnemy(kind, x, 0, event.id);
+      // 後半は一度のジャンプで越えられる小さな2体セット。
+      if (event.wave >= 2) addEventEnemy("tomato", x + 78, 0, event.id);
+      addTeaLine({ x: x + 18, y: GROUND_Y - 120, count: 3, spacing: 34, eventId: event.id });
+    } else if (event.kind === "ghost_passage") {
+      addEventEnemy("ghost", x, 0, event.id);
+      addTeaLine({ x: x + 10, y: GROUND_Y - 26, count: 4, spacing: 30, eventId: event.id });
+    } else if (event.kind === "tea_fork") {
+      // 下段には敵を出さない。上段の敵の後ろに報酬を配置する。
+      addTeaLine({ x, y: GROUND_Y - 46, count: 4, spacing: 46, eventId: event.id });
+      addEventEnemy(["carrot", "tomato", "eggplant"][event.wave], x, 1, event.id);
+      addTeaLine({ x: x + 155, y: UPPER_GROUND_Y - 46, count: 10,
+        spacing: Math.max(36, game.worldSpeed * 0.09), lane: 1,
+        rare: event.wave === RUN_EVENTS.tea_fork.waves - 1, eventId: event.id });
+      if (event.wave === 1) spawnHiddenTeaPath(event.id, 1);
+    }
+  }
+
+  function finishRunEvent() {
+    const event = game.runEvent;
+    if (!event) return;
+    const meta = RUN_EVENTS[event.kind];
+    game.runEvent = null;
+    game.eventCooldown = randomBetween(18, 24);
+    game.enemyTimer = 1.8;
+    game.coinTimer = 0.35;
+    game.secretTimer = Math.max(game.secretTimer, 8);
+    updateLaneStage();
+    setEventNotice(`${meta.title} クリア！`, meta.reward
+      ? `通り抜けボーナス 紅茶＋${meta.reward}`
+      : "ひと息ついて、次の冒険へ！", "CLEAR", meta.color);
+    if (meta.reward) {
+      collectCoin({ x: game.player.x, y: game.player.y, w: 20, h: 20,
+        value: meta.reward, eventReward: true, collected: false });
+    }
+  }
+
+  function updateRunEvents(dt) {
+    if (game.eventNotice) {
+      game.eventNotice.remaining -= dt;
+      if (game.eventNotice.remaining <= 0) game.eventNotice = null;
+    }
+    if (!game.runEvent) {
+      game.eventCooldown -= dt;
+      if (game.eventCooldown <= 0) {
+        beginRunEvent(nextRunEventKind());
+      } else {
+        game.secretTimer -= dt;
+        if (game.secretTimer <= 0) {
+          // 取得前から存在する隠し道。見えない間は当たり判定・磁石の対象外。
+          spawnHiddenTeaPath();
+          game.secretTimer = randomBetween(22, 28);
+        }
+      }
+    }
+    const event = game.runEvent;
+    if (!event) { renderEventBanner(); return false; }
+    if (event.stage === "warning") {
+      event.warning = Math.max(0, event.warning - dt);
+      if (event.warning === 0) event.stage = "active";
+    } else {
+      event.elapsed += dt;
+      event.timer -= dt;
+      const meta = RUN_EVENTS[event.kind];
+      if (event.wave < meta.waves && event.timer <= 0) {
+        spawnEventWave(event);
+        event.wave += 1;
+        event.timer = meta.interval;
+      }
+      // 時間切れで敵や最後の報酬を消さない。通過するまで床も維持する。
+      if (event.wave >= meta.waves &&
+          !game.enemies.some((enemy) => enemy.eventId === event.id && !enemy.dead) &&
+          !game.coinObjects.some((coin) => coin.eventId === event.id && !coin.collected)) {
+        finishRunEvent();
+      }
+    }
+    renderEventBanner();
+    return true;
+  }
+
+  function drawTeaRoutes() {
+    const routes = new Map();
+    for (const coin of game.coinObjects) {
+      if (!coin.routeId || coin.collected || (coin.hiddenTea && !hasTeaSensor())) continue;
+      if (!routes.has(coin.routeId)) routes.set(coin.routeId, []);
+      routes.get(coin.routeId).push(coin);
+    }
+    ctx.save();
+    for (const coins of routes.values()) {
+      if (!coins.some((coin) => coin.x > -50 && coin.x < 1000)) continue;
+      const hidden = coins[0].hiddenTea;
+      ctx.strokeStyle = hidden ? "#79ffdc" : "rgba(255,232,162,0.60)";
+      ctx.lineWidth = hidden ? 4 : 2;
+      ctx.shadowColor = hidden ? "#69ffe1" : "#fff0ad";
+      ctx.shadowBlur = hidden ? 15 : 4;
+      ctx.setLineDash(hidden ? [7, 8] : [3, 12]);
+      ctx.lineDashOffset = -game.elapsed * 24;
+      ctx.beginPath();
+      coins.forEach((coin, i) => {
+        const x = coin.x + coin.w / 2;
+        const y = coin.y + coin.h / 2;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    if (game.runEvent?.kind === "tea_fork") {
+      ctx.save();
+      ctx.font = "800 21px 'M PLUS Rounded 1c', sans-serif";
+      ctx.textAlign = "right";
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = "rgba(28,31,49,0.9)";
+      [[UPPER_GROUND_Y + 28, "上段：野菜あり・紅茶たっぷり＋50", "#ffe298"],
+       [GROUND_Y + 24, "下段：敵なし・安全ルート", "#b8ffdc"]].forEach(([y, label, color]) => {
+        ctx.strokeText(label, 932, y);
+        ctx.fillStyle = color;
+        ctx.fillText(label, 932, y);
+      });
+      ctx.restore();
+    }
+  }
+
   function updateWorld(dt) {
     game.elapsed += dt;
     game.worldSpeed = Math.min(MAX_WORLD_SPEED, 330 + game.elapsed * 7.2) * game.upgrades.speedFactor;
@@ -1832,7 +2128,7 @@
     // 1秒間は新しい敵・紅茶カップを出現させず、選択直後の事故死を防ぐ。
     if (game.postUpgradeGrace > 0) {
       game.postUpgradeGrace = Math.max(0, game.postUpgradeGrace - dt);
-    } else {
+    } else if (!updateRunEvents(dt)) {
       game.enemyTimer -= dt;
       if (game.enemyTimer <= 0) {
         spawnEnemy();
@@ -1849,6 +2145,7 @@
       }
     }
 
+    if (game.phase !== "playing") return;
     const speed = game.worldSpeed;
     const pBox = playerHitbox();
 
@@ -1881,6 +2178,7 @@
 
       if (!enemy.dead && !duckingUnderGhost && intersects(pBox, enemyHitbox(enemy))) {
         handleEnemyCollision(enemy);
+        if (game.phase !== "playing") return;
       }
     }
     game.enemies = game.enemies.filter((enemy) => !enemy.dead && enemy.x + enemy.w > -60);
@@ -1890,6 +2188,7 @@
     for (const coin of game.coinObjects) {
       coin.spin += dt * 9;
       coin.x -= speed * dt;
+      if (coin.hiddenTea && !hasTeaSensor()) continue;
       const cx = coin.x + coin.w / 2;
       const cy = coin.y + coin.h / 2;
       const dx = px - cx;
@@ -1906,7 +2205,10 @@
       const doubleJumping = !game.player.onGround && game.player.airJumpsUsed >= 1;
       const laneOk = !isUpperLaneUnlocked() || game.player.lane === 1;
       const canTakeUltra = !coin.ultra || magnetMaxed || (doubleJumping && laneOk);
-      if (!coin.collected && canTakeUltra && intersects(pBox, coin)) collectCoin(coin);
+      if (!coin.collected && canTakeUltra && intersects(pBox, coin)) {
+        collectCoin(coin);
+        if (game.phase !== "playing") break;
+      }
     }
     game.coinObjects = game.coinObjects.filter((coin) => !coin.collected && coin.x + coin.w > (coin.ultra ? -120 : -40));
 
@@ -2570,6 +2872,8 @@
   }
 
   function drawCoin(coin) {
+    if (coin.collected || (coin.hiddenTea && !hasTeaSensor())) return;
+    if (coin.x < -140 || coin.x > els.canvas.width + 140) return;
     const bob = Math.sin(coin.spin) * 3;
     const img = ART.teaCup;
     const centerX = coin.x + coin.w / 2;
@@ -2579,6 +2883,17 @@
     ctx.translate(centerX, centerY);
     const pulse = 1 + Math.sin(coin.spin * 0.7) * 0.035;
     ctx.scale(pulse, pulse);
+
+    if (coin.hiddenTea) {
+      ctx.strokeStyle = "#83ffe0";
+      ctx.lineWidth = 2;
+      ctx.shadowColor = "#65ffe1";
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      ctx.arc(0, 0, 23 + Math.sin(coin.spin) * 2, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
 
     if (coin.ultra) {
       drawUltraChips();
@@ -3101,6 +3416,7 @@
 
   function draw() {
     drawBackground();
+    drawTeaRoutes();
     for (const coin of game.coinObjects) drawCoin(coin);
     for (const enemy of game.enemies) drawEnemy(enemy);
     drawPlayer();
