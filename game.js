@@ -864,6 +864,8 @@
   // 2段目解放後は LANE_CYCLE_DISTANCE ごとに「2段ステージ」と「1段ステージ」を交互に切り替える
   // 20000〜25000m: 2段 / 25000〜30000m: 1段 / 30000〜35000m: 2段 …
   const LANE_CYCLE_DISTANCE = 5000;
+  // 空中ティーロードの紅茶の高さ。1段ジャンプの最高到達点より上、二段ジャンプで届く位置。
+  const TEA_TRAIL_Y = 200;
   const GRAVITY = 1950;
   const BASE_JUMP = 720;
   // ゴースト本体の見た目の高さ（足元から頭上まで）。2段ジャンプ時はこの高さを越えればかわせる。
@@ -1870,14 +1872,16 @@
   // 時間はプレイ中だけ進める。強化選択と選択後の安全時間中は停止する。
   const RUN_EVENTS = {
     tea_trail: {
-      title: "空中ティーロード", badge: "BONUS", color: "#ffe09a",
-      hint: "長い紅茶の列を追いかけて、最後のレインボー紅茶＋50へ！",
-      waves: 1, interval: 1, reward: 0
+      title: "空中ティーロード", badge: "AIR", color: "#ffe09a",
+      hint: "二段ジャンプで空の紅茶へ！ 敵は普通に来るので着地に注意。",
+      waves: 1, interval: 1, reward: 0,
+      requiresDoubleJump: true, // 二段ジャンプ取得時のみ発生
+      normalPlay: true          // イベント中も通常の敵・紅茶を出し続ける
     },
     veggie_march: {
-      title: "野菜の大行進", badge: "JUMP", color: "#c8f0a0",
-      hint: "リズムよくジャンプ！ シールド中なら野菜が紅茶に変身。",
-      waves: 4, interval: 2.6, reward: 10
+      title: "野菜の大行進", badge: "RHYTHM", color: "#c8f0a0",
+      hint: "表拍・裏拍でどんどん来る！ リズムよくジャンプ！",
+      waves: 10, interval: 0.95, reward: 10
     },
     ghost_passage: {
       title: "おばけの通り道", badge: "SLIDE", color: "#d3c3ff",
@@ -1890,6 +1894,25 @@
       waves: 3, interval: 3.6, reward: 0
     }
   };
+
+  // 野菜の大行進のリズム譜。
+  // offsets: 先頭からの秒数（0.2〜0.4秒差のかたまりは1回のジャンプで越えられる）
+  // gap: このかたまりの最後の野菜から、次のかたまりの先頭までの秒数（0.85秒以上＝着地して跳べる間隔）
+  const MARCH_PATTERN = [
+    { offsets: [0],             gap: 0.95 }, // 表拍
+    { offsets: [0, 0.12],       gap: 1.10 }, // 裏拍セット（1回のジャンプで両方越える）
+    { offsets: [0],             gap: 0.90 },
+    { offsets: [0, 0.12, 0.24], gap: 1.20 }, // 三連（低速時は2体に減る）
+    { offsets: [0],             gap: 0.85 },
+    { offsets: [],              gap: 0.90 }, // 休符（紅茶だけ）
+    { offsets: [0, 0.12],       gap: 1.05 },
+    { offsets: [0],             gap: 0.90 },
+    { offsets: [0, 0.12, 0.24], gap: 1.15 },
+    { offsets: [0, 0.12],       gap: 1.00 }
+  ];
+  // 低速域は1ジャンプの滞空時間に対して3体が長すぎるため、2体に減らす。
+  const MARCH_TRIPLE_MIN_SPEED = 480;
+  const MARCH_KINDS = ["carrot", "tomato", "broccoli", "eggplant"];
 
   function hasTeaSensor() {
     return (game.upgradeLevels.coin_sense || 0) > 0;
@@ -1916,15 +1939,28 @@
     eventUi.banner.classList.toggle("is-warning", warning);
   }
 
+  // 空中ティーロードは二段ジャンプを持っている時だけ出す。
+  function isRunEventAvailable(kind) {
+    const meta = RUN_EVENTS[kind];
+    if (!meta) return false;
+    if (meta.requiresDoubleJump && game.upgrades.extraAirJumps < 1) return false;
+    return true;
+  }
+
   function nextRunEventKind() {
-    if (!game.eventQueue.length) {
-      game.eventQueue = Object.keys(RUN_EVENTS);
-      for (let i = game.eventQueue.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [game.eventQueue[i], game.eventQueue[j]] = [game.eventQueue[j], game.eventQueue[i]];
+    for (let guard = 0; guard < 8; guard += 1) {
+      if (!game.eventQueue.length) {
+        game.eventQueue = Object.keys(RUN_EVENTS).filter(isRunEventAvailable);
+        if (!game.eventQueue.length) return null;
+        for (let i = game.eventQueue.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [game.eventQueue[i], game.eventQueue[j]] = [game.eventQueue[j], game.eventQueue[i]];
+        }
       }
+      const kind = game.eventQueue.shift();
+      if (isRunEventAvailable(kind)) return kind;
     }
-    return game.eventQueue.shift();
+    return null;
   }
 
   function beginRunEvent(kind) {
@@ -1935,9 +1971,12 @@
     };
     game.eventNotice = null;
     // ランダム敵とイベント配置を混在させない。3秒の予告中に床も切り替える。
-    for (const enemy of game.enemies) puff(enemy.x, enemy.y, 4, "#ffffff");
-    game.enemies = [];
-    game.enemyTimer = 1.4;
+    // ただし normalPlay のイベント（空中ティーロード）は通常の敵をそのまま走らせる。
+    if (!RUN_EVENTS[kind].normalPlay) {
+      for (const enemy of game.enemies) puff(enemy.x, enemy.y, 4, "#ffffff");
+      game.enemies = [];
+      game.enemyTimer = 1.4;
+    }
     updateLaneStage();
     renderEventBanner();
   }
@@ -1987,15 +2026,23 @@
   function spawnEventWave(event) {
     const x = Math.max(1040, game.player.x + game.worldSpeed * 1.8);
     if (event.kind === "tea_trail") {
-      addTeaLine({ x, y: GROUND_Y - 130, count: 24,
+      // 二段ジャンプでしか届かない高さ（1段ジャンプの最高到達点より上）。
+      addTeaLine({ x, y: TEA_TRAIL_Y, count: 24,
         spacing: Math.max(36, game.worldSpeed * 0.12), rare: true, eventId: event.id });
       spawnHiddenTeaPath(event.id); // センサー所持時だけ下側の別ルートも光る。
     } else if (event.kind === "veggie_march") {
-      const kind = ["carrot", "tomato", "broccoli", "eggplant"][event.wave];
-      addEventEnemy(kind, x, 0, event.id);
-      // 後半は一度のジャンプで越えられる小さな2体セット。
-      if (event.wave >= 2) addEventEnemy("tomato", x + 78, 0, event.id);
-      addTeaLine({ x: x + 18, y: GROUND_Y - 120, count: 3, spacing: 34, eventId: event.id });
+      const pattern = MARCH_PATTERN[event.wave % MARCH_PATTERN.length];
+      const offsets = pattern.offsets.length >= 3 && game.worldSpeed < MARCH_TRIPLE_MIN_SPEED
+        ? pattern.offsets.slice(0, 2)
+        : pattern.offsets;
+      offsets.forEach((offset, i) => {
+        const kind = MARCH_KINDS[(event.wave + i) % MARCH_KINDS.length];
+        // 同じジャンプで越えられるよう、見た目が重ならない最小幅だけ空ける。
+        addEventEnemy(kind, x + Math.max(56 * i, offset * game.worldSpeed), 0, event.id);
+      });
+      // 休符の拍は紅茶だけ流して、リズムを見失わないようにする。
+      addTeaLine({ x: x + 18, y: GROUND_Y - (pattern.offsets.length ? 120 : 72),
+        count: pattern.offsets.length ? 3 : 5, spacing: 34, eventId: event.id });
     } else if (event.kind === "ghost_passage") {
       addEventEnemy("ghost", x, 0, event.id);
       addTeaLine({ x: x + 10, y: GROUND_Y - 26, count: 4, spacing: 30, eventId: event.id });
@@ -2008,6 +2055,14 @@
         rare: event.wave === RUN_EVENTS.tea_fork.waves - 1, eventId: event.id });
       if (event.wave === 1) spawnHiddenTeaPath(event.id, 1);
     }
+  }
+
+  // 次の波までの待ち時間。野菜の大行進はリズム譜に従う。
+  function nextWaveDelay(event, meta) {
+    if (event.kind !== "veggie_march") return meta.interval;
+    const pattern = MARCH_PATTERN[event.wave % MARCH_PATTERN.length];
+    const last = pattern.offsets.length ? pattern.offsets[pattern.offsets.length - 1] : 0;
+    return last + pattern.gap;
   }
 
   function finishRunEvent() {
@@ -2037,7 +2092,9 @@
     if (!game.runEvent) {
       game.eventCooldown -= dt;
       if (game.eventCooldown <= 0) {
-        beginRunEvent(nextRunEventKind());
+        const kind = nextRunEventKind();
+        if (kind) beginRunEvent(kind);
+        else game.eventCooldown = 6; // 条件を満たすイベントが無ければ少し待って再抽選
       } else {
         game.secretTimer -= dt;
         if (game.secretTimer <= 0) {
@@ -2058,8 +2115,8 @@
       const meta = RUN_EVENTS[event.kind];
       if (event.wave < meta.waves && event.timer <= 0) {
         spawnEventWave(event);
+        event.timer = nextWaveDelay(event, meta);
         event.wave += 1;
-        event.timer = meta.interval;
       }
       // 時間切れで敵や最後の報酬を消さない。通過するまで床も維持する。
       if (event.wave >= meta.waves &&
@@ -2128,7 +2185,7 @@
     // 1秒間は新しい敵・紅茶カップを出現させず、選択直後の事故死を防ぐ。
     if (game.postUpgradeGrace > 0) {
       game.postUpgradeGrace = Math.max(0, game.postUpgradeGrace - dt);
-    } else if (!updateRunEvents(dt)) {
+    } else if (!updateRunEvents(dt) || RUN_EVENTS[game.runEvent?.kind]?.normalPlay) {
       game.enemyTimer -= dt;
       if (game.enemyTimer <= 0) {
         spawnEnemy();
