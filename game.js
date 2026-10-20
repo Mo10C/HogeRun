@@ -2537,7 +2537,10 @@
       return;
     }
     const height = Math.round(els.gameFrame.getBoundingClientRect().height);
-    if (height > 0) els.rankingPanel.style.height = `${height}px`;
+    // ランキングの上に「ほげ主総会」ロゴを置いた分だけ、枠の高さを詰める。
+    const banner = document.querySelector(".meeting-banner");
+    const bannerOffset = banner ? Math.round(banner.getBoundingClientRect().height) + 10 : 0;
+    if (height > 0) els.rankingPanel.style.height = `${Math.max(240, height - bannerOffset)}px`;
   }
 
   // サーバーから自分の自己ベストを取得（ランキングTOP5に入っていなくても取れる）

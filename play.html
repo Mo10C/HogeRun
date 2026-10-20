@@ -37,7 +37,7 @@
     body.app-loading .footer { display: none !important; }
     #boot-splash { position: fixed; inset: 0; z-index: 99999; }
   </style>
-  <link rel="stylesheet" href="./styles.css?v=86" />
+  <link rel="stylesheet" href="./styles.css?v=88" />
 </head>
 <body class="app-loading">
   <div id="boot-splash" class="boot-splash" role="status" aria-live="polite">
@@ -250,18 +250,21 @@
         </div>
       </div>
 
-      <aside class="panel ranking-panel">
-        <img class="ranking-corner ranking-corner-tl" src="./assets/ui/ranking/corner-flourish.png?v=62" alt="" aria-hidden="true" />
-        <img class="ranking-corner ranking-corner-tr" src="./assets/ui/ranking/corner-flourish.png?v=62" alt="" aria-hidden="true" />
-        <img class="ranking-corner ranking-corner-bl" src="./assets/ui/ranking/corner-flourish.png?v=62" alt="" aria-hidden="true" />
-        <img class="ranking-corner ranking-corner-br" src="./assets/ui/ranking/corner-flourish.png?v=62" alt="" aria-hidden="true" />
-        <div class="ranking-logo-row">
-          <img class="ranking-logo-image" src="./assets/ui/ranking/ranking-logo.png?v=62" alt="ランキング" />
-          <button id="refresh-ranking" class="icon-button" type="button" title="ランキング更新">↻</button>
-        </div>
-        <div id="ranking-status" class="ranking-status">読み込み中...</div>
-        <ol id="ranking-list" class="ranking-list"></ol>
-      </aside>
+      <div class="ranking-column">
+        <img class="meeting-banner" src="./assets/ui/hogeshu-logo.png?v=88" alt="ほげ主総会 10月回" />
+        <aside class="panel ranking-panel">
+          <img class="ranking-corner ranking-corner-tl" src="./assets/ui/ranking/corner-flourish.png?v=62" alt="" aria-hidden="true" />
+          <img class="ranking-corner ranking-corner-tr" src="./assets/ui/ranking/corner-flourish.png?v=62" alt="" aria-hidden="true" />
+          <img class="ranking-corner ranking-corner-bl" src="./assets/ui/ranking/corner-flourish.png?v=62" alt="" aria-hidden="true" />
+          <img class="ranking-corner ranking-corner-br" src="./assets/ui/ranking/corner-flourish.png?v=62" alt="" aria-hidden="true" />
+          <div class="ranking-logo-row">
+            <img class="ranking-logo-image" src="./assets/ui/ranking/ranking-logo.png?v=62" alt="ランキング" />
+            <button id="refresh-ranking" class="icon-button" type="button" title="ランキング更新">↻</button>
+          </div>
+          <div id="ranking-status" class="ranking-status">読み込み中...</div>
+          <ol id="ranking-list" class="ranking-list"></ol>
+        </aside>
+      </div>
     </section>
   </main>
 

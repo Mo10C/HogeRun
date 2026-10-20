@@ -5732,3 +5732,31 @@ body.upgrade-active .run-event-banner { display: none !important; }
   #run-event-hint { font-size: 8px; }
   .run-event-badge { position: absolute; right: 7px; top: 5px; font-size: 8px; letter-spacing: 0; }
 }
+
+
+/* =========================================================
+   v88 ランキング上の「ほげ主総会」ロゴ
+   ========================================================= */
+.ranking-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.meeting-banner {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 6px 14px rgba(90, 120, 170, .25));
+}
+@media (min-width: 1101px) {
+  .ranking-column { position: sticky; top: 12px; }
+  .ranking-column .ranking-panel { position: static; top: auto; max-height: none; }
+}
+@media (max-width: 1100px) {
+  .meeting-banner { max-width: 420px; margin: 0 auto; }
+}
+html.theme-dark .meeting-banner { filter: drop-shadow(0 6px 16px rgba(0, 0, 0, .45)); }
+@media (max-width: 760px) and (orientation: portrait), (max-height: 520px) and (orientation: landscape) {
+  .meeting-banner { max-width: 320px; }
+}
