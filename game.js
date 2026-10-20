@@ -864,6 +864,8 @@
   // 2段目解放後は LANE_CYCLE_DISTANCE ごとに「2段ステージ」と「1段ステージ」を交互に切り替える
   // 20000〜25000m: 2段 / 25000〜30000m: 1段 / 30000〜35000m: 2段 …
   const LANE_CYCLE_DISTANCE = 5000;
+  // イベントの最大継続時間。これを超えたら強制的に通常進行へ戻す（敵が出なくなるのを防ぐ保険）。
+  const EVENT_MAX_SECONDS = 45;
   // 空中ティーロードの紅茶の高さ。1段ジャンプの最高到達点より上、二段ジャンプで届く位置。
   const TEA_TRAIL_Y = 200;
   const GRAVITY = 1950;
@@ -2119,9 +2121,17 @@
         event.wave += 1;
       }
       // 時間切れで敵や最後の報酬を消さない。通過するまで床も維持する。
+      // ただしプレイヤーの後方へ流れたものは「通過済み」とみなす（取り逃しで終了しない）。
+      const passedX = game.player.x - 40;
+      const waiting = (obj) => obj.x + obj.w > passedX;
       if (event.wave >= meta.waves &&
-          !game.enemies.some((enemy) => enemy.eventId === event.id && !enemy.dead) &&
-          !game.coinObjects.some((coin) => coin.eventId === event.id && !coin.collected)) {
+          !game.enemies.some((enemy) => enemy.eventId === event.id && !enemy.dead && waiting(enemy)) &&
+          !game.coinObjects.some((coin) => coin.eventId === event.id && !coin.collected && waiting(coin))) {
+        finishRunEvent();
+      } else if (event.elapsed > EVENT_MAX_SECONDS) {
+        // 何かが取り残されても通常進行へ戻す安全装置。
+        game.enemies = game.enemies.filter((enemy) => enemy.eventId !== event.id);
+        game.coinObjects = game.coinObjects.filter((coin) => coin.eventId !== event.id);
         finishRunEvent();
       }
     }
@@ -2253,10 +2263,14 @@
       const dist = Math.hypot(dx, dy);
       // ウルトラレインボーポテチは、ティーカップ磁石Lv4の時だけ吸い寄せる
       const magnetMaxed = (game.upgradeLevels.magnet || 0) >= ULTRA_CHIPS_MAGNET_LEVEL;
-      if ((!coin.ultra || magnetMaxed) && dist < game.upgrades.magnetRadius) {
-        const pull = Math.min(1, dt * (5 + (game.upgrades.magnetRadius - dist) / 35));
-        coin.x += dx * pull;
-        coin.y += dy * pull;
+      if ((!coin.ultra || magnetMaxed) && dist < game.upgrades.magnetRadius && dist > 0.01) {
+        // 画面スクロールより必ず速く近づける。
+        // 距離に比例した引き寄せだと、高速域で「スクロール＝引き寄せ」が釣り合い、
+        // 紅茶がプレイヤーの手前で止まったまま永久に残る（イベントが終わらなくなる）。
+        const closeSpeed = Math.max(speed * 1.35, 460);
+        const step = Math.min(dist, closeSpeed * dt);
+        coin.x += (dx / dist) * step;
+        coin.y += (dy / dist) * step;
       }
       // ポテチは「2段ジャンプ中（2段目解放後は2段目から）」または「ティーカップ磁石Lv4」で取れる
       const doubleJumping = !game.player.onGround && game.player.airJumpsUsed >= 1;
